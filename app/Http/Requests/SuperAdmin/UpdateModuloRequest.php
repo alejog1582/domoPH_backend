@@ -39,7 +39,28 @@ class UpdateModuloRequest extends FormRequest
             'activo' => 'nullable|boolean',
             'requiere_configuracion' => 'nullable|boolean',
             'orden' => 'nullable|integer|min:0',
-            'configuracion_default' => 'nullable|array',
+            'configuracion_default' => 'nullable|string|json',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Si configuracion_default viene como string JSON, intentar decodificarlo
+        if ($this->has('configuracion_default') && is_string($this->configuracion_default)) {
+            $decoded = json_decode($this->configuracion_default, true);
+            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+                $this->merge([
+                    'configuracion_default' => $decoded,
+                ]);
+            } elseif (empty(trim($this->configuracion_default))) {
+                // Si está vacío, establecer como array vacío
+                $this->merge([
+                    'configuracion_default' => [],
+                ]);
+            }
+        }
     }
 }

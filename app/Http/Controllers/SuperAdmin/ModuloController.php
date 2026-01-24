@@ -17,9 +17,9 @@ class ModuloController extends Controller
      * Listar todos los módulos
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return \Illuminate\View\View|JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $query = Modulo::query();
 
@@ -41,24 +41,67 @@ class ModuloController extends Controller
 
         $modulos = $query->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $modulos,
-            'message' => 'Módulos obtenidos exitosamente'
+        // Registrar auditoría
+        LogAuditoria::create([
+            'user_id' => auth()->id(),
+            'accion' => 'list',
+            'modelo' => 'Modulo',
+            'descripcion' => 'Listado de módulos',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'modulo' => 'SuperAdmin',
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $modulos,
+                'message' => 'Módulos obtenidos exitosamente'
+            ]);
+        }
+
+        return view('superadmin.modulos.index', compact('modulos'));
+    }
+
+    /**
+     * Mostrar formulario de creación de módulo
+     *
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        return view('superadmin.modulos.create');
+    }
+
+    /**
+     * Mostrar formulario de edición de módulo
+     *
+     * @param Modulo $modulo
+     * @return \Illuminate\View\View
+     */
+    public function edit(Modulo $modulo)
+    {
+        return view('superadmin.modulos.edit', compact('modulo'));
     }
 
     /**
      * Crear un nuevo módulo
      *
      * @param StoreModuloRequest $request
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function store(StoreModuloRequest $request): JsonResponse
+    public function store(StoreModuloRequest $request)
     {
         DB::beginTransaction();
         try {
-            $modulo = Modulo::create($request->validated());
+            $datos = $request->validated();
+            
+            // Procesar configuracion_default si viene como string JSON
+            if (isset($datos['configuracion_default']) && is_string($datos['configuracion_default'])) {
+                $datos['configuracion_default'] = json_decode($datos['configuracion_default'], true) ?? [];
+            }
+            
+            $modulo = Modulo::create($datos);
 
             // Registrar auditoría
             LogAuditoria::create([
@@ -75,19 +118,30 @@ class ModuloController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => $modulo,
-                'message' => 'Módulo creado exitosamente'
-            ], 201);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $modulo,
+                    'message' => 'Módulo creado exitosamente'
+                ], 201);
+            }
+
+            return redirect()->route('superadmin.modulos.index')
+                ->with('success', 'Módulo creado exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear el módulo',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al crear el módulo',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withInput()
+                ->with('error', 'Error al crear el módulo: ' . $e->getMessage());
         }
     }
 
@@ -96,14 +150,21 @@ class ModuloController extends Controller
      *
      * @param UpdateModuloRequest $request
      * @param Modulo $modulo
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function update(UpdateModuloRequest $request, Modulo $modulo): JsonResponse
+    public function update(UpdateModuloRequest $request, Modulo $modulo)
     {
         DB::beginTransaction();
         try {
             $datosAnteriores = $modulo->toArray();
-            $modulo->update($request->validated());
+            $datos = $request->validated();
+            
+            // Procesar configuracion_default si viene como string JSON
+            if (isset($datos['configuracion_default']) && is_string($datos['configuracion_default'])) {
+                $datos['configuracion_default'] = json_decode($datos['configuracion_default'], true) ?? [];
+            }
+            
+            $modulo->update($datos);
 
             // Registrar auditoría
             LogAuditoria::create([
@@ -121,19 +182,84 @@ class ModuloController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => $modulo,
-                'message' => 'Módulo actualizado exitosamente'
-            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $modulo,
+                    'message' => 'Módulo actualizado exitosamente'
+                ]);
+            }
+
+            return redirect()->route('superadmin.modulos.index')
+                ->with('success', 'Módulo actualizado exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar el módulo',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al actualizar el módulo',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withInput()
+                ->with('error', 'Error al actualizar el módulo: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Eliminar un módulo (soft delete)
+     *
+     * @param Modulo $modulo
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
+     */
+    public function destroy(Modulo $modulo)
+    {
+        DB::beginTransaction();
+        try {
+            $datosAnteriores = $modulo->toArray();
+            $modulo->delete();
+
+            // Registrar auditoría
+            LogAuditoria::create([
+                'user_id' => auth()->id(),
+                'accion' => 'delete',
+                'modelo' => 'Modulo',
+                'modelo_id' => $modulo->id,
+                'descripcion' => "Módulo eliminado: {$modulo->nombre}",
+                'datos_anteriores' => $datosAnteriores,
+                'ip_address' => request()->ip(),
+                'user_agent' => request()->userAgent(),
+                'modulo' => 'SuperAdmin',
+                'nivel' => 'warning',
+            ]);
+
+            DB::commit();
+
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Módulo eliminado exitosamente'
+                ]);
+            }
+
+            return redirect()->route('superadmin.modulos.index')
+                ->with('success', 'Módulo eliminado exitosamente.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al eliminar el módulo',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return back()->with('error', 'Error al eliminar el módulo: ' . $e->getMessage());
         }
     }
 }

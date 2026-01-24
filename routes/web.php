@@ -63,11 +63,13 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
         'planes' => 'plan'
     ]);
     
-    // Gestión de Módulos
-    Route::get('modulos', [ModuloController::class, 'index'])->name('modulos.index');
-    Route::post('modulos', [ModuloController::class, 'store'])->name('modulos.store');
-    Route::get('modulos/{modulo}/edit', [ModuloController::class, 'edit'])->name('modulos.edit');
-    Route::put('modulos/{modulo}', [ModuloController::class, 'update'])->name('modulos.update');
+        // Gestión de Módulos
+        Route::get('modulos', [ModuloController::class, 'index'])->name('modulos.index');
+        Route::get('modulos/create', [ModuloController::class, 'create'])->name('modulos.create');
+        Route::post('modulos', [ModuloController::class, 'store'])->name('modulos.store');
+        Route::get('modulos/{modulo}/edit', [ModuloController::class, 'edit'])->name('modulos.edit');
+        Route::put('modulos/{modulo}', [ModuloController::class, 'update'])->name('modulos.update');
+        Route::delete('modulos/{modulo}', [ModuloController::class, 'destroy'])->name('modulos.destroy');
     
     // Gestión de Usuarios Administradores
     Route::resource('administradores', AdminController::class);

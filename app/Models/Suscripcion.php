@@ -11,6 +11,11 @@ class Suscripcion extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * Nombre de la tabla (sin pluralización automática)
+     */
+    protected $table = 'suscripciones';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

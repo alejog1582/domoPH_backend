@@ -11,6 +11,11 @@ class Modulo extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * Nombre de la tabla (sin pluralización automática)
+     */
+    protected $table = 'modulos';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

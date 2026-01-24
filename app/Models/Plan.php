@@ -11,6 +11,11 @@ class Plan extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * Nombre de la tabla (sin pluralización automática)
+     */
+    protected $table = 'planes';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

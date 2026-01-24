@@ -10,6 +10,11 @@ class ConfiguracionGlobal extends Model
     use HasFactory;
 
     /**
+     * Nombre de la tabla (sin pluralización automática)
+     */
+    protected $table = 'configuraciones_globales';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

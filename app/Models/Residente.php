@@ -11,6 +11,11 @@ class Residente extends Model
     use HasFactory, SoftDeletes;
 
     /**
+     * Nombre de la tabla (sin pluralización automática)
+     */
+    protected $table = 'residentes';
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>

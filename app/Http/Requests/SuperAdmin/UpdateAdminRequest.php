@@ -25,20 +25,19 @@ class UpdateAdminRequest extends FormRequest
         $adminId = $this->route('administrador');
 
         return [
-            'nombre' => 'sometimes|required|string|max:255',
+            'nombre' => 'required|string|max:255',
             'email' => [
-                'sometimes',
                 'required',
                 'email',
                 'max:255',
                 Rule::unique('users', 'email')->ignore($adminId)
             ],
-            'password' => 'sometimes|string|min:8|confirmed',
+            'password' => 'nullable|string|min:8|confirmed',
             'telefono' => 'nullable|string|max:20',
             'documento_identidad' => 'nullable|string|max:50',
             'tipo_documento' => 'nullable|in:CC,CE,NIT,PASAPORTE',
-            'activo' => 'nullable|boolean',
-            'propiedad_id' => 'sometimes|required|exists:propiedades,id',
+            'activo' => 'required|boolean',
+            'propiedad_id' => 'nullable|exists:propiedades,id',
             'es_principal' => 'nullable|boolean',
             'fecha_inicio' => 'nullable|date',
             'fecha_fin' => 'nullable|date|after:fecha_inicio',

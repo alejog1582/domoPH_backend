@@ -71,8 +71,10 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
         Route::put('modulos/{modulo}', [ModuloController::class, 'update'])->name('modulos.update');
         Route::delete('modulos/{modulo}', [ModuloController::class, 'destroy'])->name('modulos.destroy');
     
-    // Gestión de Usuarios Administradores
-    Route::resource('administradores', AdminController::class);
+        // Gestión de Usuarios Administradores (solo listar y editar, no crear ni eliminar)
+        Route::get('administradores', [AdminController::class, 'index'])->name('administradores.index');
+        Route::get('administradores/{administrador}/edit', [AdminController::class, 'edit'])->name('administradores.edit');
+        Route::put('administradores/{administrador}', [AdminController::class, 'update'])->name('administradores.update');
     
     // Configuraciones Globales
     Route::get('configuraciones', [ConfiguracionController::class, 'index'])->name('configuraciones.index');

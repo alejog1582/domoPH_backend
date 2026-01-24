@@ -20,9 +20,9 @@ class AdminController extends Controller
      * Listar todos los administradores
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return \Illuminate\View\View|JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $query = User::whereHas('roles', function ($q) {
             $q->where('slug', 'administrador');
@@ -47,15 +47,55 @@ class AdminController extends Controller
             });
         }
 
+        // Ordenamiento
+        $query->orderBy('nombre', 'asc');
+
         // Paginación
         $perPage = $request->get('per_page', 15);
         $administradores = $query->paginate($perPage);
 
-        return response()->json([
-            'success' => true,
-            'data' => $administradores,
-            'message' => 'Administradores obtenidos exitosamente'
+        // Registrar auditoría
+        LogAuditoria::create([
+            'user_id' => auth()->id(),
+            'accion' => 'list',
+            'modelo' => 'User',
+            'descripcion' => 'Listado de administradores',
+            'ip_address' => $request->ip(),
+            'user_agent' => $request->userAgent(),
+            'modulo' => 'SuperAdmin',
         ]);
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $administradores,
+                'message' => 'Administradores obtenidos exitosamente'
+            ]);
+        }
+
+        // Cargar propiedades para el filtro
+        $propiedades = \App\Models\Propiedad::orderBy('nombre')->get();
+
+        return view('superadmin.administradores.index', compact('administradores', 'propiedades'));
+    }
+
+    /**
+     * Mostrar formulario de edición de administrador
+     *
+     * @param User $administrador
+     * @return \Illuminate\View\View
+     */
+    public function edit(User $administrador)
+    {
+        // Verificar que sea administrador
+        if (!$administrador->hasRole('administrador')) {
+            abort(404, 'El usuario no es un administrador');
+        }
+
+        $administrador->load(['roles', 'administracionesPropiedad.propiedad']);
+        $propiedades = \App\Models\Propiedad::orderBy('nombre')->get();
+
+        return view('superadmin.administradores.edit', compact('administrador', 'propiedades'));
     }
 
     /**
@@ -149,9 +189,9 @@ class AdminController extends Controller
      *
      * @param UpdateAdminRequest $request
      * @param User $administrador
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function update(UpdateAdminRequest $request, User $administrador): JsonResponse
+    public function update(UpdateAdminRequest $request, User $administrador)
     {
         DB::beginTransaction();
         try {
@@ -160,8 +200,16 @@ class AdminController extends Controller
             $data = $request->validated();
             
             // Si se actualiza la contraseña, hashearla
-            if ($request->has('password')) {
+            if ($request->has('password') && !empty($request->password)) {
                 $data['password'] = Hash::make($request->password);
+            } else {
+                // Si no se proporciona contraseña, no actualizarla
+                unset($data['password']);
+            }
+
+            // Asegurar que el campo activo se actualice correctamente
+            if ($request->has('activo')) {
+                $data['activo'] = $request->boolean('activo');
             }
 
             $administrador->update($data);
@@ -198,19 +246,30 @@ class AdminController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => $administrador->load(['roles', 'administracionesPropiedad.propiedad']),
-                'message' => 'Administrador actualizado exitosamente'
-            ]);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $administrador->load(['roles', 'administracionesPropiedad.propiedad']),
+                    'message' => 'Administrador actualizado exitosamente'
+                ]);
+            }
+
+            return redirect()->route('superadmin.administradores.index')
+                ->with('success', 'Administrador actualizado exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar el administrador',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al actualizar el administrador',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withInput()
+                ->with('error', 'Error al actualizar el administrador: ' . $e->getMessage());
         }
     }
 

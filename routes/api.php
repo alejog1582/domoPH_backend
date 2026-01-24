@@ -18,5 +18,6 @@ Route::middleware('auth:sanctum')->get('/user', function (\Illuminate\Http\Reque
 });
 
 // Incluir rutas modulares
-require __DIR__.'/api_superadmin.php';
+// Las rutas de superadmin ahora están en web.php (rutas web con vistas)
+// require __DIR__.'/api_superadmin.php';
 require __DIR__.'/api_admin.php';

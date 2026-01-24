@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>Login - domoPH SuperAdmin</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-blue-500 to-blue-700 min-h-screen flex items-center justify-center">
+    <div class="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-2xl">
+        <div class="text-center">
+            <div class="flex justify-center mb-4">
+                <i class="fas fa-building text-blue-600 text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-extrabold text-gray-900">
+                domoPH
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Panel de Superadministrador
+            </p>
+        </div>
+
+        @if($errors->any())
+            <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <ul class="list-disc list-inside">
+                    @foreach($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form class="mt-8 space-y-6" action="{{ route('superadmin.login.post') }}" method="POST">
+            @csrf
+            
+            <div class="rounded-md shadow-sm -space-y-px">
+                <div>
+                    <label for="email" class="sr-only">Email</label>
+                    <input 
+                        id="email" 
+                        name="email" 
+                        type="email" 
+                        autocomplete="email" 
+                        required 
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                        placeholder="Correo electrónico"
+                        value="{{ old('email') }}"
+                    >
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Contraseña</label>
+                    <input 
+                        id="password" 
+                        name="password" 
+                        type="password" 
+                        autocomplete="current-password" 
+                        required 
+                        class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm" 
+                        placeholder="Contraseña"
+                    >
+                </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <input 
+                        id="remember" 
+                        name="remember" 
+                        type="checkbox" 
+                        class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                    >
+                    <label for="remember" class="ml-2 block text-sm text-gray-900">
+                        Recordarme
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <button 
+                    type="submit" 
+                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                >
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                        <i class="fas fa-lock text-blue-500 group-hover:text-blue-400"></i>
+                    </span>
+                    Iniciar Sesión
+                </button>
+            </div>
+        </form>
+
+        <div class="text-center text-sm text-gray-600 mt-4">
+            <p>Credenciales por defecto:</p>
+            <p class="font-mono text-xs mt-1">admin@domoph.com / Abc1582Abc</p>
+        </div>
+    </div>
+</body>
+</html>

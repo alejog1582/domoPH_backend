@@ -18,9 +18,9 @@ class PropiedadController extends Controller
      * Listar todas las propiedades con paginación
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return \Illuminate\View\View|JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $query = Propiedad::with(['plan', 'suscripcionActiva']);
 
@@ -62,11 +62,17 @@ class PropiedadController extends Controller
             'modulo' => 'SuperAdmin',
         ]);
 
-        return response()->json([
-            'success' => true,
-            'data' => $propiedades,
-            'message' => 'Propiedades obtenidas exitosamente'
-        ]);
+        // Si es una petición API, devolver JSON
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $propiedades,
+                'message' => 'Propiedades obtenidas exitosamente'
+            ]);
+        }
+
+        // Si es web, devolver vista
+        return view('superadmin.propiedades.index', compact('propiedades'));
     }
 
     /**

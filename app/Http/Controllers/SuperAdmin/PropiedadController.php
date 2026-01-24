@@ -7,10 +7,16 @@ use App\Http\Requests\SuperAdmin\StorePropiedadRequest;
 use App\Http\Requests\SuperAdmin\UpdatePropiedadRequest;
 use App\Models\Propiedad;
 use App\Models\Role;
+use App\Models\Modulo;
+use App\Models\Plan;
+use App\Models\User;
+use App\Models\AdministradorPropiedad;
 use App\Models\LogAuditoria;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Carbon\Carbon;
 
 class PropiedadController extends Controller
 {
@@ -76,22 +82,84 @@ class PropiedadController extends Controller
     }
 
     /**
+     * Mostrar formulario de creación de propiedad
+     *
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        $planes = Plan::activos()->ordenados()->get();
+        $modulos = Modulo::activos()->ordenados()->get();
+        
+        return view('superadmin.propiedades.create', compact('planes', 'modulos'));
+    }
+
+    /**
      * Crear una nueva propiedad
      *
      * @param StorePropiedadRequest $request
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function store(StorePropiedadRequest $request): JsonResponse
+    public function store(StorePropiedadRequest $request)
     {
         DB::beginTransaction();
         try {
-            $propiedad = Propiedad::create($request->validated());
+            // Calcular fecha de fin de trial (último día del mes siguiente desde la fecha de creación)
+            // Ejemplo: Si se crea el 15 de enero, el trial termina el 28/29 de febrero (último día del mes siguiente)
+            $fechaCreacion = Carbon::now();
+            $fechaFinTrial = $fechaCreacion->copy()->addMonth()->endOfMonth();
 
-            // Asignar rol de administrador si se proporciona
-            if ($request->has('admin_user_id')) {
-                $propiedad->users()->attach($request->admin_user_id, [
-                    'role_id' => Role::where('slug', 'administrador')->first()->id
-                ]);
+            // Preparar datos de la propiedad
+            $datosPropiedad = $request->only([
+                'nombre', 'nit', 'direccion', 'ciudad', 'departamento', 
+                'codigo_postal', 'telefono', 'email', 'logo', 
+                'color_primario', 'color_secundario', 'descripcion', 
+                'total_unidades', 'estado', 'plan_id'
+            ]);
+            
+            $datosPropiedad['trial_activo'] = true;
+            $datosPropiedad['fecha_inicio_suscripcion'] = $fechaCreacion;
+            $datosPropiedad['fecha_fin_trial'] = $fechaFinTrial;
+
+            // Crear la propiedad
+            $propiedad = Propiedad::create($datosPropiedad);
+
+            // Crear usuario administrador
+            $adminRole = Role::where('slug', 'administrador')->firstOrFail();
+            
+            $adminUser = User::create([
+                'nombre' => $request->admin_nombre,
+                'email' => $request->admin_email,
+                'password' => Hash::make($request->admin_password),
+                'telefono' => $request->admin_telefono,
+                'documento_identidad' => $request->admin_documento_identidad,
+                'tipo_documento' => $request->admin_tipo_documento,
+                'activo' => true,
+            ]);
+
+            // Asignar rol de administrador a la propiedad
+            $adminUser->roles()->attach($adminRole->id, [
+                'propiedad_id' => $propiedad->id
+            ]);
+
+            // Crear registro en administradores_propiedad
+            AdministradorPropiedad::create([
+                'user_id' => $adminUser->id,
+                'propiedad_id' => $propiedad->id,
+                'fecha_inicio' => $fechaCreacion,
+                'es_principal' => true,
+            ]);
+
+            // Asociar módulos seleccionados
+            if ($request->has('modulos') && is_array($request->modulos)) {
+                $modulosData = [];
+                foreach ($request->modulos as $moduloId) {
+                    $modulosData[$moduloId] = [
+                        'activo' => true,
+                        'fecha_activacion' => $fechaCreacion,
+                    ];
+                }
+                $propiedad->modulos()->attach($modulosData);
             }
 
             // Registrar auditoría
@@ -110,19 +178,30 @@ class PropiedadController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => $propiedad->load(['plan', 'suscripcionActiva']),
-                'message' => 'Propiedad creada exitosamente'
-            ], 201);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $propiedad->load(['plan', 'suscripcionActiva', 'modulos', 'administradores']),
+                    'message' => 'Propiedad creada exitosamente'
+                ], 201);
+            }
+
+            return redirect()->route('superadmin.propiedades.index')
+                ->with('success', 'Propiedad creada exitosamente. El administrador ha sido creado automáticamente.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear la propiedad',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al crear la propiedad',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return back()->withInput()
+                ->with('error', 'Error al crear la propiedad: ' . $e->getMessage());
         }
     }
 

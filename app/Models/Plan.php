@@ -92,4 +92,12 @@ class Plan extends Model
     {
         return $query->orderBy('orden');
     }
+
+    /**
+     * Get the route key for the model.
+     */
+    public function getRouteKeyName(): string
+    {
+        return 'id';
+    }
 }

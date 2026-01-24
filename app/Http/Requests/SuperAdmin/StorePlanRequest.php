@@ -33,7 +33,25 @@ class StorePlanRequest extends FormRequest
             'soporte_prioritario' => 'nullable|boolean',
             'activo' => 'nullable|boolean',
             'orden' => 'nullable|integer|min:0',
-            'caracteristicas' => 'nullable|array',
+            'caracteristicas' => 'nullable',
+            'modulos' => 'nullable|array',
+            'modulos.*' => 'exists:modulos,id',
         ];
+    }
+
+    /**
+     * Prepare the data for validation.
+     */
+    protected function prepareForValidation(): void
+    {
+        // Si caracteristicas viene como string JSON, convertirlo a array
+        if ($this->has('caracteristicas') && is_string($this->caracteristicas)) {
+            $decoded = json_decode($this->caracteristicas, true);
+            if (json_last_error() === JSON_ERROR_NONE) {
+                $this->merge([
+                    'caracteristicas' => $decoded,
+                ]);
+            }
+        }
     }
 }

@@ -17,9 +17,9 @@ class PlanController extends Controller
      * Listar todos los planes
      *
      * @param Request $request
-     * @return JsonResponse
+     * @return \Illuminate\View\View|JsonResponse
      */
-    public function index(Request $request): JsonResponse
+    public function index(Request $request)
     {
         $query = Plan::with('modulos');
 
@@ -41,20 +41,26 @@ class PlanController extends Controller
 
         $planes = $query->get();
 
-        return response()->json([
-            'success' => true,
-            'data' => $planes,
-            'message' => 'Planes obtenidos exitosamente'
-        ]);
+        // Si es una petición API, devolver JSON
+        if ($request->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $planes,
+                'message' => 'Planes obtenidos exitosamente'
+            ]);
+        }
+
+        // Si es web, devolver vista
+        return view('superadmin.planes.index', compact('planes'));
     }
 
     /**
      * Crear un nuevo plan
      *
      * @param StorePlanRequest $request
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function store(StorePlanRequest $request): JsonResponse
+    public function store(StorePlanRequest $request)
     {
         DB::beginTransaction();
         try {
@@ -84,37 +90,80 @@ class PlanController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => $plan->load('modulos'),
-                'message' => 'Plan creado exitosamente'
-            ], 201);
+            // Si es una petición API, devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $plan->load('modulos'),
+                    'message' => 'Plan creado exitosamente'
+                ], 201);
+            }
+
+            // Si es web, redirigir con mensaje de éxito
+            return redirect()->route('superadmin.planes.index')
+                ->with('success', 'Plan creado exitosamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear el plan',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            // Si es una petición API, devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al crear el plan',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            // Si es web, redirigir con mensaje de error
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al crear el plan: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Mostrar formulario de creación
+     */
+    public function create()
+    {
+        $modulos = \App\Models\Modulo::activos()->ordenados()->get();
+        return view('superadmin.planes.create', compact('modulos'));
     }
 
     /**
      * Obtener un plan específico
      *
      * @param Plan $plan
-     * @return JsonResponse
+     * @return \Illuminate\View\View|JsonResponse
      */
-    public function show(Plan $plan): JsonResponse
+    public function show(Plan $plan)
     {
         $plan->load('modulos');
 
-        return response()->json([
-            'success' => true,
-            'data' => $plan,
-            'message' => 'Plan obtenido exitosamente'
-        ]);
+        // Si es una petición API, devolver JSON
+        if (request()->expectsJson()) {
+            return response()->json([
+                'success' => true,
+                'data' => $plan,
+                'message' => 'Plan obtenido exitosamente'
+            ]);
+        }
+
+        // Si es web, redirigir a editar
+        return redirect()->route('superadmin.planes.edit', $plan);
+    }
+
+    /**
+     * Mostrar formulario de edición
+     */
+    public function edit(Plan $plan)
+    {
+        $plan->load('modulos');
+        $modulos = \App\Models\Modulo::activos()->ordenados()->get();
+        $modulosSeleccionados = $plan->modulos->pluck('id')->toArray();
+        
+        return view('superadmin.planes.edit', compact('plan', 'modulos', 'modulosSeleccionados'));
     }
 
     /**
@@ -122,9 +171,9 @@ class PlanController extends Controller
      *
      * @param UpdatePlanRequest $request
      * @param Plan $plan
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function update(UpdatePlanRequest $request, Plan $plan): JsonResponse
+    public function update(UpdatePlanRequest $request, Plan $plan)
     {
         DB::beginTransaction();
         try {
@@ -156,19 +205,35 @@ class PlanController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => $plan->load('modulos'),
-                'message' => 'Plan actualizado exitosamente'
-            ]);
+            // Si es una petición API, devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $plan->load('modulos'),
+                    'message' => 'Plan actualizado exitosamente'
+                ]);
+            }
+
+            // Si es web, redirigir con mensaje de éxito
+            return redirect()->route('superadmin.planes.index')
+                ->with('success', 'Plan actualizado exitosamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar el plan',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            // Si es una petición API, devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al actualizar el plan',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            // Si es web, redirigir con mensaje de error
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al actualizar el plan: ' . $e->getMessage());
         }
     }
 
@@ -176,16 +241,21 @@ class PlanController extends Controller
      * Eliminar un plan (soft delete)
      *
      * @param Plan $plan
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function destroy(Plan $plan): JsonResponse
+    public function destroy(Plan $plan)
     {
         // Verificar que no tenga propiedades asociadas
         if ($plan->propiedades()->count() > 0) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No se puede eliminar el plan porque tiene propiedades asociadas'
-            ], 422);
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No se puede eliminar el plan porque tiene propiedades asociadas'
+                ], 422);
+            }
+            
+            return redirect()->route('superadmin.planes.index')
+                ->with('error', 'No se puede eliminar el plan porque tiene propiedades asociadas');
         }
 
         DB::beginTransaction();
@@ -209,18 +279,29 @@ class PlanController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Plan eliminado exitosamente'
-            ]);
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Plan eliminado exitosamente'
+                ]);
+            }
+
+            return redirect()->route('superadmin.planes.index')
+                ->with('success', 'Plan eliminado exitosamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al eliminar el plan',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            if (request()->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al eliminar el plan',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            return redirect()->route('superadmin.planes.index')
+                ->with('error', 'Error al eliminar el plan: ' . $e->getMessage());
         }
     }
 }

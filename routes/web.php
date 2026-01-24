@@ -59,7 +59,9 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
     Route::resource('propiedades', PropiedadController::class);
     
     // Gestión de Planes
-    Route::resource('planes', PlanController::class);
+    Route::resource('planes', PlanController::class)->parameters([
+        'planes' => 'plan'
+    ]);
     
     // Gestión de Módulos
     Route::get('modulos', [ModuloController::class, 'index'])->name('modulos.index');

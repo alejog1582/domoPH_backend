@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
-use App\Http\Controllers\SuperAdmin\AuthController;
+use App\Http\Controllers\SuperAdmin\AuthController as SuperAdminAuthController;
+use App\Http\Controllers\Admin\AuthController as AdminAuthController;
 use App\Http\Controllers\SuperAdmin\PropiedadController;
 use App\Http\Controllers\SuperAdmin\PlanController;
 use App\Http\Controllers\SuperAdmin\ModuloController;
@@ -22,12 +23,21 @@ use App\Http\Controllers\SuperAdmin\AuditoriaController;
 */
 
 Route::get('/', function () {
-    // Si el usuario está autenticado y es superadministrador, redirigir al dashboard
-    if (Auth::check() && Auth::user()->hasRole('superadministrador')) {
-        return redirect()->route('superadmin.dashboard');
+    if (Auth::check()) {
+        $user = Auth::user();
+        
+        // Si es superadministrador, redirigir al dashboard de superadmin
+        if ($user->hasRole('superadministrador')) {
+            return redirect()->route('superadmin.dashboard');
+        }
+        
+        // Si es administrador, redirigir al dashboard de admin
+        if ($user->hasRole('administrador')) {
+            return redirect()->route('admin.dashboard');
+        }
     }
     
-    // Si no está autenticado, redirigir al login
+    // Si no está autenticado, redirigir al login de superadmin por defecto
     return redirect()->route('superadmin.login');
 });
 
@@ -40,11 +50,18 @@ Route::get('/', function () {
 |
 */
 
-// Rutas de autenticación (sin middleware de autenticación)
+// Rutas de autenticación SuperAdmin (sin middleware de autenticación)
 Route::prefix('superadmin')->name('superadmin.')->group(function () {
-    Route::get('login', [AuthController::class, 'showLoginForm'])->name('login');
-    Route::post('login', [AuthController::class, 'login'])->name('login.post');
-    Route::post('logout', [AuthController::class, 'logout'])->name('logout');
+    Route::get('login', [SuperAdminAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [SuperAdminAuthController::class, 'login'])->name('login.post');
+    Route::post('logout', [SuperAdminAuthController::class, 'logout'])->name('logout');
+});
+
+// Rutas de autenticación Admin (sin middleware de autenticación)
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('login', [AdminAuthController::class, 'showLoginForm'])->name('login');
+    Route::post('login', [AdminAuthController::class, 'login'])->name('login.post');
+    Route::post('logout', [AdminAuthController::class, 'logout'])->name('logout');
 });
 
 // Rutas protegidas del superadministrador
@@ -82,4 +99,24 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
     
     // Auditoría
     Route::get('auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
+});
+
+/*
+|--------------------------------------------------------------------------
+| Admin Routes
+|--------------------------------------------------------------------------
+|
+| Rutas para el panel de administración de propiedades
+|
+*/
+
+// Rutas protegidas del administrador
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'])->group(function () {
+    
+    // Dashboard
+    Route::get('dashboard', function () {
+        return view('admin.dashboard');
+    })->name('dashboard');
+    
+    // Aquí se pueden agregar más rutas para los módulos del administrador
 });

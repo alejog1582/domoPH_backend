@@ -27,7 +27,7 @@ class UnidadController extends Controller
 
         $query = Unidad::where('propiedad_id', $propiedad->id);
 
-        // Búsqueda
+        // Búsqueda general (número, torre, bloque)
         if ($request->filled('buscar')) {
             $buscar = $request->buscar;
             $query->where(function($q) use ($buscar) {
@@ -37,12 +37,71 @@ class UnidadController extends Controller
             });
         }
 
+        // Filtro por tipo
+        if ($request->filled('tipo')) {
+            $query->where('tipo', $request->tipo);
+        }
+
+        // Filtro por estado
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        }
+
+        // Filtro por área
+        if ($request->filled('area_m2')) {
+            $query->where('area_m2', $request->area_m2);
+        }
+
+        // Filtro por coeficiente
+        if ($request->filled('coeficiente')) {
+            $query->where('coeficiente', $request->coeficiente);
+        }
+
+        // Filtro por habitaciones
+        if ($request->filled('habitaciones')) {
+            if ($request->habitaciones == '5') {
+                $query->where('habitaciones', '>=', 5);
+            } else {
+                $query->where('habitaciones', $request->habitaciones);
+            }
+        }
+
+        // Filtro por baños
+        if ($request->filled('banos')) {
+            if ($request->banos == '4') {
+                $query->where('banos', '>=', 4);
+            } else {
+                $query->where('banos', $request->banos);
+            }
+        }
+
         $unidades = $query->orderBy('torre')
             ->orderBy('bloque')
             ->orderBy('numero')
-            ->paginate(15);
+            ->paginate(15)
+            ->appends($request->query());
 
-        return view('admin.unidades.index', compact('unidades', 'propiedad'));
+        // Obtener valores únicos de área y coeficiente para los filtros usando GROUP BY
+        $areasUnicas = Unidad::where('propiedad_id', $propiedad->id)
+            ->whereNotNull('area_m2')
+            ->groupBy('area_m2')
+            ->orderBy('area_m2')
+            ->pluck('area_m2')
+            ->map(function($area) {
+                return (string)$area;
+            })
+            ->unique()
+            ->values();
+
+        $coeficientesUnicos = Unidad::where('propiedad_id', $propiedad->id)
+            ->whereNotNull('coeficiente')
+            ->groupBy('coeficiente')
+            ->orderBy('coeficiente')
+            ->pluck('coeficiente')
+            ->unique()
+            ->values();
+
+        return view('admin.unidades.index', compact('unidades', 'propiedad', 'areasUnicas', 'coeficientesUnicos'));
     }
 
     /**

@@ -54,23 +54,134 @@
 
     <!-- Sección de Búsqueda -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
-        <form method="GET" action="{{ route('admin.unidades.index') }}" class="flex items-center space-x-4">
-            <div class="flex-1">
-                <label for="buscar" class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
-                <input 
-                    type="text" 
-                    id="buscar" 
-                    name="buscar" 
-                    value="{{ request('buscar') }}" 
-                    placeholder="Número, Torre o Bloque de la unidad"
-                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                >
+        <h2 class="text-lg font-semibold text-gray-900 mb-4">Filtros de Búsqueda</h2>
+        <form method="GET" action="{{ route('admin.unidades.index') }}">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                <!-- Búsqueda general -->
+                <div>
+                    <label for="buscar" class="block text-sm font-medium text-gray-700 mb-2">Buscar</label>
+                    <input 
+                        type="text" 
+                        id="buscar" 
+                        name="buscar" 
+                        value="{{ request('buscar') }}" 
+                        placeholder="Número, Torre o Bloque"
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                </div>
+
+                <!-- Filtro Tipo -->
+                <div>
+                    <label for="tipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo</label>
+                    <select 
+                        id="tipo" 
+                        name="tipo" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Todos</option>
+                        <option value="apartamento" {{ request('tipo') == 'apartamento' ? 'selected' : '' }}>Apartamento</option>
+                        <option value="casa" {{ request('tipo') == 'casa' ? 'selected' : '' }}>Casa</option>
+                        <option value="local" {{ request('tipo') == 'local' ? 'selected' : '' }}>Local</option>
+                        <option value="parqueadero" {{ request('tipo') == 'parqueadero' ? 'selected' : '' }}>Parqueadero</option>
+                        <option value="bodega" {{ request('tipo') == 'bodega' ? 'selected' : '' }}>Bodega</option>
+                        <option value="otro" {{ request('tipo') == 'otro' ? 'selected' : '' }}>Otro</option>
+                    </select>
+                </div>
+
+                <!-- Filtro Estado -->
+                <div>
+                    <label for="estado" class="block text-sm font-medium text-gray-700 mb-2">Estado</label>
+                    <select 
+                        id="estado" 
+                        name="estado" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Todos</option>
+                        <option value="ocupada" {{ request('estado') == 'ocupada' ? 'selected' : '' }}>Ocupada</option>
+                        <option value="desocupada" {{ request('estado') == 'desocupada' ? 'selected' : '' }}>Desocupada</option>
+                        <option value="en_construccion" {{ request('estado') == 'en_construccion' ? 'selected' : '' }}>En Construcción</option>
+                        <option value="mantenimiento" {{ request('estado') == 'mantenimiento' ? 'selected' : '' }}>Mantenimiento</option>
+                    </select>
+                </div>
+
+                <!-- Filtro Área -->
+                <div>
+                    <label for="area_m2" class="block text-sm font-medium text-gray-700 mb-2">Área (m²)</label>
+                    <select 
+                        id="area_m2" 
+                        name="area_m2" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Todas</option>
+                        @foreach($areasUnicas as $area)
+                            <option value="{{ $area }}" {{ request('area_m2') == $area ? 'selected' : '' }}>
+                                {{ number_format((float)$area, 2) }} m²
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Filtro Coeficiente -->
+                <div>
+                    <label for="coeficiente" class="block text-sm font-medium text-gray-700 mb-2">Coeficiente</label>
+                    <select 
+                        id="coeficiente" 
+                        name="coeficiente" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Todos</option>
+                        @foreach($coeficientesUnicos as $coef)
+                            <option value="{{ $coef }}" {{ request('coeficiente') == $coef ? 'selected' : '' }}>
+                                {{ $coef }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <!-- Filtro Habitaciones -->
+                <div>
+                    <label for="habitaciones" class="block text-sm font-medium text-gray-700 mb-2">Habitaciones</label>
+                    <select 
+                        id="habitaciones" 
+                        name="habitaciones" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Todas</option>
+                        <option value="1" {{ request('habitaciones') == '1' ? 'selected' : '' }}>1</option>
+                        <option value="2" {{ request('habitaciones') == '2' ? 'selected' : '' }}>2</option>
+                        <option value="3" {{ request('habitaciones') == '3' ? 'selected' : '' }}>3</option>
+                        <option value="4" {{ request('habitaciones') == '4' ? 'selected' : '' }}>4</option>
+                        <option value="5" {{ request('habitaciones') == '5' ? 'selected' : '' }}>5+</option>
+                    </select>
+                </div>
+
+                <!-- Filtro Baños -->
+                <div>
+                    <label for="banos" class="block text-sm font-medium text-gray-700 mb-2">Baños</label>
+                    <select 
+                        id="banos" 
+                        name="banos" 
+                        class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                    >
+                        <option value="">Todos</option>
+                        <option value="1" {{ request('banos') == '1' ? 'selected' : '' }}>1</option>
+                        <option value="2" {{ request('banos') == '2' ? 'selected' : '' }}>2</option>
+                        <option value="3" {{ request('banos') == '3' ? 'selected' : '' }}>3</option>
+                        <option value="4" {{ request('banos') == '4' ? 'selected' : '' }}>4+</option>
+                    </select>
+                </div>
             </div>
-            <div class="flex items-end">
-                <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
-                    <i class="fas fa-search mr-2"></i>
-                    Buscar
-                </button>
+
+            <div class="flex items-center justify-between">
+                <a href="{{ route('admin.unidades.index') }}" class="text-sm text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-times mr-1"></i> Limpiar filtros
+                </a>
+                <div class="flex items-center space-x-2">
+                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
+                        <i class="fas fa-search mr-2"></i>
+                        Buscar
+                    </button>
+                </div>
             </div>
         </form>
     </div>

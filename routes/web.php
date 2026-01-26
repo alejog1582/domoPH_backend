@@ -10,6 +10,7 @@ use App\Http\Controllers\SuperAdmin\ModuloController;
 use App\Http\Controllers\SuperAdmin\AdminController;
 use App\Http\Controllers\SuperAdmin\ConfiguracionController;
 use App\Http\Controllers\SuperAdmin\AuditoriaController;
+use App\Http\Controllers\Admin\UnidadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -119,9 +120,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     })->name('dashboard');
     
     // Gestión de Unidades
-    Route::get('unidades', function () {
-        return view('admin.unidades.index');
-    })->name('unidades.index');
+    Route::get('unidades', [UnidadController::class, 'index'])->name('unidades.index');
+    Route::get('unidades/template', [UnidadController::class, 'downloadTemplate'])->name('unidades.template');
+    Route::post('unidades/import', [UnidadController::class, 'import'])->name('unidades.import');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

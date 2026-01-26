@@ -38,8 +38,8 @@ Route::get('/', function () {
         }
     }
     
-    // Si no está autenticado, redirigir al login de superadmin por defecto
-    return redirect()->route('superadmin.login');
+    // Si no está autenticado, redirigir al login de admin por defecto
+    return redirect()->route('admin.login');
 });
 
 /*

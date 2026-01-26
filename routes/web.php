@@ -118,5 +118,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
         return view('admin.dashboard');
     })->name('dashboard');
     
+    // Gestión de Unidades
+    Route::get('unidades', function () {
+        return view('admin.unidades.index');
+    })->name('unidades.index');
+    
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

@@ -67,8 +67,35 @@
                     </a>
 
                     @if($propiedad)
+                        <!-- Menú Copropiedad con submenú -->
+                        <div class="mb-1">
+                            <button 
+                                type="button" 
+                                onclick="toggleSubmenu('copropiedad-menu')"
+                                class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.unidades.*') || request()->routeIs('admin.copropiedad.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                            >
+                                <div class="flex items-center">
+                                    <i class="fas fa-building mr-3"></i>
+                                    <span>Copropiedad</span>
+                                </div>
+                                <i id="copropiedad-menu-icon" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+                            </button>
+                            
+                            <!-- Submenú de Copropiedad -->
+                            <div id="copropiedad-menu" class="hidden pl-4 mt-1 space-y-1">
+                                <a 
+                                    href="{{ route('admin.unidades.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.unidades.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-door-open mr-3 text-xs"></i>
+                                    Unidades
+                                </a>
+                                <!-- Aquí se pueden agregar más opciones del submenú -->
+                            </div>
+                        </div>
+
                         <!-- Módulos activos de la propiedad -->
-                        @foreach($modulos as $modulo)
+                        <!-- @foreach($modulos as $modulo)
                             <a href="{{ $modulo->ruta ?? '#' }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->is(trim($modulo->ruta, '/')) ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
                                 @if($modulo->icono)
                                     <i class="fas fa-{{ $modulo->icono }} mr-3"></i>
@@ -77,7 +104,7 @@
                                 @endif
                                 {{ $modulo->nombre }}
                             </a>
-                        @endforeach
+                        @endforeach -->
 
                         @if($modulos->isEmpty())
                             <div class="px-2 py-4 text-sm text-gray-500">
@@ -124,5 +151,42 @@
     </div>
 
     @stack('scripts')
+    
+    <script>
+        // Función para alternar submenús
+        function toggleSubmenu(menuId) {
+            const menu = document.getElementById(menuId);
+            const icon = document.getElementById(menuId + '-icon');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                if (icon) {
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-up');
+                }
+            } else {
+                menu.classList.add('hidden');
+                if (icon) {
+                    icon.classList.remove('fa-chevron-up');
+                    icon.classList.add('fa-chevron-down');
+                }
+            }
+        }
+
+        // Mantener abierto el submenú si la ruta activa está dentro de él
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(request()->routeIs('admin.unidades.*') || request()->routeIs('admin.copropiedad.*'))
+                const copropiedadMenu = document.getElementById('copropiedad-menu');
+                const copropiedadIcon = document.getElementById('copropiedad-menu-icon');
+                if (copropiedadMenu) {
+                    copropiedadMenu.classList.remove('hidden');
+                    if (copropiedadIcon) {
+                        copropiedadIcon.classList.remove('fa-chevron-down');
+                        copropiedadIcon.classList.add('fa-chevron-up');
+                    }
+                }
+            @endif
+        });
+    </script>
 </body>
 </html>

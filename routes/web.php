@@ -12,6 +12,7 @@ use App\Http\Controllers\SuperAdmin\ConfiguracionController;
 use App\Http\Controllers\SuperAdmin\AuditoriaController;
 use App\Http\Controllers\Admin\UnidadController;
 use App\Http\Controllers\Admin\ResidenteController;
+use App\Http\Controllers\Admin\MascotaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -139,6 +140,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('residentes/{residente}/edit', [ResidenteController::class, 'edit'])->name('residentes.edit');
     Route::put('residentes/{residente}', [ResidenteController::class, 'update'])->name('residentes.update');
     Route::delete('residentes/{residente}', [ResidenteController::class, 'destroy'])->name('residentes.destroy');
+    
+    // Gestión de Mascotas
+    Route::get('mascotas', [MascotaController::class, 'index'])->name('mascotas.index');
+    Route::get('mascotas/create', [MascotaController::class, 'create'])->name('mascotas.create');
+    Route::post('mascotas', [MascotaController::class, 'store'])->name('mascotas.store');
+    Route::get('mascotas/template', [MascotaController::class, 'downloadTemplate'])->name('mascotas.template');
+    Route::post('mascotas/import', [MascotaController::class, 'import'])->name('mascotas.import');
+    Route::get('mascotas/{mascota}/edit', [MascotaController::class, 'edit'])->name('mascotas.edit');
+    Route::put('mascotas/{mascota}', [MascotaController::class, 'update'])->name('mascotas.update');
+    Route::delete('mascotas/{mascota}', [MascotaController::class, 'destroy'])->name('mascotas.destroy');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

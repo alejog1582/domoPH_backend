@@ -368,4 +368,120 @@ class UnidadController extends Controller
             return back()->with('error', 'Error al procesar el archivo: ' . $e->getMessage());
         }
     }
+
+    /**
+     * Mostrar el formulario de edición de una unidad
+     */
+    public function edit(Unidad $unidad)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        // Verificar que la unidad pertenezca a la propiedad activa
+        if ($unidad->propiedad_id != $propiedad->id) {
+            return redirect()->route('admin.unidades.index')
+                ->with('error', 'No tiene permisos para editar esta unidad.');
+        }
+
+        return view('admin.unidades.edit', compact('unidad', 'propiedad'));
+    }
+
+    /**
+     * Actualizar una unidad
+     */
+    public function update(Request $request, Unidad $unidad)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        // Verificar que la unidad pertenezca a la propiedad activa
+        if ($unidad->propiedad_id != $propiedad->id) {
+            return redirect()->route('admin.unidades.index')
+                ->with('error', 'No tiene permisos para editar esta unidad.');
+        }
+
+        $request->validate([
+            'numero' => 'required|string|max:255',
+            'torre' => 'nullable|string|max:255',
+            'bloque' => 'nullable|string|max:255',
+            'tipo' => 'required|in:apartamento,casa,local,parqueadero,bodega,otro',
+            'area_m2' => 'nullable|numeric|min:0',
+            'coeficiente' => 'nullable|integer|min:0',
+            'habitaciones' => 'nullable|integer|min:0',
+            'banos' => 'nullable|integer|min:0',
+            'estado' => 'required|in:ocupada,desocupada,en_construccion,mantenimiento',
+            'observaciones' => 'nullable|string',
+        ], [
+            'numero.required' => 'El campo número es obligatorio.',
+            'tipo.required' => 'El campo tipo es obligatorio.',
+            'tipo.in' => 'El tipo seleccionado no es válido.',
+            'estado.required' => 'El campo estado es obligatorio.',
+            'estado.in' => 'El estado seleccionado no es válido.',
+            'area_m2.numeric' => 'El área debe ser un número.',
+            'coeficiente.integer' => 'El coeficiente debe ser un número entero.',
+            'habitaciones.integer' => 'Las habitaciones deben ser un número entero.',
+            'banos.integer' => 'Los baños deben ser un número entero.',
+        ]);
+
+        try {
+            $unidad->update($request->only([
+                'numero',
+                'torre',
+                'bloque',
+                'tipo',
+                'area_m2',
+                'coeficiente',
+                'habitaciones',
+                'banos',
+                'estado',
+                'observaciones',
+            ]));
+
+            return redirect()->route('admin.unidades.index')
+                ->with('success', 'Unidad actualizada correctamente.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar unidad: ' . $e->getMessage());
+            return back()->with('error', 'Error al actualizar la unidad: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Eliminar una unidad (soft delete)
+     */
+    public function destroy(Unidad $unidad)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        // Verificar que la unidad pertenezca a la propiedad activa
+        if ($unidad->propiedad_id != $propiedad->id) {
+            return redirect()->route('admin.unidades.index')
+                ->with('error', 'No tiene permisos para eliminar esta unidad.');
+        }
+
+        try {
+            $unidad->delete();
+
+            return redirect()->route('admin.unidades.index')
+                ->with('success', 'Unidad eliminada correctamente.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al eliminar unidad: ' . $e->getMessage());
+            return back()->with('error', 'Error al eliminar la unidad: ' . $e->getMessage());
+        }
+    }
 }

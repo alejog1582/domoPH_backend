@@ -123,6 +123,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('unidades', [UnidadController::class, 'index'])->name('unidades.index');
     Route::get('unidades/template', [UnidadController::class, 'downloadTemplate'])->name('unidades.template');
     Route::post('unidades/import', [UnidadController::class, 'import'])->name('unidades.import');
+    Route::get('unidades/{unidad}/edit', [UnidadController::class, 'edit'])->name('unidades.edit');
+    Route::put('unidades/{unidad}', [UnidadController::class, 'update'])->name('unidades.update');
+    Route::delete('unidades/{unidad}', [UnidadController::class, 'destroy'])->name('unidades.destroy');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

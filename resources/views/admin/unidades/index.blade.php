@@ -97,10 +97,27 @@
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                     >
                         <option value="">Todos</option>
-                        <option value="ocupada" {{ request('estado') == 'ocupada' ? 'selected' : '' }}>Ocupada</option>
-                        <option value="desocupada" {{ request('estado') == 'desocupada' ? 'selected' : '' }}>Desocupada</option>
-                        <option value="en_construccion" {{ request('estado') == 'en_construccion' ? 'selected' : '' }}>En Construcción</option>
-                        <option value="mantenimiento" {{ request('estado') == 'mantenimiento' ? 'selected' : '' }}>Mantenimiento</option>
+                        @if(isset($estadosUnicos) && $estadosUnicos->count() > 0)
+                            @foreach($estadosUnicos as $estado)
+                                @php
+                                    $estadoLabels = [
+                                        'ocupada' => 'Ocupada',
+                                        'desocupada' => 'Desocupada',
+                                        'en_construccion' => 'En Construcción',
+                                        'mantenimiento' => 'Mantenimiento'
+                                    ];
+                                    $label = $estadoLabels[$estado] ?? ucfirst(str_replace('_', ' ', $estado));
+                                @endphp
+                                <option value="{{ $estado }}" {{ request('estado') == $estado ? 'selected' : '' }}>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        @else
+                            <option value="ocupada" {{ request('estado') == 'ocupada' ? 'selected' : '' }}>Ocupada</option>
+                            <option value="desocupada" {{ request('estado') == 'desocupada' ? 'selected' : '' }}>Desocupada</option>
+                            <option value="en_construccion" {{ request('estado') == 'en_construccion' ? 'selected' : '' }}>En Construcción</option>
+                            <option value="mantenimiento" {{ request('estado') == 'mantenimiento' ? 'selected' : '' }}>Mantenimiento</option>
+                        @endif
                     </select>
                 </div>
 
@@ -202,6 +219,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">BAÑOS</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ESTADO</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">OBSERVACIONES</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ACCIONES</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -238,10 +256,25 @@
                                     {{ $unidad->observaciones ? \Illuminate\Support\Str::limit($unidad->observaciones, 50) : '-' }}
                                 </span>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ route('admin.unidades.edit', $unidad->id) }}" class="text-blue-600 hover:text-blue-900" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button 
+                                        type="button" 
+                                        onclick="confirmarEliminacion({{ $unidad->id }}, '{{ $unidad->numero }}')" 
+                                        class="text-red-600 hover:text-red-900" 
+                                        title="Eliminar"
+                                    >
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="10" class="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colspan="11" class="px-6 py-4 text-center text-sm text-gray-500">
                                 No se encontraron unidades. 
                                 @if(request('buscar'))
                                     Intenta con otro criterio de búsqueda.
@@ -272,11 +305,65 @@
     </div>
 @endif
 
+    <!-- Modal de Confirmación de Eliminación -->
+    <div id="modalEliminar" class="hidden fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+        <div class="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div class="mt-3 text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mt-5">¿Está seguro?</h3>
+                <div class="mt-2 px-7 py-3">
+                    <p class="text-sm text-gray-500">
+                        ¿Está seguro de que desea eliminar la unidad <strong id="unidadNumero"></strong>? Esta acción no se puede deshacer.
+                    </p>
+                </div>
+                <div class="flex items-center justify-center space-x-4 px-4 py-3 mt-4">
+                    <button 
+                        type="button" 
+                        onclick="cerrarModal()" 
+                        class="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md shadow-sm hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                    >
+                        Cancelar
+                    </button>
+                    <form id="formEliminar" method="POST" class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button 
+                            type="submit" 
+                            class="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
+                        >
+                            Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @push('scripts')
 <script>
     function updateFileName(input) {
         const fileName = input.files[0] ? input.files[0].name : 'Sin archivos seleccionados';
         document.getElementById('fileName').textContent = fileName;
+    }
+
+    function confirmarEliminacion(id, numero) {
+        document.getElementById('unidadNumero').textContent = numero;
+        document.getElementById('formEliminar').action = '{{ route("admin.unidades.destroy", ":id") }}'.replace(':id', id);
+        document.getElementById('modalEliminar').classList.remove('hidden');
+    }
+
+    function cerrarModal() {
+        document.getElementById('modalEliminar').classList.add('hidden');
+    }
+
+    // Cerrar modal al hacer click fuera de él
+    window.onclick = function(event) {
+        const modal = document.getElementById('modalEliminar');
+        if (event.target == modal) {
+            cerrarModal();
+        }
     }
 </script>
 @endpush

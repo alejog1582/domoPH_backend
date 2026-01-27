@@ -266,6 +266,9 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center space-x-2">
+                                    <a href="{{ route('admin.residentes.index', ['unidad_id' => $unidad->id]) }}" class="text-green-600 hover:text-green-900" title="Ver Residentes">
+                                        <i class="fas fa-users"></i>
+                                    </a>
                                     <a href="{{ route('admin.unidades.edit', $unidad->id) }}" class="text-blue-600 hover:text-blue-900" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>

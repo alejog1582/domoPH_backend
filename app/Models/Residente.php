@@ -80,4 +80,12 @@ class Residente extends Model
               ->orWhere('fecha_fin', '>=', now());
         });
     }
+
+    /**
+     * Relación con Mascotas
+     */
+    public function mascotas()
+    {
+        return $this->hasMany(Mascota::class);
+    }
 }

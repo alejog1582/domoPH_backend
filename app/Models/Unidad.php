@@ -76,6 +76,14 @@ class Unidad extends Model
     }
 
     /**
+     * Relación con Mascotas
+     */
+    public function mascotas()
+    {
+        return $this->hasMany(Mascota::class);
+    }
+
+    /**
      * Scope para unidades ocupadas
      */
     public function scopeOcupadas($query)

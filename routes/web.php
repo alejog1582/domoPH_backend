@@ -11,6 +11,7 @@ use App\Http\Controllers\SuperAdmin\AdminController;
 use App\Http\Controllers\SuperAdmin\ConfiguracionController;
 use App\Http\Controllers\SuperAdmin\AuditoriaController;
 use App\Http\Controllers\Admin\UnidadController;
+use App\Http\Controllers\Admin\ResidenteController;
 
 /*
 |--------------------------------------------------------------------------
@@ -126,6 +127,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('unidades/{unidad}/edit', [UnidadController::class, 'edit'])->name('unidades.edit');
     Route::put('unidades/{unidad}', [UnidadController::class, 'update'])->name('unidades.update');
     Route::delete('unidades/{unidad}', [UnidadController::class, 'destroy'])->name('unidades.destroy');
+    
+    // Gestión de Residentes
+    Route::get('residentes', [ResidenteController::class, 'index'])->name('residentes.index');
+    Route::get('residentes/template', [ResidenteController::class, 'downloadTemplate'])->name('residentes.template');
+    Route::post('residentes/import', [ResidenteController::class, 'import'])->name('residentes.import');
+    Route::get('residentes/{residente}/edit', [ResidenteController::class, 'edit'])->name('residentes.edit');
+    Route::put('residentes/{residente}', [ResidenteController::class, 'update'])->name('residentes.update');
+    Route::delete('residentes/{residente}', [ResidenteController::class, 'destroy'])->name('residentes.destroy');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

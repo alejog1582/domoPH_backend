@@ -90,6 +90,13 @@
                                     <i class="fas fa-door-open mr-3 text-xs"></i>
                                     Unidades
                                 </a>
+                                <a 
+                                    href="{{ route('admin.residentes.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.residentes.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-users mr-3 text-xs"></i>
+                                    Residentes
+                                </a>
                                 <!-- Aquí se pueden agregar más opciones del submenú -->
                             </div>
                         </div>

@@ -122,6 +122,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     
     // Gestión de Unidades
     Route::get('unidades', [UnidadController::class, 'index'])->name('unidades.index');
+    Route::get('unidades/create', [UnidadController::class, 'create'])->name('unidades.create');
+    Route::post('unidades', [UnidadController::class, 'store'])->name('unidades.store');
     Route::get('unidades/template', [UnidadController::class, 'downloadTemplate'])->name('unidades.template');
     Route::post('unidades/import', [UnidadController::class, 'import'])->name('unidades.import');
     Route::get('unidades/{unidad}/edit', [UnidadController::class, 'edit'])->name('unidades.edit');
@@ -130,6 +132,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     
     // Gestión de Residentes
     Route::get('residentes', [ResidenteController::class, 'index'])->name('residentes.index');
+    Route::get('residentes/create', [ResidenteController::class, 'create'])->name('residentes.create');
+    Route::post('residentes', [ResidenteController::class, 'store'])->name('residentes.store');
     Route::get('residentes/template', [ResidenteController::class, 'downloadTemplate'])->name('residentes.template');
     Route::post('residentes/import', [ResidenteController::class, 'import'])->name('residentes.import');
     Route::get('residentes/{residente}/edit', [ResidenteController::class, 'edit'])->name('residentes.edit');

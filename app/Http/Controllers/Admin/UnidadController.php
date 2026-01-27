@@ -370,6 +370,104 @@ class UnidadController extends Controller
     }
 
     /**
+     * Mostrar el formulario de creación de una unidad
+     */
+    public function create()
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        return view('admin.unidades.create', compact('propiedad'));
+    }
+
+    /**
+     * Guardar una nueva unidad
+     */
+    public function store(Request $request)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $request->validate([
+            'numero' => 'required|string|max:255',
+            'torre' => 'nullable|string|max:255',
+            'bloque' => 'nullable|string|max:255',
+            'tipo' => 'required|in:apartamento,casa,local,parqueadero,bodega,otro',
+            'area_m2' => 'nullable|numeric|min:0',
+            'coeficiente' => 'nullable|integer|min:0',
+            'habitaciones' => 'nullable|integer|min:0',
+            'banos' => 'nullable|integer|min:0',
+            'estado' => 'required|in:ocupada,desocupada,en_construccion,mantenimiento',
+            'observaciones' => 'nullable|string',
+        ], [
+            'numero.required' => 'El campo número es obligatorio.',
+            'tipo.required' => 'El campo tipo es obligatorio.',
+            'tipo.in' => 'El tipo seleccionado no es válido.',
+            'estado.required' => 'El campo estado es obligatorio.',
+            'estado.in' => 'El estado seleccionado no es válido.',
+            'area_m2.numeric' => 'El área debe ser un número.',
+            'coeficiente.integer' => 'El coeficiente debe ser un número entero.',
+            'habitaciones.integer' => 'Las habitaciones deben ser un número entero.',
+            'banos.integer' => 'Los baños deben ser un número entero.',
+        ]);
+
+        try {
+            // Verificar que no exista una unidad con el mismo número, torre y bloque
+            $query = Unidad::where('propiedad_id', $propiedad->id)
+                ->where('numero', $request->numero);
+
+            if ($request->filled('torre')) {
+                $query->where('torre', $request->torre);
+            } else {
+                $query->whereNull('torre');
+            }
+
+            if ($request->filled('bloque')) {
+                $query->where('bloque', $request->bloque);
+            } else {
+                $query->whereNull('bloque');
+            }
+
+            $unidadExistente = $query->first();
+
+            if ($unidadExistente) {
+                return back()->with('error', 'Ya existe una unidad con el mismo número, torre y bloque.')
+                    ->withInput();
+            }
+
+            $unidad = Unidad::create([
+                'propiedad_id' => $propiedad->id,
+                'numero' => $request->numero,
+                'torre' => $request->torre ?: null,
+                'bloque' => $request->bloque ?: null,
+                'tipo' => $request->tipo,
+                'area_m2' => $request->area_m2,
+                'coeficiente' => $request->coeficiente,
+                'habitaciones' => $request->habitaciones,
+                'banos' => $request->banos,
+                'estado' => $request->estado,
+                'observaciones' => $request->observaciones,
+            ]);
+
+            return redirect()->route('admin.unidades.index')
+                ->with('success', 'Unidad creada correctamente.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al crear unidad: ' . $e->getMessage());
+            return back()->with('error', 'Error al crear la unidad: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
      * Mostrar el formulario de edición de una unidad
      */
     public function edit(Unidad $unidad)

@@ -353,6 +353,110 @@ class ResidenteController extends Controller
     }
 
     /**
+     * Mostrar el formulario de creación de un residente
+     */
+    public function create()
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $unidades = Unidad::where('propiedad_id', $propiedad->id)
+            ->orderBy('torre')
+            ->orderBy('bloque')
+            ->orderBy('numero')
+            ->get();
+
+        return view('admin.residentes.create', compact('unidades', 'propiedad'));
+    }
+
+    /**
+     * Guardar un nuevo residente
+     */
+    public function store(Request $request)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $request->validate([
+            'nombre' => 'required|string|max:255',
+            'email' => 'required|email|max:255|unique:users,email',
+            'documento_identidad' => 'nullable|string|max:255',
+            'telefono' => 'nullable|string|max:255',
+            'unidad_id' => 'required|exists:unidades,id',
+            'tipo_relacion' => 'required|in:propietario,arrendatario,residente_temporal,otro',
+            'fecha_inicio' => 'nullable|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'es_principal' => 'boolean',
+            'recibe_notificaciones' => 'boolean',
+            'observaciones' => 'nullable|string',
+        ], [
+            'nombre.required' => 'El campo nombre es obligatorio.',
+            'email.required' => 'El campo email es obligatorio.',
+            'email.email' => 'El email debe ser una dirección de correo válida.',
+            'email.unique' => 'Este email ya está registrado por otro usuario.',
+            'unidad_id.required' => 'El campo unidad es obligatorio.',
+            'unidad_id.exists' => 'La unidad seleccionada no es válida.',
+            'tipo_relacion.required' => 'El campo tipo de relación es obligatorio.',
+            'tipo_relacion.in' => 'El tipo de relación seleccionado no es válido.',
+            'fecha_inicio.date' => 'La fecha de inicio debe ser una fecha válida.',
+            'fecha_fin.date' => 'La fecha de fin debe ser una fecha válida.',
+            'fecha_fin.after_or_equal' => 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
+        ]);
+
+        // Verificar que la unidad pertenezca a la propiedad
+        $unidad = Unidad::find($request->unidad_id);
+        if (!$unidad || $unidad->propiedad_id != $propiedad->id) {
+            return back()->with('error', 'La unidad seleccionada no pertenece a su propiedad.')
+                ->withInput();
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // Crear usuario
+            $user = User::create([
+                'nombre' => $request->nombre,
+                'email' => $request->email,
+                'password' => Hash::make('password123'), // Password temporal
+                'documento_identidad' => $request->documento_identidad,
+                'telefono' => $request->telefono,
+                'activo' => true,
+            ]);
+
+            // Crear residente
+            $residente = Residente::create([
+                'user_id' => $user->id,
+                'unidad_id' => $request->unidad_id,
+                'tipo_relacion' => $request->tipo_relacion,
+                'fecha_inicio' => $request->fecha_inicio,
+                'fecha_fin' => $request->fecha_fin,
+                'es_principal' => $request->has('es_principal'),
+                'recibe_notificaciones' => $request->has('recibe_notificaciones'),
+                'observaciones' => $request->observaciones,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.residentes.index')
+                ->with('success', 'Residente creado correctamente.');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al crear residente: ' . $e->getMessage());
+            return back()->with('error', 'Error al crear el residente: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
      * Mostrar el formulario de edición de un residente
      */
     public function edit(Residente $residente)

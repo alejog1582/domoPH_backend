@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             ModuloSeeder::class,
             CarteraSeeder::class,
             CuentaCobroSeeder::class,
+            ConfiguracionPropiedadSeeder::class,
         ]);
     }
 }

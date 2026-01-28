@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             CarteraSeeder::class,
             CuentaCobroSeeder::class,
             ConfiguracionPropiedadSeeder::class,
+            RecaudoSeeder::class,
         ]);
     }
 }

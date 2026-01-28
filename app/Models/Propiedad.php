@@ -92,6 +92,14 @@ class Propiedad extends Model
     }
 
     /**
+     * Relación con Recaudos
+     */
+    public function recaudos()
+    {
+        return $this->hasMany(Recaudo::class, 'copropiedad_id');
+    }
+
+    /**
      * Relación con Zonas Sociales
      */
     public function zonasSociales()

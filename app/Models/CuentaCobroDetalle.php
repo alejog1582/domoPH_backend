@@ -55,4 +55,12 @@ class CuentaCobroDetalle extends Model
     {
         return $this->belongsTo(CuotaAdministracion::class);
     }
+
+    /**
+     * Relación con RecaudoDetalle (pagos aplicados a este concepto)
+     */
+    public function recaudoDetalles()
+    {
+        return $this->hasMany(RecaudoDetalle::class);
+    }
 }

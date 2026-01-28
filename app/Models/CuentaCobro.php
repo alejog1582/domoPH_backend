@@ -79,10 +79,30 @@ class CuentaCobro extends Model
     }
 
     /**
+     * Relación con Recaudos (pagos realizados)
+     */
+    public function recaudos()
+    {
+        return $this->hasMany(Recaudo::class);
+    }
+
+    /**
      * Recalcular el valor_total según los componentes
      */
     public function recalcularTotal(): void
     {
         $this->valor_total = ($this->valor_cuotas + $this->valor_intereses + $this->valor_recargos) - $this->valor_descuentos;
+    }
+
+    /**
+     * Calcular el saldo pendiente de la cuenta de cobro
+     */
+    public function calcularSaldoPendiente(): float
+    {
+        $totalRecaudado = $this->recaudos()
+            ->where('estado', '!=', 'anulado')
+            ->sum('valor_pagado');
+        
+        return max(0, $this->valor_total - $totalRecaudado);
     }
 }

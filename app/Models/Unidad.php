@@ -76,6 +76,14 @@ class Unidad extends Model
     }
 
     /**
+     * Relación con Recaudos
+     */
+    public function recaudos()
+    {
+        return $this->hasMany(Recaudo::class);
+    }
+
+    /**
      * Relación con Residentes
      */
     public function residentes()

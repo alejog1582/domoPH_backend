@@ -76,6 +76,22 @@ class Propiedad extends Model
     }
 
     /**
+     * Relación con Carteras
+     */
+    public function carteras()
+    {
+        return $this->hasMany(Cartera::class, 'copropiedad_id');
+    }
+
+    /**
+     * Relación con Cuentas de Cobro
+     */
+    public function cuentasCobro()
+    {
+        return $this->hasMany(CuentaCobro::class, 'copropiedad_id');
+    }
+
+    /**
      * Relación con Zonas Sociales
      */
     public function zonasSociales()

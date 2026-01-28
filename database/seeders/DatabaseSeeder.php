@@ -17,6 +17,8 @@ class DatabaseSeeder extends Seeder
             SuperAdminSeeder::class,
             PlanSeeder::class,
             ModuloSeeder::class,
+            CarteraSeeder::class,
+            CuentaCobroSeeder::class,
         ]);
     }
 }

@@ -60,6 +60,22 @@ class Unidad extends Model
     }
 
     /**
+     * Relación con Cartera
+     */
+    public function cartera()
+    {
+        return $this->hasOne(Cartera::class);
+    }
+
+    /**
+     * Relación con Cuentas de Cobro
+     */
+    public function cuentasCobro()
+    {
+        return $this->hasMany(CuentaCobro::class);
+    }
+
+    /**
      * Relación con Residentes
      */
     public function residentes()

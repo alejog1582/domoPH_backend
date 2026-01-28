@@ -84,6 +84,14 @@ class Propiedad extends Model
     }
 
     /**
+     * Relación con Cuotas de Administración
+     */
+    public function cuotasAdministracion()
+    {
+        return $this->hasMany(CuotaAdministracion::class);
+    }
+
+    /**
      * Relación con Suscripciones
      */
     public function suscripciones()

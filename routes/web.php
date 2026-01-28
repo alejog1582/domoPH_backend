@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\UnidadController;
 use App\Http\Controllers\Admin\ResidenteController;
 use App\Http\Controllers\Admin\MascotaController;
 use App\Http\Controllers\Admin\ZonaSocialController;
+use App\Http\Controllers\Admin\CuotaAdministracionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -165,6 +166,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('zonas-sociales/{zonaSocial}/edit', [ZonaSocialController::class, 'edit'])->name('zonas-sociales.edit');
     Route::put('zonas-sociales/{zonaSocial}', [ZonaSocialController::class, 'update'])->name('zonas-sociales.update');
     Route::delete('zonas-sociales/{zonaSocial}', [ZonaSocialController::class, 'destroy'])->name('zonas-sociales.destroy');
+    
+    // Gestión de Cuotas de Administración
+    Route::get('cuotas-administracion', [CuotaAdministracionController::class, 'index'])->name('cuotas-administracion.index');
+    Route::get('cuotas-administracion/create', [CuotaAdministracionController::class, 'create'])->name('cuotas-administracion.create');
+    Route::post('cuotas-administracion', [CuotaAdministracionController::class, 'store'])->name('cuotas-administracion.store');
+    Route::get('cuotas-administracion/{cuotaAdministracion}/edit', [CuotaAdministracionController::class, 'edit'])->name('cuotas-administracion.edit');
+    Route::put('cuotas-administracion/{cuotaAdministracion}', [CuotaAdministracionController::class, 'update'])->name('cuotas-administracion.update');
+    Route::delete('cuotas-administracion/{cuotaAdministracion}', [CuotaAdministracionController::class, 'destroy'])->name('cuotas-administracion.destroy');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

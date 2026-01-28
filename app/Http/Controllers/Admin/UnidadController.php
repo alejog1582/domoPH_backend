@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Unidad;
+use App\Models\CuotaAdministracion;
 use App\Helpers\AdminHelper;
 use App\Services\PlantillaUnidadesService;
 use Illuminate\Http\Request;
@@ -13,6 +14,42 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class UnidadController extends Controller
 {
+    /**
+     * Validar y crear cuota de administración si no existe para el coeficiente dado
+     *
+     * @param int $propiedadId
+     * @param float|null $coeficiente
+     * @return void
+     */
+    private function validarYCrearCuotaAdministracion($propiedadId, $coeficiente)
+    {
+        // Solo crear cuota si el coeficiente no es null
+        if ($coeficiente === null || $coeficiente === '') {
+            return;
+        }
+
+        // Convertir a float para comparación
+        $coeficiente = (float) $coeficiente;
+
+        // Verificar si ya existe una cuota con este coeficiente para esta propiedad
+        $cuotaExistente = CuotaAdministracion::where('propiedad_id', $propiedadId)
+            ->where('coeficiente', $coeficiente)
+            ->first();
+
+        // Si no existe, crear una nueva cuota ordinaria con valor 0
+        if (!$cuotaExistente) {
+            CuotaAdministracion::create([
+                'propiedad_id' => $propiedadId,
+                'concepto' => CuotaAdministracion::CONCEPTO_CUOTA_ORDINARIA,
+                'coeficiente' => $coeficiente,
+                'valor' => 0,
+                'mes_desde' => null,
+                'mes_hasta' => null,
+                'activo' => true,
+            ]);
+        }
+    }
+
     /**
      * Mostrar la lista de unidades con opción de carga masiva
      */
@@ -343,10 +380,22 @@ class UnidadController extends Controller
                 if ($unidad) {
                     // Actualizar unidad existente
                     $unidad->update($data);
+                    
+                    // Validar y crear cuota de administración si es necesario
+                    if (isset($data['coeficiente']) && $data['coeficiente'] !== null) {
+                        $this->validarYCrearCuotaAdministracion($propiedad->id, $data['coeficiente']);
+                    }
+                    
                     $actualizados++;
                 } else {
                     // Crear nueva unidad
-                    Unidad::create($data);
+                    $nuevaUnidad = Unidad::create($data);
+                    
+                    // Validar y crear cuota de administración si es necesario
+                    if (isset($data['coeficiente']) && $data['coeficiente'] !== null) {
+                        $this->validarYCrearCuotaAdministracion($propiedad->id, $data['coeficiente']);
+                    }
+                    
                     $creados++;
                 }
             }
@@ -457,6 +506,11 @@ class UnidadController extends Controller
                 'observaciones' => $request->observaciones,
             ]);
 
+            // Validar y crear cuota de administración si es necesario
+            if ($request->filled('coeficiente') && $request->coeficiente !== null) {
+                $this->validarYCrearCuotaAdministracion($propiedad->id, $request->coeficiente);
+            }
+
             return redirect()->route('admin.unidades.index')
                 ->with('success', 'Unidad creada correctamente.');
 
@@ -542,6 +596,11 @@ class UnidadController extends Controller
                 'estado',
                 'observaciones',
             ]));
+
+            // Validar y crear cuota de administración si es necesario
+            if ($request->filled('coeficiente') && $request->coeficiente !== null) {
+                $this->validarYCrearCuotaAdministracion($propiedad->id, $request->coeficiente);
+            }
 
             return redirect()->route('admin.unidades.index')
                 ->with('success', 'Unidad actualizada correctamente.');

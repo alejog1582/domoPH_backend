@@ -115,6 +115,33 @@
                             </div>
                         </div>
 
+                        <!-- Menú Cartera con submenú -->
+                        <div class="mb-1">
+                            <button 
+                                type="button" 
+                                onclick="toggleSubmenu('cartera-menu')"
+                                class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.cuotas-administracion.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                            >
+                                <div class="flex items-center">
+                                    <i class="fas fa-wallet mr-3"></i>
+                                    <span>Cartera</span>
+                                </div>
+                                <i id="cartera-menu-icon" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+                            </button>
+                            
+                            <!-- Submenú de Cartera -->
+                            <div id="cartera-menu" class="hidden pl-4 mt-1 space-y-1">
+                                <a 
+                                    href="{{ route('admin.cuotas-administracion.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.cuotas-administracion.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-cog mr-3 text-xs"></i>
+                                    Conf. Cuotas Administración
+                                </a>
+                                <!-- Aquí se pueden agregar más opciones del submenú -->
+                            </div>
+                        </div>
+
                         <!-- Módulos activos de la propiedad -->
                         <!-- @foreach($modulos as $modulo)
                             <a href="{{ $modulo->ruta ?? '#' }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->is(trim($modulo->ruta, '/')) ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -204,6 +231,18 @@
                     if (copropiedadIcon) {
                         copropiedadIcon.classList.remove('fa-chevron-down');
                         copropiedadIcon.classList.add('fa-chevron-up');
+                    }
+                }
+            @endif
+            
+            @if(request()->routeIs('admin.cuotas-administracion.*'))
+                const carteraMenu = document.getElementById('cartera-menu');
+                const carteraIcon = document.getElementById('cartera-menu-icon');
+                if (carteraMenu) {
+                    carteraMenu.classList.remove('hidden');
+                    if (carteraIcon) {
+                        carteraIcon.classList.remove('fa-chevron-down');
+                        carteraIcon.classList.add('fa-chevron-up');
                     }
                 }
             @endif

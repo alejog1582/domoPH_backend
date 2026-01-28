@@ -64,6 +64,9 @@
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Filtros de Búsqueda</h2>
         <form method="GET" action="{{ route('admin.mascotas.index') }}">
+            @if(request('residente_id'))
+                <input type="hidden" name="residente_id" value="{{ request('residente_id') }}">
+            @endif
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
                 <!-- Búsqueda general -->
                 <div>

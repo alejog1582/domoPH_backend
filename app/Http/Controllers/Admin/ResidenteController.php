@@ -32,7 +32,7 @@ class ResidenteController extends Controller
         $unidadesIds = Unidad::where('propiedad_id', $propiedad->id)->pluck('id');
         
         $query = Residente::whereIn('unidad_id', $unidadesIds)
-            ->with(['user', 'unidad']);
+            ->with(['user', 'unidad', 'mascotas']);
 
         // Búsqueda general (nombre, email, documento)
         if ($request->filled('buscar')) {

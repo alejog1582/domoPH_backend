@@ -227,6 +227,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <div class="flex items-center space-x-2">
+                                    @if($residente->mascotas && $residente->mascotas->count() > 0)
+                                        <a href="{{ route('admin.mascotas.index', ['residente_id' => $residente->id]) }}" class="text-purple-600 hover:text-purple-900" title="Ver Mascotas ({{ $residente->mascotas->count() }})">
+                                            <i class="fas fa-paw"></i>
+                                        </a>
+                                    @endif
                                     <a href="{{ route('admin.residentes.edit', $residente->id) }}" class="text-blue-600 hover:text-blue-900" title="Editar">
                                         <i class="fas fa-edit"></i>
                                     </a>

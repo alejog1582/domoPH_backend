@@ -53,6 +53,11 @@ class MascotaController extends Controller
             $query->where('unidad_id', $request->unidad_id);
         }
 
+        // Filtro por residente
+        if ($request->filled('residente_id')) {
+            $query->where('residente_id', $request->residente_id);
+        }
+
         // Filtro por vacunado
         if ($request->filled('vacunado')) {
             $query->where('vacunado', $request->vacunado == '1');

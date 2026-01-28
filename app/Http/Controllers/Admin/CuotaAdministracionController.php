@@ -7,6 +7,7 @@ use App\Models\CuotaAdministracion;
 use App\Helpers\AdminHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Carbon\Carbon;
 
 class CuotaAdministracionController extends Controller
 {
@@ -88,8 +89,8 @@ class CuotaAdministracionController extends Controller
             'concepto' => 'required|in:cuota_ordinaria,cuota_extraordinaria',
             'coeficiente' => 'nullable|numeric|min:0',
             'valor' => 'required|numeric|min:0',
-            'mes_desde' => 'nullable|date',
-            'mes_hasta' => 'nullable|date|after_or_equal:mes_desde',
+            'mes_desde' => 'nullable|date_format:Y-m',
+            'mes_hasta' => 'nullable|date_format:Y-m',
             'activo' => 'boolean',
         ], [
             'concepto.required' => 'El concepto es obligatorio.',
@@ -97,10 +98,31 @@ class CuotaAdministracionController extends Controller
             'valor.required' => 'El valor es obligatorio.',
             'valor.numeric' => 'El valor debe ser un número.',
             'valor.min' => 'El valor debe ser mayor o igual a 0.',
-            'mes_hasta.after_or_equal' => 'El mes hasta debe ser posterior o igual al mes desde.',
+            'mes_desde.date_format' => 'El mes desde debe tener el formato válido de mes/año.',
+            'mes_hasta.date_format' => 'El mes hasta debe tener el formato válido de mes/año.',
         ]);
 
         try {
+            // Validación manual de que mes_hasta sea >= mes_desde
+            if (!empty($validated['mes_desde']) && !empty($validated['mes_hasta'])) {
+                $desde = Carbon::createFromFormat('Y-m', $validated['mes_desde']);
+                $hasta = Carbon::createFromFormat('Y-m', $validated['mes_hasta']);
+
+                if ($hasta->lt($desde)) {
+                    return back()
+                        ->withErrors(['mes_hasta' => 'El mes hasta debe ser posterior o igual al mes desde.'])
+                        ->withInput();
+                }
+            }
+
+            // Convertir formato Y-m a fecha completa (primer día del mes) para guardar en BD
+            $mesDesde = !empty($validated['mes_desde'])
+                ? Carbon::createFromFormat('Y-m', $validated['mes_desde'])->startOfMonth()->toDateString()
+                : null;
+            $mesHasta = !empty($validated['mes_hasta'])
+                ? Carbon::createFromFormat('Y-m', $validated['mes_hasta'])->startOfMonth()->toDateString()
+                : null;
+
             // Si es cuota ordinaria, el coeficiente es obligatorio
             if ($validated['concepto'] === CuotaAdministracion::CONCEPTO_CUOTA_ORDINARIA && empty($validated['coeficiente'])) {
                 return back()->with('error', 'El coeficiente es obligatorio para cuotas ordinarias.')
@@ -124,8 +146,8 @@ class CuotaAdministracionController extends Controller
                 'concepto' => $validated['concepto'],
                 'coeficiente' => $validated['coeficiente'] ?? null,
                 'valor' => $validated['valor'],
-                'mes_desde' => $validated['mes_desde'] ?? null,
-                'mes_hasta' => $validated['mes_hasta'] ?? null,
+                'mes_desde' => $mesDesde,
+                'mes_hasta' => $mesHasta,
                 'activo' => $validated['activo'] ?? true,
             ]);
 
@@ -194,21 +216,42 @@ class CuotaAdministracionController extends Controller
 
         $validated = $request->validate([
             'valor' => 'required|numeric|min:0',
-            'mes_desde' => 'nullable|date',
-            'mes_hasta' => 'nullable|date|after_or_equal:mes_desde',
+            'mes_desde' => 'nullable|date_format:Y-m',
+            'mes_hasta' => 'nullable|date_format:Y-m',
             'activo' => 'boolean',
         ], [
             'valor.required' => 'El valor es obligatorio.',
             'valor.numeric' => 'El valor debe ser un número.',
             'valor.min' => 'El valor debe ser mayor o igual a 0.',
-            'mes_hasta.after_or_equal' => 'El mes hasta debe ser posterior o igual al mes desde.',
+            'mes_desde.date_format' => 'El mes desde debe tener el formato válido de mes/año.',
+            'mes_hasta.date_format' => 'El mes hasta debe tener el formato válido de mes/año.',
         ]);
 
         try {
+            // Validación manual de que mes_hasta sea >= mes_desde
+            if (!empty($validated['mes_desde']) && !empty($validated['mes_hasta'])) {
+                $desde = Carbon::createFromFormat('Y-m', $validated['mes_desde']);
+                $hasta = Carbon::createFromFormat('Y-m', $validated['mes_hasta']);
+
+                if ($hasta->lt($desde)) {
+                    return back()
+                        ->withErrors(['mes_hasta' => 'El mes hasta debe ser posterior o igual al mes desde.'])
+                        ->withInput();
+                }
+            }
+
+            // Convertir formato Y-m a fecha completa (primer día del mes) para guardar en BD
+            $mesDesde = !empty($validated['mes_desde'])
+                ? Carbon::createFromFormat('Y-m', $validated['mes_desde'])->startOfMonth()->toDateString()
+                : null;
+            $mesHasta = !empty($validated['mes_hasta'])
+                ? Carbon::createFromFormat('Y-m', $validated['mes_hasta'])->startOfMonth()->toDateString()
+                : null;
+
             $cuotaAdministracion->update([
                 'valor' => $validated['valor'],
-                'mes_desde' => $validated['mes_desde'] ?? null,
-                'mes_hasta' => $validated['mes_hasta'] ?? null,
+                'mes_desde' => $mesDesde,
+                'mes_hasta' => $mesHasta,
                 'activo' => $validated['activo'] ?? true,
             ]);
 

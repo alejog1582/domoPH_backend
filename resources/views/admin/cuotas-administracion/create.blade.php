@@ -99,13 +99,13 @@
                         Mes Desde
                     </label>
                     <input 
-                        type="date" 
+                        type="month" 
                         id="mes_desde" 
                         name="mes_desde" 
                         value="{{ old('mes_desde') }}" 
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('mes_desde') border-red-500 @enderror"
                     >
-                    <p class="mt-1 text-xs text-gray-500">Dejar vacío si la cuota es indefinida</p>
+                    <p class="mt-1 text-xs text-gray-500">Seleccione mes y año. Dejar vacío si la cuota es indefinida</p>
                     @error('mes_desde')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror
@@ -117,13 +117,13 @@
                         Mes Hasta
                     </label>
                     <input 
-                        type="date" 
+                        type="month" 
                         id="mes_hasta" 
                         name="mes_hasta" 
                         value="{{ old('mes_hasta') }}" 
                         class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('mes_hasta') border-red-500 @enderror"
                     >
-                    <p class="mt-1 text-xs text-gray-500">Dejar vacío si la cuota es indefinida</p>
+                    <p class="mt-1 text-xs text-gray-500">Seleccione mes y año. Dejar vacío si la cuota es indefinida</p>
                     @error('mes_hasta')
                         <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                     @enderror

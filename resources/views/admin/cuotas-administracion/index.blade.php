@@ -107,10 +107,10 @@
                                 ${{ number_format($cuota->valor, 2, ',', '.') }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $cuota->mes_desde ? \Carbon\Carbon::parse($cuota->mes_desde)->format('d/m/Y') : 'Indefinido' }}
+                                {{ $cuota->mes_desde ? \Carbon\Carbon::parse($cuota->mes_desde)->format('m/Y') : 'Indefinido' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {{ $cuota->mes_hasta ? \Carbon\Carbon::parse($cuota->mes_hasta)->format('d/m/Y') : 'Indefinido' }}
+                                {{ $cuota->mes_hasta ? \Carbon\Carbon::parse($cuota->mes_hasta)->format('m/Y') : 'Indefinido' }}
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 @if($cuota->activo)

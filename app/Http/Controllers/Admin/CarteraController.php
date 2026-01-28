@@ -357,7 +357,7 @@ class CarteraController extends Controller
                             'valor_descuentos' => 0,
                             'valor_recargos' => 0,
                             'valor_total' => $saldoTotal,
-                            'estado' => 'pendiente',
+                            'estado' => 'pagada',
                             'observaciones' => 'Cargue inicial de saldos de cartera.',
                         ]);
                     }

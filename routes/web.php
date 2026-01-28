@@ -13,6 +13,7 @@ use App\Http\Controllers\SuperAdmin\AuditoriaController;
 use App\Http\Controllers\Admin\UnidadController;
 use App\Http\Controllers\Admin\ResidenteController;
 use App\Http\Controllers\Admin\MascotaController;
+use App\Http\Controllers\Admin\ZonaSocialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,6 +44,12 @@ Route::get('/', function () {
     // Si no está autenticado, redirigir al login de admin por defecto
     return redirect()->route('admin.login');
 });
+
+// Ruta genérica de login para el middleware de autenticación
+// Redirige a admin.login por defecto
+Route::get('login', function () {
+    return redirect()->route('admin.login');
+})->name('login');
 
 /*
 |--------------------------------------------------------------------------
@@ -150,6 +157,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('mascotas/{mascota}/edit', [MascotaController::class, 'edit'])->name('mascotas.edit');
     Route::put('mascotas/{mascota}', [MascotaController::class, 'update'])->name('mascotas.update');
     Route::delete('mascotas/{mascota}', [MascotaController::class, 'destroy'])->name('mascotas.destroy');
+    
+    // Gestión de Zonas Comunes
+    Route::get('zonas-sociales', [ZonaSocialController::class, 'index'])->name('zonas-sociales.index');
+    Route::get('zonas-sociales/create', [ZonaSocialController::class, 'create'])->name('zonas-sociales.create');
+    Route::post('zonas-sociales', [ZonaSocialController::class, 'store'])->name('zonas-sociales.store');
+    Route::get('zonas-sociales/{zonaSocial}/edit', [ZonaSocialController::class, 'edit'])->name('zonas-sociales.edit');
+    Route::put('zonas-sociales/{zonaSocial}', [ZonaSocialController::class, 'update'])->name('zonas-sociales.update');
+    Route::delete('zonas-sociales/{zonaSocial}', [ZonaSocialController::class, 'destroy'])->name('zonas-sociales.destroy');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

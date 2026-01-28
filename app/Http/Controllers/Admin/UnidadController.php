@@ -44,31 +44,47 @@ class UnidadController extends Controller
             ]);
 
             // Crear una cuenta de cobro en cero para registrar el movimiento de creación de cartera
-            $periodo = now()->format('Y-m');
+            // Usar periodo 2000-01 (enero 2000) para diferenciarlo de cuentas normales
+            $periodo = '2000-01';
             $fechaEmision = now()->toDateString();
 
-            $cuentaCobro = CuentaCobro::create([
-                'copropiedad_id' => $propiedadId,
-                'unidad_id' => $unidad->id,
-                'periodo' => $periodo,
-                'fecha_emision' => $fechaEmision,
-                'fecha_vencimiento' => null,
-                'valor_cuotas' => 0,
-                'valor_intereses' => 0,
-                'valor_descuentos' => 0,
-                'valor_recargos' => 0,
-                'valor_total' => 0,
-                'estado' => 'pendiente',
-                'observaciones' => 'Creación inicial de registro de cartera para la unidad.',
-            ]);
+            // Verificar si ya existe una cuenta de cobro para este periodo y unidad
+            $cuentaCobro = CuentaCobro::where('copropiedad_id', $propiedadId)
+                ->where('unidad_id', $unidad->id)
+                ->where('periodo', $periodo)
+                ->first();
+
+            if (!$cuentaCobro) {
+                $cuentaCobro = CuentaCobro::create([
+                    'copropiedad_id' => $propiedadId,
+                    'unidad_id' => $unidad->id,
+                    'periodo' => $periodo,
+                    'fecha_emision' => $fechaEmision,
+                    'fecha_vencimiento' => null,
+                    'valor_cuotas' => 0,
+                    'valor_intereses' => 0,
+                    'valor_descuentos' => 0,
+                    'valor_recargos' => 0,
+                    'valor_total' => 0,
+                    'estado' => 'pagada',
+                    'observaciones' => 'Creación inicial de registro de cartera para la unidad.',
+                ]);
+            }
 
             // Rubro en detalles de cuenta de cobro para trazabilidad
-            CuentaCobroDetalle::create([
-                'cuenta_cobro_id' => $cuentaCobro->id,
-                'concepto' => 'Creación de registro de cartera',
-                'cuota_administracion_id' => null,
-                'valor' => 0,
-            ]);
+            // Verificar si ya existe un detalle con este concepto para esta cuenta de cobro
+            $detalleExistente = CuentaCobroDetalle::where('cuenta_cobro_id', $cuentaCobro->id)
+                ->where('concepto', 'Creación de registro de cartera')
+                ->first();
+
+            if (!$detalleExistente) {
+                CuentaCobroDetalle::create([
+                    'cuenta_cobro_id' => $cuentaCobro->id,
+                    'concepto' => 'Creación de registro de cartera',
+                    'cuota_administracion_id' => null,
+                    'valor' => 0,
+                ]);
+            }
         }
     }
 

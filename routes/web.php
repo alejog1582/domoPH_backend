@@ -15,6 +15,7 @@ use App\Http\Controllers\Admin\ResidenteController;
 use App\Http\Controllers\Admin\MascotaController;
 use App\Http\Controllers\Admin\ZonaSocialController;
 use App\Http\Controllers\Admin\CuotaAdministracionController;
+use App\Http\Controllers\Admin\CarteraController;
 
 /*
 |--------------------------------------------------------------------------
@@ -174,6 +175,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('cuotas-administracion/{cuotaAdministracion}/edit', [CuotaAdministracionController::class, 'edit'])->name('cuotas-administracion.edit');
     Route::put('cuotas-administracion/{cuotaAdministracion}', [CuotaAdministracionController::class, 'update'])->name('cuotas-administracion.update');
     Route::delete('cuotas-administracion/{cuotaAdministracion}', [CuotaAdministracionController::class, 'destroy'])->name('cuotas-administracion.destroy');
+    
+    // Gestión de Cartera de Unidades (Solo lectura)
+    Route::get('cartera', [CarteraController::class, 'index'])->name('cartera.index');
+    Route::get('cartera/{cartera}/detalles', [CarteraController::class, 'detalles'])->name('cartera.detalles');
+    Route::get('cartera/cargar-saldos', [CarteraController::class, 'showCargarSaldos'])->name('cartera.cargar-saldos');
+    Route::get('cartera/template', [CarteraController::class, 'downloadTemplate'])->name('cartera.download-template');
+    Route::post('cartera/import-saldos', [CarteraController::class, 'importSaldos'])->name('cartera.import-saldos');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

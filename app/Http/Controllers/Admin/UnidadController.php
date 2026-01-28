@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Unidad;
 use App\Models\CuotaAdministracion;
+use App\Models\Cartera;
+use App\Models\CuentaCobro;
+use App\Models\CuentaCobroDetalle;
 use App\Helpers\AdminHelper;
 use App\Services\PlantillaUnidadesService;
 use Illuminate\Http\Request;
@@ -14,6 +17,61 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class UnidadController extends Controller
 {
+    /**
+     * Validar y crear registro de cartera y rubro de creación si no existen
+     *
+     * @param int $propiedadId
+     * @param \App\Models\Unidad $unidad
+     * @return void
+     */
+    private function validarYCrearCarteraYMovimiento($propiedadId, Unidad $unidad)
+    {
+        // Verificar si ya existe cartera para esta unidad
+        $cartera = Cartera::where('copropiedad_id', $propiedadId)
+            ->where('unidad_id', $unidad->id)
+            ->first();
+
+        if (!$cartera) {
+            // Crear cartera con todos los saldos en cero
+            $cartera = Cartera::create([
+                'copropiedad_id' => $propiedadId,
+                'unidad_id' => $unidad->id,
+                'saldo_total' => 0,
+                'saldo_mora' => 0,
+                'saldo_corriente' => 0,
+                'ultima_actualizacion' => null,
+                'activo' => true,
+            ]);
+
+            // Crear una cuenta de cobro en cero para registrar el movimiento de creación de cartera
+            $periodo = now()->format('Y-m');
+            $fechaEmision = now()->toDateString();
+
+            $cuentaCobro = CuentaCobro::create([
+                'copropiedad_id' => $propiedadId,
+                'unidad_id' => $unidad->id,
+                'periodo' => $periodo,
+                'fecha_emision' => $fechaEmision,
+                'fecha_vencimiento' => null,
+                'valor_cuotas' => 0,
+                'valor_intereses' => 0,
+                'valor_descuentos' => 0,
+                'valor_recargos' => 0,
+                'valor_total' => 0,
+                'estado' => 'pendiente',
+                'observaciones' => 'Creación inicial de registro de cartera para la unidad.',
+            ]);
+
+            // Rubro en detalles de cuenta de cobro para trazabilidad
+            CuentaCobroDetalle::create([
+                'cuenta_cobro_id' => $cuentaCobro->id,
+                'concepto' => 'Creación de registro de cartera',
+                'cuota_administracion_id' => null,
+                'valor' => 0,
+            ]);
+        }
+    }
+
     /**
      * Validar y crear cuota de administración si no existe para el coeficiente dado
      *
@@ -385,6 +443,9 @@ class UnidadController extends Controller
                     if (isset($data['coeficiente']) && $data['coeficiente'] !== null) {
                         $this->validarYCrearCuotaAdministracion($propiedad->id, $data['coeficiente']);
                     }
+
+                    // Validar y crear cartera y rubro de creación si no existen
+                    $this->validarYCrearCarteraYMovimiento($propiedad->id, $unidad);
                     
                     $actualizados++;
                 } else {
@@ -395,6 +456,9 @@ class UnidadController extends Controller
                     if (isset($data['coeficiente']) && $data['coeficiente'] !== null) {
                         $this->validarYCrearCuotaAdministracion($propiedad->id, $data['coeficiente']);
                     }
+
+                    // Validar y crear cartera y rubro de creación si no existen
+                    $this->validarYCrearCarteraYMovimiento($propiedad->id, $nuevaUnidad);
                     
                     $creados++;
                 }
@@ -510,6 +574,9 @@ class UnidadController extends Controller
             if ($request->filled('coeficiente') && $request->coeficiente !== null) {
                 $this->validarYCrearCuotaAdministracion($propiedad->id, $request->coeficiente);
             }
+
+            // Validar y crear cartera y rubro de creación si no existen
+            $this->validarYCrearCarteraYMovimiento($propiedad->id, $unidad);
 
             return redirect()->route('admin.unidades.index')
                 ->with('success', 'Unidad creada correctamente.');

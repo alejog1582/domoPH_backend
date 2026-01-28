@@ -9,6 +9,7 @@ use App\Models\CuotaAdministracion;
 use App\Models\CuentaCobro;
 use App\Models\CuentaCobroDetalle;
 use App\Models\Cartera;
+use App\Models\ConfiguracionPropiedad;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -59,6 +60,17 @@ class GenerarCuentasCobroMensual extends Command
         try {
             foreach ($propiedades as $propiedad) {
                 $this->info("\nProcesando propiedad: {$propiedad->nombre} (ID: {$propiedad->id})");
+
+                // Obtener configuración de día de vencimiento para esta propiedad
+                $configDiaVencimiento = ConfiguracionPropiedad::where('propiedad_id', $propiedad->id)
+                    ->where('clave', 'dia_vencimiento_cuenta_cobro')
+                    ->first();
+                
+                // Día de vencimiento por defecto: 10 si no existe configuración
+                $diaVencimiento = $configDiaVencimiento ? (int) $configDiaVencimiento->valor : 10;
+                
+                // Validar que el día esté en rango válido (1-31)
+                $diaVencimiento = max(1, min(31, $diaVencimiento));
 
                 // Obtener todas las unidades de la propiedad
                 $unidades = Unidad::where('propiedad_id', $propiedad->id)->get();
@@ -144,8 +156,15 @@ class GenerarCuentasCobroMensual extends Command
                             continue;
                         }
 
-                        // Calcular fecha de vencimiento (15 días después de la emisión)
-                        $fechaVencimiento = $fechaEmision->copy()->addDays(15);
+                        // Calcular fecha de vencimiento usando el día configurado para la propiedad
+                        // El día de vencimiento se establece en el mes correspondiente al período
+                        $fechaVencimiento = $mesLiquidar->copy()->day($diaVencimiento);
+                        
+                        // Si el día configurado no existe en el mes (ej: día 31 en febrero),
+                        // usar el último día del mes
+                        if (!$fechaVencimiento->isValid()) {
+                            $fechaVencimiento = $mesLiquidar->copy()->endOfMonth();
+                        }
 
                         // Crear cuenta de cobro
                         $cuentaCobro = CuentaCobro::create([

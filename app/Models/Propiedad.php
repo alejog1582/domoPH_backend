@@ -76,6 +76,14 @@ class Propiedad extends Model
     }
 
     /**
+     * Relación con Zonas Sociales
+     */
+    public function zonasSociales()
+    {
+        return $this->hasMany(ZonaSocial::class);
+    }
+
+    /**
      * Relación con Suscripciones
      */
     public function suscripciones()

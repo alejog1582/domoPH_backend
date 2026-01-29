@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\MascotaController;
 use App\Http\Controllers\Admin\ZonaSocialController;
 use App\Http\Controllers\Admin\CuotaAdministracionController;
 use App\Http\Controllers\Admin\CarteraController;
+use App\Http\Controllers\Admin\CuentaCobroController;
 
 /*
 |--------------------------------------------------------------------------
@@ -182,6 +183,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('cartera/cargar-saldos', [CarteraController::class, 'showCargarSaldos'])->name('cartera.cargar-saldos');
     Route::get('cartera/template', [CarteraController::class, 'downloadTemplate'])->name('cartera.download-template');
     Route::post('cartera/import-saldos', [CarteraController::class, 'importSaldos'])->name('cartera.import-saldos');
+    
+    // Gestión de Cuentas de Cobro
+    Route::get('cuentas-cobro', [CuentaCobroController::class, 'index'])->name('cuentas-cobro.index');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

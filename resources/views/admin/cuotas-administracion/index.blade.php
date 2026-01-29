@@ -21,6 +21,24 @@
 </div>
 
 @if($propiedad)
+    <!-- Dashboard: Valor Esperado de Recaudo -->
+    <div class="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg shadow-lg p-6 mb-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-lg font-semibold text-white mb-2">Valor Esperado de Recaudo</h2>
+                <p class="text-blue-100 text-sm mb-1">Mes Actual: {{ \Carbon\Carbon::now()->locale('es')->translatedFormat('F Y') }}</p>
+                <p class="text-3xl font-bold text-white">
+                    ${{ number_format($valorEsperadoRecaudo, 2, ',', '.') }}
+                </p>
+            </div>
+            <div class="flex items-center justify-center w-16 h-16 bg-white bg-opacity-20 rounded-full">
+                <i class="fas fa-chart-line text-white text-2xl"></i>
+            </div>
+        </div>
+    </div>
+@endif
+
+@if($propiedad)
     <!-- Sección de Búsqueda -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <h2 class="text-lg font-semibold text-gray-900 mb-4">Filtros de Búsqueda</h2>

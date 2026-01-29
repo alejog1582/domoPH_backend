@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\CuotaAdministracion;
+use App\Models\Unidad;
 use App\Helpers\AdminHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -41,7 +42,73 @@ class CuotaAdministracionController extends Controller
             ->paginate(15)
             ->appends($request->query());
 
-        return view('admin.cuotas-administracion.index', compact('cuotas', 'propiedad'));
+        // Calcular el valor esperado de recaudo para el mes actual
+        $valorEsperadoRecaudo = $this->calcularValorEsperadoRecaudo($propiedad->id);
+
+        return view('admin.cuotas-administracion.index', compact('cuotas', 'propiedad', 'valorEsperadoRecaudo'));
+    }
+
+    /**
+     * Calcular el valor esperado de recaudo para el mes actual
+     *
+     * @param int $propiedadId
+     * @return float
+     */
+    private function calcularValorEsperadoRecaudo($propiedadId): float
+    {
+        $mesActual = Carbon::now()->startOfMonth();
+        $valorTotal = 0;
+
+        // Obtener todas las cuotas activas que aplican al mes actual
+        $cuotas = CuotaAdministracion::where('propiedad_id', $propiedadId)
+            ->where('activo', true)
+            ->where(function($query) use ($mesActual) {
+                $query->where(function($subQuery) use ($mesActual) {
+                    // Cuotas indefinidas (sin rango)
+                    $subQuery->whereNull('mes_desde')
+                        ->whereNull('mes_hasta');
+                })->orWhere(function($subQuery) use ($mesActual) {
+                    // Cuotas con rango que incluyen el mes actual
+                    $subQuery->where('mes_desde', '<=', $mesActual)
+                        ->where('mes_hasta', '>=', $mesActual);
+                });
+            })
+            ->get();
+
+        foreach ($cuotas as $cuota) {
+            if ($cuota->concepto === CuotaAdministracion::CONCEPTO_CUOTA_ORDINARIA) {
+                // Para cuotas ordinarias: contar unidades con ese coeficiente y multiplicar por el valor
+                // Usar comparación con rango pequeño para manejar diferencias de precisión entre integer y decimal
+                $coeficienteCuota = (float) $cuota->coeficiente;
+                $cantidadUnidades = DB::table('unidades')
+                    ->where('propiedad_id', $propiedadId)
+                    ->whereRaw('ABS(CAST(coeficiente AS DECIMAL(10,4)) - ?) < 0.0001', [$coeficienteCuota])
+                    ->count();
+                
+                $valorTotal += $cantidadUnidades * $cuota->valor;
+            } else {
+                // Para cuotas extraordinarias
+                if (is_null($cuota->coeficiente)) {
+                    // Si el coeficiente es null, se aplica a todas las unidades
+                    $cantidadUnidades = Unidad::where('propiedad_id', $propiedadId)
+                        ->count();
+                    
+                    $valorTotal += $cantidadUnidades * $cuota->valor;
+                } else {
+                    // Si tiene coeficiente, solo se aplica a las unidades con ese coeficiente
+                    // Usar comparación con rango pequeño para manejar diferencias de precisión entre integer y decimal
+                    $coeficienteCuota = (float) $cuota->coeficiente;
+                    $cantidadUnidades = DB::table('unidades')
+                        ->where('propiedad_id', $propiedadId)
+                        ->whereRaw('ABS(CAST(coeficiente AS DECIMAL(10,4)) - ?) < 0.0001', [$coeficienteCuota])
+                        ->count();
+                    
+                    $valorTotal += $cantidadUnidades * $cuota->valor;
+                }
+            }
+        }
+
+        return $valorTotal;
     }
 
     /**

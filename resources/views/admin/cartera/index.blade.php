@@ -232,9 +232,18 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="{{ route('admin.cartera.detalles', $cartera->id) }}" class="text-blue-600 hover:text-blue-900" title="Ver detalles">
-                                    <i class="fas fa-eye"></i>
-                                </a>
+                                <div class="flex items-center space-x-2">
+                                    <a href="{{ route('admin.cartera.detalles', $cartera->id) }}" class="text-blue-600 hover:text-blue-900" title="Ver detalles">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    @if($cartera->saldo_mora > 0)
+                                        <a href="{{ route('admin.acuerdos-pagos.create', ['cartera_id' => $cartera->id]) }}" 
+                                           class="text-green-600 hover:text-green-900" 
+                                           title="Crear acuerdo de pago">
+                                            <i class="fas fa-handshake"></i>
+                                        </a>
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @empty

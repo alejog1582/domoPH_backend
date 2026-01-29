@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\CuotaAdministracionController;
 use App\Http\Controllers\Admin\CarteraController;
 use App\Http\Controllers\Admin\CuentaCobroController;
 use App\Http\Controllers\Admin\RecaudoController;
+use App\Http\Controllers\Admin\AcuerdoPagoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -193,6 +194,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('recaudos/cargar', [RecaudoController::class, 'showCargarRecaudos'])->name('recaudos.cargar');
     Route::get('recaudos/template', [RecaudoController::class, 'downloadTemplate'])->name('recaudos.download-template');
     Route::post('recaudos/import', [RecaudoController::class, 'importRecaudos'])->name('recaudos.import');
+    
+    // Gestión de Acuerdos de Pago
+    Route::get('acuerdos-pagos/create', [AcuerdoPagoController::class, 'create'])->name('acuerdos-pagos.create');
+    Route::post('acuerdos-pagos', [AcuerdoPagoController::class, 'store'])->name('acuerdos-pagos.store');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

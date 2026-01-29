@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\ZonaSocialController;
 use App\Http\Controllers\Admin\CuotaAdministracionController;
 use App\Http\Controllers\Admin\CarteraController;
 use App\Http\Controllers\Admin\CuentaCobroController;
+use App\Http\Controllers\Admin\RecaudoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -186,6 +187,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     
     // Gestión de Cuentas de Cobro
     Route::get('cuentas-cobro', [CuentaCobroController::class, 'index'])->name('cuentas-cobro.index');
+    
+    // Gestión de Recaudos
+    Route::get('recaudos', [RecaudoController::class, 'index'])->name('recaudos.index');
+    Route::get('recaudos/cargar', [RecaudoController::class, 'showCargarRecaudos'])->name('recaudos.cargar');
+    Route::get('recaudos/template', [RecaudoController::class, 'downloadTemplate'])->name('recaudos.download-template');
+    Route::post('recaudos/import', [RecaudoController::class, 'importRecaudos'])->name('recaudos.import');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

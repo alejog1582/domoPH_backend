@@ -9,6 +9,7 @@ use App\Models\CuotaAdministracion;
 use App\Models\CuentaCobro;
 use App\Models\CuentaCobroDetalle;
 use App\Models\Cartera;
+use App\Models\Recaudo;
 use App\Models\ConfiguracionPropiedad;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -156,6 +157,15 @@ class GenerarCuentasCobroMensual extends Command
                             continue;
                         }
 
+                        // Buscar recaudo de anticipo para esta unidad (tipo_pago = 'anticipo' y cuenta_cobro_id = null)
+                        $recaudoAnticipo = Recaudo::where('copropiedad_id', $propiedad->id)
+                            ->where('unidad_id', $unidad->id)
+                            ->where('tipo_pago', 'anticipo')
+                            ->whereNull('cuenta_cobro_id')
+                            ->where('activo', true)
+                            ->where('estado', '!=', 'anulado')
+                            ->first();
+
                         // Calcular fecha de vencimiento usando el día configurado para la propiedad
                         // El día de vencimiento se establece en el mes correspondiente al período
                         $fechaVencimiento = $mesLiquidar->copy()->day($diaVencimiento);
@@ -192,33 +202,118 @@ class GenerarCuentasCobroMensual extends Command
                             ]);
                         }
 
+                        // Procesar anticipo si existe
+                        $valorAplicadoAnticipo = 0;
+                        $saldoCartera = 0;
+
+                        if ($recaudoAnticipo) {
+                            $valorAnticipo = (float) $recaudoAnticipo->valor_pagado;
+                            
+                            if ($valorAnticipo >= $valorCuotas) {
+                                // El anticipo es mayor o igual a la cuenta de cobro
+                                // Asignar el recaudo a la cuenta de cobro
+                                $recaudoAnticipo->update([
+                                    'cuenta_cobro_id' => $cuentaCobro->id,
+                                    'descripcion' => $recaudoAnticipo->descripcion . ' - Aplicado a cuenta ' . $periodo,
+                                ]);
+
+                                // Si el anticipo es mayor, crear un nuevo recaudo con el saldo restante
+                                $saldoRestante = $valorAnticipo - $valorCuotas;
+                                
+                                if ($saldoRestante > 0) {
+                                    // Generar número de recaudo único para el saldo
+                                    $numeroRecaudoSaldo = $recaudoAnticipo->numero_recaudo . '-SALDO';
+                                    $contador = 1;
+                                    while (Recaudo::where('numero_recaudo', $numeroRecaudoSaldo)->exists()) {
+                                        $numeroRecaudoSaldo = $recaudoAnticipo->numero_recaudo . '-SALDO-' . $contador;
+                                        $contador++;
+                                    }
+
+                                    // Crear nuevo recaudo de anticipo con el saldo restante
+                                    Recaudo::create([
+                                        'copropiedad_id' => $propiedad->id,
+                                        'unidad_id' => $unidad->id,
+                                        'cuenta_cobro_id' => null,
+                                        'numero_recaudo' => $numeroRecaudoSaldo,
+                                        'fecha_pago' => $recaudoAnticipo->fecha_pago,
+                                        'tipo_pago' => 'anticipo',
+                                        'medio_pago' => $recaudoAnticipo->medio_pago,
+                                        'referencia_pago' => $recaudoAnticipo->referencia_pago,
+                                        'descripcion' => 'Saldo restante de anticipo',
+                                        'valor_pagado' => $saldoRestante,
+                                        'estado' => 'aplicado',
+                                        'registrado_por' => $recaudoAnticipo->registrado_por,
+                                        'activo' => true,
+                                    ]);
+                                }
+
+                                // La cuenta de cobro queda pagada
+                                $cuentaCobro->update(['estado' => 'pagada']);
+                                $valorAplicadoAnticipo = $valorCuotas;
+                                
+                                // En la cartera no se suma nada porque el anticipo ya estaba registrado
+                                $saldoCartera = 0;
+                                
+                                $this->info("  ✓ Unidad {$unidad->numero}: Cuenta de cobro creada y pagada con anticipo. Valor: $" . number_format($valorCuotas, 2, ',', '.') . 
+                                    ($saldoRestante > 0 ? " (Saldo anticipo restante: $" . number_format($saldoRestante, 2, ',', '.') . ")" : ""));
+                                
+                            } else {
+                                // El anticipo es menor a la cuenta de cobro
+                                // Asignar el recaudo a la cuenta de cobro
+                                $recaudoAnticipo->update([
+                                    'cuenta_cobro_id' => $cuentaCobro->id,
+                                    'descripcion' => $recaudoAnticipo->descripcion . ' - Aplicado a cuenta ' . $periodo,
+                                ]);
+
+                                // La cuenta de cobro queda pendiente con el saldo restante
+                                $valorAplicadoAnticipo = $valorAnticipo;
+                                $saldoCartera = $valorCuotas - $valorAnticipo;
+                                
+                                $this->info("  ✓ Unidad {$unidad->numero}: Cuenta de cobro creada. Valor: $" . number_format($valorCuotas, 2, ',', '.') . 
+                                    " (Anticipo aplicado: $" . number_format($valorAnticipo, 2, ',', '.') . 
+                                    ", Saldo pendiente: $" . number_format($saldoCartera, 2, ',', '.') . ")");
+                            }
+                        } else {
+                            // No hay anticipo, comportamiento normal
+                            $saldoCartera = $valorCuotas;
+                            $this->info("  ✓ Unidad {$unidad->numero}: Cuenta de cobro creada por valor de $" . number_format($valorCuotas, 2, ',', '.'));
+                        }
+
                         // Actualizar o crear cartera
                         $cartera = Cartera::where('copropiedad_id', $propiedad->id)
                             ->where('unidad_id', $unidad->id)
                             ->first();
 
                         if ($cartera) {
-                            // Actualizar cartera sumando el nuevo saldo
-                            $cartera->update([
-                                'saldo_corriente' => $cartera->saldo_corriente + $valorCuotas,
-                                'saldo_total' => $cartera->saldo_total + $valorCuotas,
-                                'ultima_actualizacion' => Carbon::now(),
-                            ]);
+                            // Actualizar cartera sumando solo la diferencia (si hay)
+                            if ($saldoCartera > 0) {
+                                $cartera->update([
+                                    'saldo_corriente' => $cartera->saldo_corriente + $saldoCartera,
+                                    'saldo_total' => $cartera->saldo_total + $saldoCartera,
+                                    'ultima_actualizacion' => Carbon::now(),
+                                ]);
+                            } else {
+                                // Solo actualizar la fecha si no hay saldo que agregar
+                                $cartera->update([
+                                    'ultima_actualizacion' => Carbon::now(),
+                                ]);
+                            }
                         } else {
-                            // Crear nueva cartera si no existe
-                            $cartera = Cartera::create([
-                                'copropiedad_id' => $propiedad->id,
-                                'unidad_id' => $unidad->id,
-                                'saldo_corriente' => $valorCuotas,
-                                'saldo_mora' => 0,
-                                'saldo_total' => $valorCuotas,
-                                'ultima_actualizacion' => Carbon::now(),
-                                'activo' => true,
-                            ]);
+                            // Crear nueva cartera si no existe (solo si hay saldo)
+                            if ($saldoCartera > 0) {
+                                $cartera = Cartera::create([
+                                    'copropiedad_id' => $propiedad->id,
+                                    'unidad_id' => $unidad->id,
+                                    'saldo_corriente' => $saldoCartera,
+                                    'saldo_mora' => 0,
+                                    'saldo_total' => $saldoCartera,
+                                    'ultima_actualizacion' => Carbon::now(),
+                                    'activo' => true,
+                                ]);
+                            }
                         }
 
                         $totalCuentasCreadas++;
-                        $this->info("  ✓ Unidad {$unidad->numero}: Cuenta de cobro creada por valor de $" . number_format($valorCuotas, 2, ',', '.'));
 
                     } catch (\Exception $e) {
                         $totalErrores++;

@@ -114,4 +114,38 @@ class Unidad extends Model
     {
         return $query->where('estado', 'ocupada');
     }
+
+    /**
+     * Relación many-to-many con Comunicados
+     */
+    public function comunicados()
+    {
+        return $this->belongsToMany(Comunicado::class, 'comunicado_unidad')
+            ->withPivot('leido', 'fecha_lectura')
+            ->withTimestamps();
+    }
+
+    /**
+     * Relación con Correspondencias
+     */
+    public function correspondencias()
+    {
+        return $this->hasMany(Correspondencia::class);
+    }
+
+    /**
+     * Relación con Visitas
+     */
+    public function visitas()
+    {
+        return $this->hasMany(Visita::class);
+    }
+
+    /**
+     * Relación con Autorizaciones
+     */
+    public function autorizaciones()
+    {
+        return $this->hasMany(Autorizacion::class);
+    }
 }

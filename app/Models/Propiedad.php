@@ -100,6 +100,46 @@ class Propiedad extends Model
     }
 
     /**
+     * Relación con Comunicados
+     */
+    public function comunicados()
+    {
+        return $this->hasMany(Comunicado::class, 'copropiedad_id');
+    }
+
+    /**
+     * Relación con Correspondencias
+     */
+    public function correspondencias()
+    {
+        return $this->hasMany(Correspondencia::class, 'copropiedad_id');
+    }
+
+    /**
+     * Relación con Visitas
+     */
+    public function visitas()
+    {
+        return $this->hasMany(Visita::class, 'copropiedad_id');
+    }
+
+    /**
+     * Relación con Autorizaciones
+     */
+    public function autorizaciones()
+    {
+        return $this->hasMany(Autorizacion::class, 'copropiedad_id');
+    }
+
+    /**
+     * Relación con Acuerdos de Pago
+     */
+    public function acuerdosPagos()
+    {
+        return $this->hasMany(AcuerdoPago::class, 'copropiedad_id');
+    }
+
+    /**
      * Relación con Zonas Sociales
      */
     public function zonasSociales()

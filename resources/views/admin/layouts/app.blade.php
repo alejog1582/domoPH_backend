@@ -170,6 +170,53 @@
                             </div>
                         </div>
 
+                        <!-- Menú Gestión con submenú -->
+                        <div class="mb-1">
+                            <button 
+                                type="button" 
+                                onclick="toggleSubmenu('gestion-menu')"
+                                class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.comunicados.*') || request()->routeIs('admin.correspondencias.*') || request()->routeIs('admin.visitas.*') || request()->routeIs('admin.autorizaciones.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                            >
+                                <div class="flex items-center">
+                                    <i class="fas fa-tasks mr-3"></i>
+                                    <span>Gestión</span>
+                                </div>
+                                <i id="gestion-menu-icon" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+                            </button>
+                            
+                            <!-- Submenú de Gestión -->
+                            <div id="gestion-menu" class="hidden pl-4 mt-1 space-y-1">
+                                <a 
+                                    href="{{ route('admin.comunicados.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.comunicados.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-bullhorn mr-3 text-xs"></i>
+                                    Comunicados
+                                </a>
+                                <a 
+                                    href="{{ route('admin.correspondencias.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.correspondencias.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-box mr-3 text-xs"></i>
+                                    Correspondencia
+                                </a>
+                                <a 
+                                    href="{{ route('admin.visitas.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.visitas.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-user-friends mr-3 text-xs"></i>
+                                    Visitas
+                                </a>
+                                <a 
+                                    href="{{ route('admin.autorizaciones.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.autorizaciones.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-id-card mr-3 text-xs"></i>
+                                    Autorizaciones
+                                </a>
+                            </div>
+                        </div>
+
                         <!-- Módulos activos de la propiedad -->
                         <!-- @foreach($modulos as $modulo)
                             <a href="{{ $modulo->ruta ?? '#' }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->is(trim($modulo->ruta, '/')) ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -271,6 +318,18 @@
                     if (carteraIcon) {
                         carteraIcon.classList.remove('fa-chevron-down');
                         carteraIcon.classList.add('fa-chevron-up');
+                    }
+                }
+            @endif
+
+            @if(request()->routeIs('admin.comunicados.*') || request()->routeIs('admin.correspondencias.*') || request()->routeIs('admin.visitas.*') || request()->routeIs('admin.autorizaciones.*'))
+                const gestionMenu = document.getElementById('gestion-menu');
+                const gestionIcon = document.getElementById('gestion-menu-icon');
+                if (gestionMenu) {
+                    gestionMenu.classList.remove('hidden');
+                    if (gestionIcon) {
+                        gestionIcon.classList.remove('fa-chevron-down');
+                        gestionIcon.classList.add('fa-chevron-up');
                     }
                 }
             @endif

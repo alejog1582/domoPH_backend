@@ -19,6 +19,10 @@ use App\Http\Controllers\Admin\CarteraController;
 use App\Http\Controllers\Admin\CuentaCobroController;
 use App\Http\Controllers\Admin\RecaudoController;
 use App\Http\Controllers\Admin\AcuerdoPagoController;
+use App\Http\Controllers\Admin\ComunicadoController;
+use App\Http\Controllers\Admin\CorrespondenciaController;
+use App\Http\Controllers\Admin\VisitaController;
+use App\Http\Controllers\Admin\AutorizacionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -201,6 +205,26 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::post('acuerdos-pagos', [AcuerdoPagoController::class, 'store'])->name('acuerdos-pagos.store');
     Route::get('acuerdos-pagos/{acuerdoPago}/edit', [AcuerdoPagoController::class, 'edit'])->name('acuerdos-pagos.edit');
     Route::put('acuerdos-pagos/{acuerdoPago}', [AcuerdoPagoController::class, 'update'])->name('acuerdos-pagos.update');
+    
+    // Gestión de Comunicados
+    Route::get('comunicados', [ComunicadoController::class, 'index'])->name('comunicados.index');
+    Route::get('comunicados/create', [ComunicadoController::class, 'create'])->name('comunicados.create');
+    Route::post('comunicados', [ComunicadoController::class, 'store'])->name('comunicados.store');
+    
+    // Gestión de Correspondencias
+    Route::get('correspondencias', [CorrespondenciaController::class, 'index'])->name('correspondencias.index');
+    Route::get('correspondencias/cargar', [CorrespondenciaController::class, 'showCargarCorrespondencias'])->name('correspondencias.cargar');
+    Route::get('correspondencias/template', [CorrespondenciaController::class, 'downloadTemplate'])->name('correspondencias.download-template');
+    
+    // Gestión de Visitas
+    Route::get('visitas', [VisitaController::class, 'index'])->name('visitas.index');
+    Route::get('visitas/create', [VisitaController::class, 'create'])->name('visitas.create');
+    Route::post('visitas', [VisitaController::class, 'store'])->name('visitas.store');
+    
+    // Gestión de Autorizaciones
+    Route::get('autorizaciones', [AutorizacionController::class, 'index'])->name('autorizaciones.index');
+    Route::get('autorizaciones/create', [AutorizacionController::class, 'create'])->name('autorizaciones.create');
+    Route::post('autorizaciones', [AutorizacionController::class, 'store'])->name('autorizaciones.store');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

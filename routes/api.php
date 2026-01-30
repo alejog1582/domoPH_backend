@@ -25,6 +25,9 @@ Route::prefix('residente')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [App\Http\Controllers\Api\ResidenteAuthController::class, 'logout']);
         Route::get('/me', [App\Http\Controllers\Api\ResidenteAuthController::class, 'me']);
+        
+        // Rutas de reservas
+        Route::get('/reservas', [App\Http\Controllers\Api\ReservaController::class, 'index']);
     });
 });
 

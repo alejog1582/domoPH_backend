@@ -9,6 +9,7 @@ use App\Models\ZonaSocial;
 use App\Models\Reserva;
 use App\Models\ReservaInvitado;
 use App\Models\Residente;
+use App\Models\Cartera;
 use Carbon\Carbon;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
@@ -52,6 +53,20 @@ class ReservaController extends Controller
             }
             
             $propiedadId = $residente->unidad->propiedad->id;
+        } else {
+            // Si no hay residente, no podemos verificar mora
+            $residente = null;
+        }
+
+        // Verificar si el usuario está en mora
+        $estaEnMora = false;
+        $saldoMora = 0;
+        if ($residente && $residente->unidad) {
+            $cartera = Cartera::where('unidad_id', $residente->unidad->id)->first();
+            if ($cartera && $cartera->saldo_mora > 0) {
+                $estaEnMora = true;
+                $saldoMora = (float) $cartera->saldo_mora;
+            }
         }
 
         // Obtener zonas sociales con sus relaciones
@@ -192,6 +207,8 @@ class ReservaController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
+                'esta_en_mora' => $estaEnMora,
+                'saldo_mora' => $saldoMora,
                 'zonas_sociales' => $zonasSociales,
                 'reservas' => $reservas,
             ]

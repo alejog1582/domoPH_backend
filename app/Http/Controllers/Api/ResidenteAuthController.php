@@ -8,7 +8,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\Residente;
+use App\Models\Cartera;
+use App\Models\CuentaCobro;
+use App\Models\Pqrs;
+use App\Models\Comunicado;
 use Illuminate\Validation\ValidationException;
+use Carbon\Carbon;
 
 class ResidenteAuthController extends Controller
 {
@@ -173,6 +178,114 @@ class ResidenteAuthController extends Controller
                 ];
             });
 
+        // Obtener información de cartera
+        $cartera = Cartera::where('unidad_id', $residente->unidad->id)
+            ->where('activo', true)
+            ->first();
+
+        $carteraData = null;
+        $proximoVencimiento = null;
+        if ($cartera) {
+            $carteraData = [
+                'saldo_total' => (float) $cartera->saldo_total,
+                'saldo_mora' => (float) $cartera->saldo_mora,
+                'saldo_corriente' => (float) $cartera->saldo_corriente,
+            ];
+
+            // Obtener próxima cuenta de cobro vencida o por vencer
+            $proximaCuenta = CuentaCobro::where('unidad_id', $residente->unidad->id)
+                ->where('estado', 'pendiente')
+                ->where('fecha_vencimiento', '>=', Carbon::now())
+                ->orderBy('fecha_vencimiento', 'asc')
+                ->first();
+
+            if ($proximaCuenta) {
+                $proximoVencimiento = [
+                    'fecha' => $proximaCuenta->fecha_vencimiento->format('Y-m-d'),
+                    'fecha_formateada' => $proximaCuenta->fecha_vencimiento->format('d M'),
+                    'valor' => (float) $proximaCuenta->valor_total,
+                ];
+            }
+        }
+
+        // Obtener PQRS abiertas (radicada, en_proceso)
+        $pqrsAbiertas = Pqrs::where('copropiedad_id', $propiedadData['id'])
+            ->where(function($query) use ($residente) {
+                $query->where('unidad_id', $residente->unidad->id)
+                      ->orWhere('residente_id', $residente->id);
+            })
+            ->whereIn('estado', ['radicada', 'en_proceso'])
+            ->where('activo', true)
+            ->orderBy('fecha_radicacion', 'desc')
+            ->get()
+            ->map(function ($pqr) {
+                return [
+                    'id' => $pqr->id,
+                    'numero_radicado' => $pqr->numero_radicado,
+                    'asunto' => $pqr->asunto,
+                    'tipo' => $pqr->tipo,
+                    'estado' => $pqr->estado,
+                    'prioridad' => $pqr->prioridad,
+                    'fecha_radicacion' => $pqr->fecha_radicacion->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        // Obtener comunicados nuevos (no leídos)
+        $comunicadosQuery = Comunicado::where('copropiedad_id', $propiedadData['id'])
+            ->where('publicado', true)
+            ->where('activo', true)
+            ->where(function($query) use ($residente) {
+                // Comunicados visibles para todos
+                $query->where('visible_para', 'todos')
+                      // O visibles para propietarios (si el residente es propietario)
+                      ->orWhere(function($q) use ($residente) {
+                          if ($residente->tipo_relacion === 'propietario') {
+                              $q->where('visible_para', 'propietarios');
+                          }
+                      })
+                      // O comunicados específicos para esta unidad
+                      ->orWhereHas('unidades', function($q) use ($residente) {
+                          $q->where('unidades.id', $residente->unidad->id);
+                      })
+                      // O comunicados específicos para este residente
+                      ->orWhereHas('residentes', function($q) use ($residente) {
+                          $q->where('residentes.id', $residente->id);
+                      });
+            })
+            ->with(['residentes' => function($query) use ($residente) {
+                $query->where('residentes.id', $residente->id);
+            }])
+            ->orderBy('fecha_publicacion', 'desc')
+            ->limit(10)
+            ->get();
+
+        $comunicadosNuevos = $comunicadosQuery->map(function ($comunicado) use ($residente) {
+            // Verificar si está leído
+            $leido = false;
+            $pivotResidente = $comunicado->residentes->first();
+            if ($pivotResidente && $pivotResidente->pivot) {
+                $leido = (bool) $pivotResidente->pivot->leido;
+            }
+
+            return [
+                'id' => $comunicado->id,
+                'titulo' => $comunicado->titulo,
+                'resumen' => $comunicado->resumen,
+                'tipo' => $comunicado->tipo,
+                'fecha_publicacion' => $comunicado->fecha_publicacion?->format('Y-m-d H:i:s'),
+                'leido' => $leido,
+            ];
+        })
+        ->filter(function ($comunicado) {
+            return !$comunicado['leido']; // Solo los no leídos
+        })
+        ->values();
+
+        // Obtener reservas activas (si existe el modelo)
+        // Por ahora retornamos un array vacío, se puede implementar cuando exista el modelo
+        $reservasActivas = [];
+        $proximaReserva = null;
+
         // Respuesta exitosa
         return response()->json([
             'success' => true,
@@ -183,6 +296,12 @@ class ResidenteAuthController extends Controller
                 'unidad' => $unidadData,
                 'propiedad' => $propiedadData,
                 'todas_unidades' => $todasUnidades,
+                'cartera' => $carteraData,
+                'proximo_vencimiento' => $proximoVencimiento,
+                'pqrs_abiertas' => $pqrsAbiertas,
+                'comunicados_nuevos' => $comunicadosNuevos,
+                'reservas_activas' => $reservasActivas,
+                'proxima_reserva' => $proximaReserva,
                 'token' => $token,
                 'token_type' => 'Bearer',
             ]

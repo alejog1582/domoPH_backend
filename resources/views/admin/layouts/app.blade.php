@@ -217,6 +217,39 @@
                             </div>
                         </div>
 
+                        <!-- Menú Convivencia con submenú -->
+                        <div class="mb-1">
+                            <button 
+                                type="button" 
+                                onclick="toggleSubmenu('convivencia-menu')"
+                                class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.llamados-atencion.*') || request()->routeIs('admin.pqrs.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                            >
+                                <div class="flex items-center">
+                                    <i class="fas fa-users mr-3"></i>
+                                    <span>Convivencia</span>
+                                </div>
+                                <i id="convivencia-menu-icon" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+                            </button>
+                            
+                            <!-- Submenú de Convivencia -->
+                            <div id="convivencia-menu" class="hidden pl-4 mt-1 space-y-1">
+                                <a 
+                                    href="{{ route('admin.llamados-atencion.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.llamados-atencion.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-exclamation-triangle mr-3 text-xs"></i>
+                                    Llamados de Atención
+                                </a>
+                                <a 
+                                    href="{{ route('admin.pqrs.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.pqrs.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-comments mr-3 text-xs"></i>
+                                    PQRS
+                                </a>
+                            </div>
+                        </div>
+
                         <!-- Módulos activos de la propiedad -->
                         <!-- @foreach($modulos as $modulo)
                             <a href="{{ $modulo->ruta ?? '#' }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->is(trim($modulo->ruta, '/')) ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
@@ -330,6 +363,18 @@
                     if (gestionIcon) {
                         gestionIcon.classList.remove('fa-chevron-down');
                         gestionIcon.classList.add('fa-chevron-up');
+                    }
+                }
+            @endif
+
+            @if(request()->routeIs('admin.llamados-atencion.*') || request()->routeIs('admin.pqrs.*'))
+                const convivenciaMenu = document.getElementById('convivencia-menu');
+                const convivenciaIcon = document.getElementById('convivencia-menu-icon');
+                if (convivenciaMenu) {
+                    convivenciaMenu.classList.remove('hidden');
+                    if (convivenciaIcon) {
+                        convivenciaIcon.classList.remove('fa-chevron-down');
+                        convivenciaIcon.classList.add('fa-chevron-up');
                     }
                 }
             @endif

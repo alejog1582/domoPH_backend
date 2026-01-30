@@ -23,6 +23,8 @@ use App\Http\Controllers\Admin\ComunicadoController;
 use App\Http\Controllers\Admin\CorrespondenciaController;
 use App\Http\Controllers\Admin\VisitaController;
 use App\Http\Controllers\Admin\AutorizacionController;
+use App\Http\Controllers\Admin\LlamadoAtencionController;
+use App\Http\Controllers\Admin\PqrsController;
 
 /*
 |--------------------------------------------------------------------------
@@ -225,6 +227,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('autorizaciones', [AutorizacionController::class, 'index'])->name('autorizaciones.index');
     Route::get('autorizaciones/create', [AutorizacionController::class, 'create'])->name('autorizaciones.create');
     Route::post('autorizaciones', [AutorizacionController::class, 'store'])->name('autorizaciones.store');
+    
+    // Gestión de Llamados de Atención
+    Route::get('llamados-atencion', [LlamadoAtencionController::class, 'index'])->name('llamados-atencion.index');
+    Route::get('llamados-atencion/create', [LlamadoAtencionController::class, 'create'])->name('llamados-atencion.create');
+    Route::post('llamados-atencion', [LlamadoAtencionController::class, 'store'])->name('llamados-atencion.store');
+    
+    // Gestión de PQRS
+    Route::get('pqrs', [PqrsController::class, 'index'])->name('pqrs.index');
+    Route::get('pqrs/{pqrs}/edit', [PqrsController::class, 'edit'])->name('pqrs.edit');
+    Route::put('pqrs/{pqrs}', [PqrsController::class, 'update'])->name('pqrs.update');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

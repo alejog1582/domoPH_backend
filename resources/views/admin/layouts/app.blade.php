@@ -159,6 +159,13 @@
                                     <i class="fas fa-money-bill-wave mr-3 text-xs"></i>
                                     Recaudos
                                 </a>
+                                <a 
+                                    href="{{ route('admin.acuerdos-pagos.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.acuerdos-pagos.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-handshake mr-3 text-xs"></i>
+                                    Acuerdos de Pago
+                                </a>
                                 <!-- Aquí se pueden agregar más opciones del submenú -->
                             </div>
                         </div>
@@ -256,7 +263,7 @@
                 }
             @endif
             
-            @if(request()->routeIs('admin.cuotas-administracion.*') || request()->routeIs('admin.cartera.*') || request()->routeIs('admin.cuentas-cobro.*') || request()->routeIs('admin.recaudos.*'))
+            @if(request()->routeIs('admin.cuotas-administracion.*') || request()->routeIs('admin.cartera.*') || request()->routeIs('admin.cuentas-cobro.*') || request()->routeIs('admin.recaudos.*') || request()->routeIs('admin.acuerdos-pagos.*'))
                 const carteraMenu = document.getElementById('cartera-menu');
                 const carteraIcon = document.getElementById('cartera-menu-icon');
                 if (carteraMenu) {

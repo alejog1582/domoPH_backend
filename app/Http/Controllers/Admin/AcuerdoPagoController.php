@@ -166,4 +166,190 @@ class AcuerdoPagoController extends Controller
                 ->withInput();
         }
     }
+
+    /**
+     * Mostrar la lista de acuerdos de pago
+     */
+    public function index(Request $request)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        // Query base: acuerdos de pago con sus relaciones
+        $query = AcuerdoPago::with(['unidad', 'cartera', 'cuentaCobro'])
+            ->where('copropiedad_id', $propiedad->id)
+            ->where('activo', true);
+
+        // Filtro por estado (por defecto: excluir cumplido y cancelado)
+        if ($request->filled('estado')) {
+            $query->where('estado', $request->estado);
+        } else {
+            // Por defecto: excluir cumplido y cancelado
+            $query->whereNotIn('estado', ['cumplido', 'cancelado']);
+        }
+
+        // Filtro por unidad
+        if ($request->filled('unidad_id')) {
+            $query->where('unidad_id', $request->unidad_id);
+        }
+
+        // Filtro por búsqueda de unidad
+        if ($request->filled('buscar_unidad')) {
+            $buscar = $request->buscar_unidad;
+            $query->whereHas('unidad', function($q) use ($buscar) {
+                $q->where('numero', 'like', "%{$buscar}%")
+                  ->orWhere('torre', 'like', "%{$buscar}%")
+                  ->orWhere('bloque', 'like', "%{$buscar}%");
+            });
+        }
+
+        // Filtro por número de acuerdo
+        if ($request->filled('numero_acuerdo')) {
+            $query->where('numero_acuerdo', 'like', "%{$request->numero_acuerdo}%");
+        }
+
+        // Filtro por fecha de acuerdo desde
+        if ($request->filled('fecha_acuerdo_desde')) {
+            $query->where('fecha_acuerdo', '>=', $request->fecha_acuerdo_desde);
+        }
+
+        // Filtro por fecha de acuerdo hasta
+        if ($request->filled('fecha_acuerdo_hasta')) {
+            $query->where('fecha_acuerdo', '<=', $request->fecha_acuerdo_hasta);
+        }
+
+        // Ordenar por fecha de acuerdo descendente
+        $acuerdos = $query->orderBy('fecha_acuerdo', 'desc')
+            ->orderBy('id', 'desc')
+            ->paginate(15)
+            ->appends($request->query());
+
+        // Obtener unidades para el filtro
+        $unidades = \App\Models\Unidad::where('propiedad_id', $propiedad->id)
+            ->orderBy('numero')
+            ->get(['id', 'numero', 'torre', 'bloque']);
+
+        return view('admin.acuerdos-pagos.index', compact(
+            'acuerdos', 
+            'propiedad', 
+            'unidades'
+        ));
+    }
+
+    /**
+     * Mostrar el formulario de edición de un acuerdo de pago
+     */
+    public function edit(AcuerdoPago $acuerdoPago)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        // Verificar que el acuerdo pertenezca a la propiedad activa
+        if ($acuerdoPago->copropiedad_id != $propiedad->id) {
+            return redirect()->route('admin.acuerdos-pagos.index')
+                ->with('error', 'No tiene permisos para editar este acuerdo de pago.');
+        }
+
+        // Cargar relaciones
+        $acuerdoPago->load(['unidad', 'cartera', 'cuentaCobro']);
+
+        return view('admin.acuerdos-pagos.edit', compact('acuerdoPago', 'propiedad'));
+    }
+
+    /**
+     * Actualizar un acuerdo de pago
+     */
+    public function update(Request $request, AcuerdoPago $acuerdoPago)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        // Verificar que el acuerdo pertenezca a la propiedad activa
+        if ($acuerdoPago->copropiedad_id != $propiedad->id) {
+            return redirect()->route('admin.acuerdos-pagos.index')
+                ->with('error', 'No tiene permisos para editar este acuerdo de pago.');
+        }
+
+        $validated = $request->validate([
+            'numero_acuerdo' => 'required|string|max:50',
+            'fecha_acuerdo' => 'required|date',
+            'fecha_inicio' => 'required|date',
+            'fecha_fin' => 'nullable|date|after_or_equal:fecha_inicio',
+            'descripcion' => 'nullable|string',
+            'valor_acordado' => 'required|numeric|min:0',
+            'valor_inicial' => 'nullable|numeric|min:0',
+            'numero_cuotas' => 'required|integer|min:1',
+            'valor_cuota' => 'required|numeric|min:0',
+            'interes_acuerdo' => 'nullable|numeric|min:0|max:100',
+            'valor_intereses' => 'nullable|numeric|min:0',
+            'estado' => 'required|in:pendiente,activo,cumplido,incumplido,cancelado',
+            'activo' => 'boolean',
+        ], [
+            'numero_acuerdo.required' => 'El número de acuerdo es obligatorio.',
+            'fecha_acuerdo.required' => 'La fecha del acuerdo es obligatoria.',
+            'fecha_inicio.required' => 'La fecha de inicio es obligatoria.',
+            'fecha_fin.after_or_equal' => 'La fecha de fin debe ser posterior o igual a la fecha de inicio.',
+            'valor_acordado.required' => 'El valor acordado es obligatorio.',
+            'numero_cuotas.required' => 'El número de cuotas es obligatorio.',
+            'numero_cuotas.min' => 'El número de cuotas debe ser al menos 1.',
+            'valor_cuota.required' => 'El valor de la cuota es obligatorio.',
+            'estado.required' => 'El estado es obligatorio.',
+            'estado.in' => 'El estado seleccionado no es válido.',
+        ]);
+
+        try {
+            // Verificar unicidad del número de acuerdo (excepto el actual)
+            $acuerdoExistente = AcuerdoPago::where('copropiedad_id', $propiedad->id)
+                ->where('numero_acuerdo', $validated['numero_acuerdo'])
+                ->where('id', '!=', $acuerdoPago->id)
+                ->first();
+
+            if ($acuerdoExistente) {
+                return back()->with('error', 'Ya existe otro acuerdo de pago con este número.')
+                    ->withInput();
+            }
+
+            // Calcular saldo pendiente
+            $valorInicial = $validated['valor_inicial'] ?? 0;
+            $saldoPendiente = $validated['valor_acordado'] - $valorInicial;
+
+            // Actualizar el acuerdo de pago
+            $acuerdoPago->update([
+                'numero_acuerdo' => $validated['numero_acuerdo'],
+                'fecha_acuerdo' => $validated['fecha_acuerdo'],
+                'fecha_inicio' => $validated['fecha_inicio'],
+                'fecha_fin' => $validated['fecha_fin'] ?? null,
+                'descripcion' => $validated['descripcion'] ?? null,
+                'valor_acordado' => $validated['valor_acordado'],
+                'valor_inicial' => $valorInicial,
+                'saldo_pendiente' => $saldoPendiente,
+                'numero_cuotas' => $validated['numero_cuotas'],
+                'valor_cuota' => $validated['valor_cuota'],
+                'interes_acuerdo' => $validated['interes_acuerdo'] ?? 0,
+                'valor_intereses' => $validated['valor_intereses'] ?? 0,
+                'estado' => $validated['estado'],
+                'activo' => $validated['activo'] ?? true,
+            ]);
+
+            return redirect()->route('admin.acuerdos-pagos.index')
+                ->with('success', 'Acuerdo de pago actualizado correctamente.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar acuerdo de pago: ' . $e->getMessage());
+            return back()->with('error', 'Error al actualizar el acuerdo de pago: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
 }

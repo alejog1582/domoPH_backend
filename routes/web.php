@@ -196,8 +196,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::post('recaudos/import', [RecaudoController::class, 'importRecaudos'])->name('recaudos.import');
     
     // Gestión de Acuerdos de Pago
+    Route::get('acuerdos-pagos', [AcuerdoPagoController::class, 'index'])->name('acuerdos-pagos.index');
     Route::get('acuerdos-pagos/create', [AcuerdoPagoController::class, 'create'])->name('acuerdos-pagos.create');
     Route::post('acuerdos-pagos', [AcuerdoPagoController::class, 'store'])->name('acuerdos-pagos.store');
+    Route::get('acuerdos-pagos/{acuerdoPago}/edit', [AcuerdoPagoController::class, 'edit'])->name('acuerdos-pagos.edit');
+    Route::put('acuerdos-pagos/{acuerdoPago}', [AcuerdoPagoController::class, 'update'])->name('acuerdos-pagos.update');
     
     // Aquí se pueden agregar más rutas para los módulos del administrador
 });

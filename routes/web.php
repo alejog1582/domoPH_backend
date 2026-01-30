@@ -25,6 +25,7 @@ use App\Http\Controllers\Admin\VisitaController;
 use App\Http\Controllers\Admin\AutorizacionController;
 use App\Http\Controllers\Admin\LlamadoAtencionController;
 use App\Http\Controllers\Admin\PqrsController;
+use App\Http\Controllers\Admin\ReservaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -238,5 +239,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('pqrs/{pqrs}/edit', [PqrsController::class, 'edit'])->name('pqrs.edit');
     Route::put('pqrs/{pqrs}', [PqrsController::class, 'update'])->name('pqrs.update');
     
-    // Aquí se pueden agregar más rutas para los módulos del administrador
+    // Gestión de Reservas
+    Route::get('reservas', [ReservaController::class, 'index'])->name('reservas.index');
+    Route::get('reservas/{reserva}', [ReservaController::class, 'show'])->name('reservas.show');
+    Route::put('reservas/{reserva}', [ReservaController::class, 'update'])->name('reservas.update');
 });

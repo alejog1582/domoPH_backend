@@ -250,6 +250,17 @@
                             </div>
                         </div>
 
+                        <!-- Menú Reservas -->
+                        <div class="mb-1">
+                            <a 
+                                href="{{ route('admin.reservas.index') }}" 
+                                class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.reservas.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                            >
+                                <i class="fas fa-calendar-check mr-3"></i>
+                                <span>Reservas</span>
+                            </a>
+                        </div>
+
                         <!-- Módulos activos de la propiedad -->
                         <!-- @foreach($modulos as $modulo)
                             <a href="{{ $modulo->ruta ?? '#' }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->is(trim($modulo->ruta, '/')) ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">

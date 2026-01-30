@@ -34,6 +34,7 @@ class ZonaSocial extends Model
         'valor_deposito',
         'requiere_aprobacion',
         'permite_reservas_en_mora',
+        'acepta_invitados',
         'reglamento_url',
         'estado',
         'activo',
@@ -56,6 +57,7 @@ class ZonaSocial extends Model
             'valor_deposito' => 'decimal:2',
             'requiere_aprobacion' => 'boolean',
             'permite_reservas_en_mora' => 'boolean',
+            'acepta_invitados' => 'boolean',
             'activo' => 'boolean',
         ];
     }

@@ -84,6 +84,7 @@ class ReservaController extends Controller
                     'valor_deposito' => (float) $zona->valor_deposito,
                     'requiere_aprobacion' => $zona->requiere_aprobacion,
                     'permite_reservas_en_mora' => $zona->permite_reservas_en_mora,
+                    'acepta_invitados' => $zona->acepta_invitados,
                     'reglamento_url' => $zona->reglamento_url,
                     'estado' => $zona->estado,
                     'horarios' => $zona->horarios->map(function ($horario) {

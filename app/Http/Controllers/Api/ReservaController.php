@@ -10,6 +10,7 @@ use App\Models\Reserva;
 use App\Models\ReservaInvitado;
 use App\Models\Residente;
 use Carbon\Carbon;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ReservaController extends Controller
 {
@@ -337,6 +338,7 @@ class ReservaController extends Controller
             'hora_inicio' => 'required|date_format:H:i',
             'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
             'descripcion' => 'nullable|string',
+            'soporte_pago' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB máximo
             'invitados' => 'nullable|array',
             'invitados.*.nombre' => 'required_with:invitados|string|max:150',
             'invitados.*.documento' => 'nullable|string|max:50',
@@ -396,6 +398,43 @@ class ReservaController extends Controller
             $costoReserva = $zonaSocial->valor_alquiler * $horas;
         }
 
+        // Procesar invitados si existen (puede venir como string JSON desde FormData)
+        $invitadosData = $request->invitados;
+        if (is_string($request->invitados)) {
+            $invitadosData = json_decode($request->invitados, true);
+        }
+        if (!is_array($invitadosData)) {
+            $invitadosData = [];
+        }
+
+        // Procesar soporte de pago si se envió
+        $adjuntos = null;
+        if ($request->hasFile('soporte_pago')) {
+            try {
+                $archivo = $request->file('soporte_pago');
+                $result = Cloudinary::uploadApi()->upload($archivo->getRealPath(), [
+                    'folder' => 'reservas/soportes_pago',
+                    'resource_type' => 'auto',
+                ]);
+                
+                $adjuntos = [
+                    'soporte_pago' => [
+                        'url' => $result['secure_url'],
+                        'public_id' => $result['public_id'],
+                        'format' => $result['format'] ?? null,
+                        'uploaded_at' => now()->toISOString(),
+                    ]
+                ];
+            } catch (\Exception $e) {
+                \Log::error('Error al subir soporte de pago a Cloudinary: ' . $e->getMessage());
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al subir el soporte de pago. Por favor, intenta nuevamente.',
+                    'error' => 'UPLOAD_ERROR'
+                ], 500);
+            }
+        }
+
         // Crear la reserva
         $reserva = Reserva::create([
             'copropiedad_id' => $copropiedadId,
@@ -409,7 +448,7 @@ class ReservaController extends Controller
             'hora_inicio' => $request->hora_inicio,
             'hora_fin' => $request->hora_fin,
             'duracion_minutos' => $duracionMinutos,
-            'cantidad_invitados' => count($request->invitados ?? []),
+            'cantidad_invitados' => count($invitadosData),
             'descripcion' => $request->descripcion,
             'costo_reserva' => $costoReserva,
             'deposito_garantia' => $zonaSocial->valor_deposito ?? 0,
@@ -418,6 +457,7 @@ class ReservaController extends Controller
             'estado' => $zonaSocial->requiere_aprobacion ? 'solicitada' : 'aprobada',
             'es_exclusiva' => $zonaSocial->reservas_simultaneas == 1,
             'permite_invitados' => $zonaSocial->acepta_invitados,
+            'adjuntos' => $adjuntos,
             'activo' => true,
         ]);
 
@@ -430,8 +470,8 @@ class ReservaController extends Controller
         }
 
         // Crear invitados si existen
-        if ($request->invitados && count($request->invitados) > 0) {
-            foreach ($request->invitados as $invitadoData) {
+        if (count($invitadosData) > 0) {
+            foreach ($invitadosData as $invitadoData) {
                 $invitadoReserva = [
                     'reserva_id' => $reserva->id,
                     'copropiedad_id' => $copropiedadId,
@@ -488,5 +528,97 @@ class ReservaController extends Controller
                 ],
             ]
         ], 201);
+    }
+
+    /**
+     * Actualizar soporte de pago de una reserva existente
+     */
+    public function actualizarSoportePago(Request $request, $id)
+    {
+        // Obtener el usuario autenticado
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No autenticado.',
+                'error' => 'UNAUTHENTICATED'
+            ], 401);
+        }
+
+        // Validar datos de entrada
+        $request->validate([
+            'soporte_pago' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120', // 5MB máximo
+        ], [
+            'soporte_pago.required' => 'El soporte de pago es obligatorio.',
+            'soporte_pago.file' => 'El soporte de pago debe ser un archivo válido.',
+            'soporte_pago.mimes' => 'El soporte de pago debe ser un archivo PDF, JPG, JPEG o PNG.',
+            'soporte_pago.max' => 'El soporte de pago no puede ser mayor a 5MB.',
+        ]);
+
+        // Obtener la reserva
+        $reserva = Reserva::findOrFail($id);
+
+        // Verificar que la reserva pertenezca al usuario
+        $residente = Residente::where('user_id', $user->id)
+            ->where('es_principal', true)
+            ->activos()
+            ->first();
+
+        if (!$residente || $reserva->unidad_id !== $residente->unidad_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No tienes permiso para actualizar esta reserva.',
+                'error' => 'UNAUTHORIZED'
+            ], 403);
+        }
+
+        // Verificar que la reserva esté en estado solicitada
+        if ($reserva->estado !== 'solicitada') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Solo se puede actualizar el soporte de pago en reservas solicitadas.',
+                'error' => 'INVALID_STATE'
+            ], 400);
+        }
+
+        // Procesar soporte de pago
+        try {
+            $archivo = $request->file('soporte_pago');
+            $result = Cloudinary::uploadApi()->upload($archivo->getRealPath(), [
+                'folder' => 'reservas/soportes_pago',
+                'resource_type' => 'auto',
+            ]);
+            
+            // Obtener adjuntos existentes o crear nuevo objeto
+            $adjuntos = $reserva->adjuntos ?? [];
+            $adjuntos['soporte_pago'] = [
+                'url' => $result['secure_url'],
+                'public_id' => $result['public_id'],
+                'format' => $result['format'] ?? null,
+                'uploaded_at' => now()->toISOString(),
+            ];
+
+            // Actualizar la reserva
+            $reserva->update([
+                'adjuntos' => $adjuntos,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Soporte de pago actualizado exitosamente.',
+                'data' => [
+                    'id' => $reserva->id,
+                    'adjuntos' => $adjuntos,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            \Log::error('Error al subir soporte de pago a Cloudinary: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al subir el soporte de pago. Por favor, intenta nuevamente.',
+                'error' => 'UPLOAD_ERROR'
+            ], 500);
+        }
     }
 }

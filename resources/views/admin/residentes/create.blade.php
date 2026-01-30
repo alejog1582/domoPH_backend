@@ -60,13 +60,14 @@
             <!-- Documento -->
             <div>
                 <label for="documento_identidad" class="block text-sm font-medium text-gray-700 mb-2">
-                    Documento de Identidad
+                    Documento de Identidad <span class="text-red-500">*</span>
                 </label>
                 <input 
                     type="text" 
                     id="documento_identidad" 
                     name="documento_identidad" 
                     value="{{ old('documento_identidad') }}" 
+                    required
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('documento_identidad') border-red-500 @enderror"
                 >
                 @error('documento_identidad')
@@ -76,12 +77,15 @@
 
             <!-- Teléfono -->
             <div>
-                <label for="telefono" class="block text-sm font-medium text-gray-700 mb-2">Teléfono</label>
+                <label for="telefono" class="block text-sm font-medium text-gray-700 mb-2">
+                    Teléfono <span class="text-red-500">*</span>
+                </label>
                 <input 
                     type="text" 
                     id="telefono" 
                     name="telefono" 
                     value="{{ old('telefono') }}" 
+                    required
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('telefono') border-red-500 @enderror"
                 >
                 @error('telefono')

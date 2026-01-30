@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Residente;
 use App\Models\Unidad;
 use App\Models\User;
+use App\Models\Role;
 use App\Helpers\AdminHelper;
 use App\Services\PlantillaResidentesService;
 use Illuminate\Http\Request;
@@ -230,6 +231,14 @@ class ResidenteController extends Controller
                     ? trim($row[$columnIndexes['email']]) : null;
                 $documento = isset($columnIndexes['documento']) && isset($row[$columnIndexes['documento']]) 
                     ? trim($row[$columnIndexes['documento']]) : null;
+                $telefono = isset($columnIndexes['telefono']) && isset($row[$columnIndexes['telefono']]) 
+                    ? trim($row[$columnIndexes['telefono']]) : null;
+
+                // Validar que tenga documento y teléfono (obligatorios)
+                if (empty($documento) || empty($telefono)) {
+                    $ignorados++;
+                    continue; // Saltar registro sin documento o teléfono
+                }
 
                 $user = null;
                 if ($email) {
@@ -244,8 +253,6 @@ class ResidenteController extends Controller
                 if (!$user) {
                     $nombre = isset($columnIndexes['nombre']) && isset($row[$columnIndexes['nombre']]) 
                         ? trim($row[$columnIndexes['nombre']]) : 'Usuario sin nombre';
-                    $telefono = isset($columnIndexes['telefono']) && isset($row[$columnIndexes['telefono']]) 
-                        ? trim($row[$columnIndexes['telefono']]) : null;
 
                     if (!$email && !$documento) {
                         $ignorados++;
@@ -255,11 +262,26 @@ class ResidenteController extends Controller
                     $user = User::create([
                         'nombre' => $nombre,
                         'email' => $email ?: 'usuario_' . time() . '@temp.com',
-                        'password' => Hash::make('password123'), // Password temporal
+                        'password' => Hash::make($telefono), // Password temporal
                         'documento_identidad' => $documento,
                         'telefono' => $telefono,
                         'activo' => true,
                     ]);
+                }
+
+                // Asignar rol de residente si no lo tiene para esta propiedad
+                $rolResidente = Role::where('slug', 'residente')->first();
+                if ($rolResidente) {
+                    $tieneRol = $user->roles()
+                        ->where('roles.id', $rolResidente->id)
+                        ->wherePivot('propiedad_id', $propiedad->id)
+                        ->exists();
+                    
+                    if (!$tieneRol) {
+                        $user->roles()->attach($rolResidente->id, [
+                            'propiedad_id' => $propiedad->id
+                        ]);
+                    }
                 }
 
                 // Preparar datos del residente
@@ -339,7 +361,7 @@ class ResidenteController extends Controller
 
             $mensaje = "Importación exitosa. Se han creado {$creados} registro(s), se han actualizado {$actualizados} registro(s)";
             if ($ignorados > 0) {
-                $mensaje .= " y se han ignorado {$ignorados} registro(s) sin número de unidad o sin email/documento.";
+                $mensaje .= " y se han ignorado {$ignorados} registro(s) sin número de unidad, sin documento/teléfono o sin email/documento.";
             }
 
             return redirect()->route('admin.residentes.index')
@@ -388,8 +410,8 @@ class ResidenteController extends Controller
         $request->validate([
             'nombre' => 'required|string|max:255',
             'email' => 'required|email|max:255|unique:users,email',
-            'documento_identidad' => 'nullable|string|max:255',
-            'telefono' => 'nullable|string|max:255',
+            'documento_identidad' => 'required|string|max:255',
+            'telefono' => 'required|string|max:255',
             'unidad_id' => 'required|exists:unidades,id',
             'tipo_relacion' => 'required|in:propietario,arrendatario,residente_temporal,otro',
             'fecha_inicio' => 'nullable|date',
@@ -402,6 +424,8 @@ class ResidenteController extends Controller
             'email.required' => 'El campo email es obligatorio.',
             'email.email' => 'El email debe ser una dirección de correo válida.',
             'email.unique' => 'Este email ya está registrado por otro usuario.',
+            'documento_identidad.required' => 'El campo documento de identidad es obligatorio.',
+            'telefono.required' => 'El campo teléfono es obligatorio.',
             'unidad_id.required' => 'El campo unidad es obligatorio.',
             'unidad_id.exists' => 'La unidad seleccionada no es válida.',
             'tipo_relacion.required' => 'El campo tipo de relación es obligatorio.',
@@ -425,11 +449,19 @@ class ResidenteController extends Controller
             $user = User::create([
                 'nombre' => $request->nombre,
                 'email' => $request->email,
-                'password' => Hash::make('password123'), // Password temporal
+                'password' => Hash::make($request->telefono), // Password temporal
                 'documento_identidad' => $request->documento_identidad,
                 'telefono' => $request->telefono,
                 'activo' => true,
             ]);
+
+            // Asignar rol de residente
+            $rolResidente = Role::where('slug', 'residente')->first();
+            if ($rolResidente) {
+                $user->roles()->attach($rolResidente->id, [
+                    'propiedad_id' => $propiedad->id
+                ]);
+            }
 
             // Crear residente
             $residente = Residente::create([

@@ -188,11 +188,13 @@ class CuotaAdministracion extends Model
      */
     public function calcularParaUnidad(Unidad $unidad): float
     {
+        // Si la cuota tiene un coeficiente asignado, el valor ya está calculado para ese coeficiente específico
+        // Por lo tanto, se devuelve el valor directamente sin multiplicar
         if ($this->esPorCoeficiente()) {
-            // Cuota proporcional al coeficiente de la unidad
-            return $this->valor * ($unidad->coeficiente ?? 0);
+            // El valor en la tabla ya corresponde al coeficiente de esta cuota
+            return $this->valor;
         } else {
-            // Cuota fija por unidad
+            // Cuota fija por unidad (sin coeficiente, aplica a todas)
             return $this->valor;
         }
     }

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\ZonaSocial;
 use App\Models\Reserva;
 use App\Models\ReservaInvitado;
+use App\Models\Residente;
 use Carbon\Carbon;
 
 class ReservaController extends Controller
@@ -193,6 +194,123 @@ class ReservaController extends Controller
                 'zonas_sociales' => $zonasSociales,
                 'reservas' => $reservas,
             ]
+        ], 200);
+    }
+
+    /**
+     * Buscar invitados (residentes de la unidad o invitados de reservas anteriores)
+     */
+    public function buscarInvitados(Request $request)
+    {
+        // Obtener el usuario autenticado
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No autenticado.',
+                'error' => 'UNAUTHENTICATED'
+            ], 401);
+        }
+
+        // Validar parámetros
+        $request->validate([
+            'query' => 'required|string|min:2',
+            'copropiedad_id' => 'required|integer',
+        ]);
+
+        $query = $request->input('query');
+        $copropiedadId = $request->input('copropiedad_id');
+
+        // Obtener la unidad del usuario
+        $residente = Residente::where('user_id', $user->id)
+            ->where('es_principal', true)
+            ->activos()
+            ->with(['unidad'])
+            ->first();
+
+        if (!$residente || !$residente->unidad) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo determinar la unidad del usuario.',
+                'error' => 'UNIT_NOT_FOUND'
+            ], 404);
+        }
+
+        $unidadId = $residente->unidad->id;
+
+        $resultados = [];
+
+        // 1. Buscar en residentes de la misma copropiedad (excluyendo al usuario actual)
+        $residentes = Residente::whereHas('unidad', function($q) use ($copropiedadId) {
+                $q->where('propiedad_id', $copropiedadId);
+            })
+            ->where('user_id', '!=', $user->id) // Excluir al usuario actual
+            ->whereHas('user', function($q) use ($query) {
+                $q->where(function($subQ) use ($query) {
+                    $subQ->where('nombre', 'like', "%{$query}%")
+                         ->orWhere('documento_identidad', 'like', "%{$query}%");
+                });
+            })
+            ->activos()
+            ->with(['user', 'unidad'])
+            ->limit(10)
+            ->get();
+
+        foreach ($residentes as $res) {
+            $resultados[] = [
+                'id' => 'residente_' . $res->id,
+                'tipo' => 'residente',
+                'nombre' => $res->user->nombre,
+                'documento' => $res->user->documento_identidad,
+                'telefono' => $res->user->telefono,
+                'unidad' => [
+                    'numero' => $res->unidad->numero,
+                    'torre' => $res->unidad->torre,
+                    'bloque' => $res->unidad->bloque,
+                ],
+            ];
+        }
+
+        // 2. Buscar en invitados de reservas anteriores de la misma copropiedad
+        $invitadosAnteriores = ReservaInvitado::where('copropiedad_id', $copropiedadId)
+            ->where(function($q) use ($query) {
+                $q->where('nombre', 'like', "%{$query}%")
+                  ->orWhere('documento', 'like', "%{$query}%");
+            })
+            ->whereNotNull('nombre')
+            ->where('nombre', '!=', '')
+            ->orderBy('created_at', 'desc')
+            ->limit(10)
+            ->get()
+            ->unique(function($item) {
+                // Agrupar por nombre y documento para evitar duplicados
+                return strtolower($item->nombre . '_' . ($item->documento ?? ''));
+            });
+
+        foreach ($invitadosAnteriores as $inv) {
+            // Verificar que no esté ya en los resultados
+            $existe = collect($resultados)->first(function($r) use ($inv) {
+                return $r['nombre'] === $inv->nombre && 
+                       ($r['documento'] ?? '') === ($inv->documento ?? '');
+            });
+
+            if (!$existe) {
+                $resultados[] = [
+                    'id' => 'invitado_' . $inv->id,
+                    'tipo' => 'invitado_anterior',
+                    'nombre' => $inv->nombre,
+                    'documento' => $inv->documento,
+                    'telefono' => $inv->telefono,
+                    'tipo_acceso' => $inv->tipo,
+                    'placa' => $inv->placa,
+                ];
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'data' => array_slice($resultados, 0, 10) // Limitar a 10 resultados totales
         ], 200);
     }
 }

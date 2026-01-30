@@ -28,6 +28,7 @@ Route::prefix('residente')->group(function () {
         
         // Rutas de reservas
         Route::get('/reservas', [App\Http\Controllers\Api\ReservaController::class, 'index']);
+        Route::get('/reservas/buscar-invitados', [App\Http\Controllers\Api\ReservaController::class, 'buscarInvitados']);
     });
 });
 

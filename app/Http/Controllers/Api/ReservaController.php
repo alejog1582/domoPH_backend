@@ -99,6 +99,7 @@ class ReservaController extends Controller
                     'reservas_simultaneas' => $zona->reservas_simultaneas,
                     'valor_alquiler' => (float) $zona->valor_alquiler,
                     'valor_deposito' => (float) $zona->valor_deposito,
+                    'info_pago_reserva' => $zona->info_pago_reserva,
                     'requiere_aprobacion' => $zona->requiere_aprobacion,
                     'permite_reservas_en_mora' => $zona->permite_reservas_en_mora,
                     'acepta_invitados' => $zona->acepta_invitados,

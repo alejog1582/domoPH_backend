@@ -32,6 +32,7 @@ class ZonaSocial extends Model
         'reservas_simultaneas',
         'valor_alquiler',
         'valor_deposito',
+        'info_pago_reserva',
         'requiere_aprobacion',
         'permite_reservas_en_mora',
         'acepta_invitados',

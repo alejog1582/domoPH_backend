@@ -24,6 +24,7 @@ class ReservaInvitado extends Model
         'reserva_id',
         'copropiedad_id',
         'residente_id',
+        'unidad_id',
         'nombre',
         'documento',
         'telefono',
@@ -85,6 +86,14 @@ class ReservaInvitado extends Model
     public function residente()
     {
         return $this->belongsTo(Residente::class, 'residente_id');
+    }
+
+    /**
+     * Relación con Unidad (si el invitado es residente)
+     */
+    public function unidad()
+    {
+        return $this->belongsTo(Unidad::class, 'unidad_id');
     }
 
     /**

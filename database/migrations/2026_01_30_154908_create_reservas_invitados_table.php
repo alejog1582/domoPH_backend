@@ -33,6 +33,12 @@ return new class extends Migration
                 ->nullOnDelete()
                 ->comment('ID del residente si el invitado es residente de la copropiedad (nullable para invitados externos)');
 
+            $table->foreignId('unidad_id')
+                ->nullable()
+                ->constrained('unidades')
+                ->nullOnDelete()
+                ->comment('ID de la unidad si el invitado es residente de la copropiedad (nullable para invitados externos)');
+
             // ============================================
             // 👤 DATOS DEL INVITADO
             // ============================================
@@ -89,6 +95,7 @@ return new class extends Migration
             $table->index('reserva_id');
             $table->index('copropiedad_id');
             $table->index('residente_id');
+            $table->index('unidad_id');
             $table->index('tipo');
             $table->index('estado');
             $table->index(['reserva_id', 'estado']);

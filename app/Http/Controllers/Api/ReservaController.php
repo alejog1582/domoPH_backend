@@ -313,4 +313,180 @@ class ReservaController extends Controller
             'data' => array_slice($resultados, 0, 10) // Limitar a 10 resultados totales
         ], 200);
     }
+
+    /**
+     * Crear una nueva reserva
+     */
+    public function store(Request $request)
+    {
+        // Obtener el usuario autenticado
+        $user = Auth::user();
+        
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No autenticado.',
+                'error' => 'UNAUTHENTICATED'
+            ], 401);
+        }
+
+        // Validar datos de entrada
+        $request->validate([
+            'zona_social_id' => 'required|exists:zonas_sociales,id',
+            'fecha_reserva' => 'required|date|after_or_equal:today',
+            'hora_inicio' => 'required|date_format:H:i',
+            'hora_fin' => 'required|date_format:H:i|after:hora_inicio',
+            'descripcion' => 'nullable|string',
+            'invitados' => 'nullable|array',
+            'invitados.*.nombre' => 'required_with:invitados|string|max:150',
+            'invitados.*.documento' => 'nullable|string|max:50',
+            'invitados.*.telefono' => 'nullable|string|max:50',
+            'invitados.*.tipo' => 'required_with:invitados|in:peatonal,vehicular',
+            'invitados.*.placa' => 'nullable|string|max:20',
+            'invitados.*.id_busqueda' => 'nullable|string', // Para identificar si es residente
+        ], [
+            'zona_social_id.required' => 'La zona social es obligatoria.',
+            'zona_social_id.exists' => 'La zona social seleccionada no existe.',
+            'fecha_reserva.required' => 'La fecha de reserva es obligatoria.',
+            'fecha_reserva.after_or_equal' => 'La fecha de reserva no puede ser anterior a hoy.',
+            'hora_inicio.required' => 'La hora de inicio es obligatoria.',
+            'hora_fin.required' => 'La hora de fin es obligatoria.',
+            'hora_fin.after' => 'La hora de fin debe ser posterior a la hora de inicio.',
+        ]);
+
+        // Obtener información del residente
+        $residente = Residente::where('user_id', $user->id)
+            ->where('es_principal', true)
+            ->activos()
+            ->with(['unidad.propiedad'])
+            ->first();
+
+        if (!$residente || !$residente->unidad || !$residente->unidad->propiedad) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No se pudo determinar tu unidad o propiedad.',
+                'error' => 'UNIT_NOT_FOUND'
+            ], 404);
+        }
+
+        $copropiedadId = $residente->unidad->propiedad->id;
+        $unidadId = $residente->unidad->id;
+
+        // Obtener la zona social
+        $zonaSocial = ZonaSocial::findOrFail($request->zona_social_id);
+
+        // Validar que la zona social pertenezca a la misma copropiedad
+        if ($zonaSocial->propiedad_id != $copropiedadId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'La zona social no pertenece a tu copropiedad.',
+                'error' => 'ZONA_INVALID'
+            ], 400);
+        }
+
+        // Calcular duración en minutos
+        $horaInicio = Carbon::createFromFormat('H:i', $request->hora_inicio);
+        $horaFin = Carbon::createFromFormat('H:i', $request->hora_fin);
+        $duracionMinutos = $horaInicio->diffInMinutes($horaFin);
+
+        // Calcular costo (si aplica)
+        $costoReserva = 0;
+        if ($zonaSocial->valor_alquiler) {
+            $horas = $duracionMinutos / 60;
+            $costoReserva = $zonaSocial->valor_alquiler * $horas;
+        }
+
+        // Crear la reserva
+        $reserva = Reserva::create([
+            'copropiedad_id' => $copropiedadId,
+            'unidad_id' => $unidadId,
+            'residente_id' => $residente->id,
+            'zona_social_id' => $request->zona_social_id,
+            'nombre_solicitante' => $user->nombre,
+            'telefono_solicitante' => $user->telefono,
+            'email_solicitante' => $user->email,
+            'fecha_reserva' => $request->fecha_reserva,
+            'hora_inicio' => $request->hora_inicio,
+            'hora_fin' => $request->hora_fin,
+            'duracion_minutos' => $duracionMinutos,
+            'cantidad_invitados' => count($request->invitados ?? []),
+            'descripcion' => $request->descripcion,
+            'costo_reserva' => $costoReserva,
+            'deposito_garantia' => $zonaSocial->valor_deposito ?? 0,
+            'requiere_pago' => $costoReserva > 0 || ($zonaSocial->valor_deposito ?? 0) > 0,
+            'estado_pago' => ($costoReserva > 0 || ($zonaSocial->valor_deposito ?? 0) > 0) ? 'pendiente' : 'exento',
+            'estado' => $zonaSocial->requiere_aprobacion ? 'solicitada' : 'aprobada',
+            'es_exclusiva' => $zonaSocial->reservas_simultaneas == 1,
+            'permite_invitados' => $zonaSocial->acepta_invitados,
+            'activo' => true,
+        ]);
+
+        // Si requiere aprobación, asignar aprobador automáticamente si no requiere
+        if (!$zonaSocial->requiere_aprobacion) {
+            $reserva->update([
+                'aprobada_por' => $user->id, // O el ID del administrador si hay uno por defecto
+                'fecha_aprobacion' => now(),
+            ]);
+        }
+
+        // Crear invitados si existen
+        if ($request->invitados && count($request->invitados) > 0) {
+            foreach ($request->invitados as $invitadoData) {
+                $invitadoReserva = [
+                    'reserva_id' => $reserva->id,
+                    'copropiedad_id' => $copropiedadId,
+                    'nombre' => $invitadoData['nombre'],
+                    'documento' => $invitadoData['documento'] ?? null,
+                    'telefono' => $invitadoData['telefono'] ?? null,
+                    'tipo' => $invitadoData['tipo'],
+                    'placa' => $invitadoData['placa'] ?? null,
+                    'estado' => 'registrado',
+                ];
+
+                // Si el invitado es un residente (viene con id_busqueda que empieza con 'residente_')
+                if (isset($invitadoData['id_busqueda']) && str_starts_with($invitadoData['id_busqueda'], 'residente_')) {
+                    $residenteId = (int) str_replace('residente_', '', $invitadoData['id_busqueda']);
+                    $residenteInvitado = Residente::with('unidad')->find($residenteId);
+                    
+                    if ($residenteInvitado && $residenteInvitado->unidad) {
+                        $invitadoReserva['residente_id'] = $residenteInvitado->id;
+                        $invitadoReserva['unidad_id'] = $residenteInvitado->unidad->id;
+                    }
+                }
+
+                ReservaInvitado::create($invitadoReserva);
+            }
+        }
+
+        // Registrar en historial
+        \App\Models\ReservaHistorial::create([
+            'reserva_id' => $reserva->id,
+            'estado_anterior' => null,
+            'estado_nuevo' => $reserva->estado,
+            'comentario' => 'Reserva creada',
+            'cambiado_por' => $user->id,
+            'fecha_cambio' => now(),
+        ]);
+
+        // Cargar relaciones para la respuesta
+        $reserva->load(['unidad', 'residente', 'zonaSocial', 'invitados']);
+
+        return response()->json([
+            'success' => true,
+            'message' => $zonaSocial->requiere_aprobacion 
+                ? 'Reserva solicitada exitosamente. Está pendiente de aprobación.' 
+                : 'Reserva confirmada exitosamente.',
+            'data' => [
+                'id' => $reserva->id,
+                'estado' => $reserva->estado,
+                'fecha_reserva' => $reserva->fecha_reserva->format('Y-m-d'),
+                'hora_inicio' => $reserva->hora_inicio,
+                'hora_fin' => $reserva->hora_fin,
+                'zona_social' => [
+                    'id' => $reserva->zonaSocial->id,
+                    'nombre' => $reserva->zonaSocial->nombre,
+                ],
+            ]
+        ], 201);
+    }
 }

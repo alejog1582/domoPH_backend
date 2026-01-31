@@ -29,6 +29,7 @@ class Comunicado extends Model
         'resumen',
         'tipo',
         'publicado',
+        'destacado',
         'fecha_publicacion',
         'visible_para',
         'imagen_portada',
@@ -45,6 +46,7 @@ class Comunicado extends Model
     {
         return [
             'publicado' => 'boolean',
+            'destacado' => 'boolean',
             'fecha_publicacion' => 'datetime',
             'activo' => 'boolean',
         ];

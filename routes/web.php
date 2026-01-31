@@ -223,6 +223,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('visitas', [VisitaController::class, 'index'])->name('visitas.index');
     Route::get('visitas/create', [VisitaController::class, 'create'])->name('visitas.create');
     Route::post('visitas', [VisitaController::class, 'store'])->name('visitas.store');
+    Route::post('visitas/{id}/activar', [VisitaController::class, 'activar'])->name('visitas.activar');
     
     // Gestión de Autorizaciones
     Route::get('autorizaciones', [AutorizacionController::class, 'index'])->name('autorizaciones.index');

@@ -61,7 +61,7 @@ return new class extends Migration
                 ->comment('Fecha y hora de salida del visitante');
 
             // Estado
-            $table->enum('estado', ['activa', 'finalizada', 'cancelada', 'bloqueada'])
+            $table->enum('estado', ['activa', 'finalizada', 'cancelada', 'bloqueada', 'programada'])
                 ->default('activa')
                 ->comment('Estado de la visita: activa, finalizada, cancelada o bloqueada');
 

@@ -40,6 +40,7 @@
             <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">Estado</label>
             <select name="estado" id="estado" class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
                 <option value="">Todos</option>
+                <option value="programada" {{ request('estado') == 'programada' ? 'selected' : '' }}>Programada</option>
                 <option value="activa" {{ request('estado') == 'activa' ? 'selected' : '' }}>Activa</option>
                 <option value="finalizada" {{ request('estado') == 'finalizada' ? 'selected' : '' }}>Finalizada</option>
                 <option value="cancelada" {{ request('estado') == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
@@ -128,6 +129,9 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Fecha Salida
                     </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Acciones
+                    </th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -168,10 +172,12 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
-                                @if($visita->estado == 'activa') bg-green-100 text-green-800
-                                @elseif($visita->estado == 'finalizada') bg-blue-100 text-blue-800
+                                @if($visita->estado == 'programada') bg-blue-100 text-blue-800
+                                @elseif($visita->estado == 'activa') bg-green-100 text-green-800
+                                @elseif($visita->estado == 'finalizada') bg-gray-100 text-gray-800
                                 @elseif($visita->estado == 'cancelada') bg-red-100 text-red-800
-                                @else bg-yellow-100 text-yellow-800
+                                @elseif($visita->estado == 'bloqueada') bg-yellow-100 text-yellow-800
+                                @else bg-gray-100 text-gray-800
                                 @endif">
                                 {{ ucfirst($visita->estado) }}
                             </span>
@@ -183,11 +189,26 @@
                                 <span class="text-gray-400">-</span>
                             @endif
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            @if($visita->estado == 'programada')
+                                <form action="{{ route('admin.visitas.activar', $visita->id) }}" method="POST" class="inline">
+                                    @csrf
+                                    <button type="submit" 
+                                        class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
+                                        onclick="return confirm('¿Está seguro de activar esta visita?')">
+                                        <i class="fas fa-check mr-1"></i>
+                                        Activar
+                                    </button>
+                                </form>
+                            @else
+                                <span class="text-gray-400">-</span>
+                            @endif
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="8" class="px-6 py-4 text-center text-sm text-gray-500">
-                            No se encontraron visitas para el mes actual.
+                        <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">
+                            No se encontraron visitas para el día actual.
                         </td>
                     </tr>
                 @endforelse

@@ -30,13 +30,12 @@ class VisitaController extends Controller
             ->where('copropiedad_id', $propiedad->id)
             ->where('activo', true);
 
-        // Filtro por fecha (por defecto: mes actual)
+        // Filtro por fecha (por defecto: día actual)
         if ($request->filled('fecha_desde')) {
             $query->whereDate('fecha_ingreso', '>=', $request->fecha_desde);
         } else {
-            // Por defecto: mes actual
-            $query->whereYear('fecha_ingreso', Carbon::now()->year)
-                  ->whereMonth('fecha_ingreso', Carbon::now()->month);
+            // Por defecto: día actual
+            $query->whereDate('fecha_ingreso', Carbon::today());
         }
 
         if ($request->filled('fecha_hasta')) {
@@ -178,6 +177,50 @@ class VisitaController extends Controller
             \Log::error('Error al crear visita: ' . $e->getMessage());
             return back()->with('error', 'Error al registrar la visita: ' . $e->getMessage())
                 ->withInput();
+        }
+    }
+
+    /**
+     * Cambiar el estado de una visita de programada a activa
+     */
+    public function activar($id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        try {
+            $visita = Visita::where('copropiedad_id', $propiedad->id)
+                ->where('id', $id)
+                ->where('activo', true)
+                ->firstOrFail();
+
+            // Solo permitir cambiar de programada a activa
+            if ($visita->estado !== 'programada') {
+                return redirect()->route('admin.visitas.index')
+                    ->with('error', 'Solo se pueden activar visitas en estado programada.');
+            }
+
+            // Actualizar estado a activa y establecer fecha de ingreso si no existe
+            $visita->estado = 'activa';
+            if (!$visita->fecha_ingreso) {
+                $visita->fecha_ingreso = Carbon::now();
+            }
+            $visita->save();
+
+            return redirect()->route('admin.visitas.index')
+                ->with('success', 'Visita activada correctamente.');
+
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('admin.visitas.index')
+                ->with('error', 'Visita no encontrada.');
+        } catch (\Exception $e) {
+            \Log::error('Error al activar visita: ' . $e->getMessage());
+            return redirect()->route('admin.visitas.index')
+                ->with('error', 'Error al activar la visita: ' . $e->getMessage());
         }
     }
 }

@@ -64,6 +64,7 @@ class Visita extends Model
     const ESTADO_FINALIZADA = 'finalizada';
     const ESTADO_CANCELADA = 'cancelada';
     const ESTADO_BLOQUEADA = 'bloqueada';
+    const ESTADO_PROGRAMADA = 'programada';
 
     /**
      * Relación con Propiedad (Copropiedad)
@@ -155,6 +156,7 @@ class Visita extends Model
             self::ESTADO_FINALIZADA,
             self::ESTADO_CANCELADA,
             self::ESTADO_BLOQUEADA,
+            self::ESTADO_PROGRAMADA,
         ];
     }
 

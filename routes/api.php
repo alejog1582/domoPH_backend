@@ -31,6 +31,15 @@ Route::prefix('residente')->group(function () {
         Route::get('/reservas/buscar-invitados', [App\Http\Controllers\Api\ReservaController::class, 'buscarInvitados']);
         Route::post('/reservas', [App\Http\Controllers\Api\ReservaController::class, 'store']);
         Route::post('/reservas/{id}/soporte-pago', [App\Http\Controllers\Api\ReservaController::class, 'actualizarSoportePago']);
+        
+        // Rutas de comunicados
+        Route::get('/comunicados', [App\Http\Controllers\Api\ComunicadoController::class, 'index']);
+        Route::get('/comunicados/{id}', [App\Http\Controllers\Api\ComunicadoController::class, 'show']);
+        Route::post('/comunicados/{id}/marcar-leido', [App\Http\Controllers\Api\ComunicadoController::class, 'marcarLeido']);
+        
+        // Rutas de visitas
+        Route::get('/visitas', [App\Http\Controllers\Api\VisitaController::class, 'index']);
+        Route::post('/visitas', [App\Http\Controllers\Api\VisitaController::class, 'store']);
     });
 });
 

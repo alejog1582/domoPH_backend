@@ -195,4 +195,55 @@
         </form>
     </div>
 </div>
+
+<!-- Historial -->
+<div class="bg-white rounded-lg shadow p-6 mt-6">
+    <h2 class="text-xl font-semibold text-gray-900 mb-4">Historial</h2>
+    <div class="space-y-4">
+        @forelse($historial as $registro)
+            <div class="border-l-4 pl-4 py-3 rounded-r-lg {{ $registro->es_residente ? 'bg-blue-50 border-blue-500' : 'bg-gray-50 border-gray-400' }}">
+                <div class="flex items-start justify-between mb-2">
+                    <div class="flex items-center gap-2">
+                        @if($registro->es_residente)
+                            <span class="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                                <i class="fas fa-user mr-1"></i>Residente
+                            </span>
+                        @else
+                            <span class="px-2 py-1 text-xs font-medium bg-gray-200 text-gray-700 rounded-full">
+                                <i class="fas fa-user-shield mr-1"></i>Administración
+                            </span>
+                        @endif
+                        @if($registro->estado_anterior && $registro->estado_anterior !== $registro->estado_nuevo)
+                            <span class="text-xs text-gray-600">
+                                {{ ucfirst(str_replace('_', ' ', $registro->estado_anterior)) }} 
+                                → 
+                                {{ ucfirst(str_replace('_', ' ', $registro->estado_nuevo)) }}
+                            </span>
+                        @elseif($registro->estado_nuevo)
+                            <span class="text-xs text-gray-600">
+                                Estado: {{ ucfirst(str_replace('_', ' ', $registro->estado_nuevo)) }}
+                            </span>
+                        @endif
+                    </div>
+                    <span class="text-xs text-gray-500">
+                        {{ \Carbon\Carbon::parse($registro->fecha_cambio)->format('d/m/Y H:i') }}
+                    </span>
+                </div>
+                @if($registro->comentario)
+                    <p class="text-sm text-gray-900 mt-2 whitespace-pre-wrap">{{ $registro->comentario }}</p>
+                @endif
+                @if($registro->soporte_url)
+                    <div class="mt-3">
+                        <img src="{{ $registro->soporte_url }}" alt="Soporte" class="max-w-xs h-auto rounded-lg border border-gray-300">
+                    </div>
+                @endif
+                <p class="text-xs text-gray-500 mt-2">
+                    Por: <strong>{{ $registro->usuario }}</strong>
+                </p>
+            </div>
+        @empty
+            <p class="text-sm text-gray-500 text-center py-4">No hay historial registrado</p>
+        @endforelse
+    </div>
+</div>
 @endsection

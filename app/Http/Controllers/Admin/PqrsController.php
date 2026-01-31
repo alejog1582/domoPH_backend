@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Pqrs;
+use App\Models\User;
 use App\Helpers\AdminHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
 
 class PqrsController extends Controller
@@ -124,7 +126,36 @@ class PqrsController extends Controller
                 ->with('error', 'No tiene acceso a esta PQRS.');
         }
 
-        return view('admin.pqrs.edit', compact('pqrs', 'propiedad'));
+        // Obtener el historial con diferenciación de roles
+        $historial = DB::table('pqrs_historial')
+            ->where('pqrs_id', $pqrs->id)
+            ->orderBy('fecha_cambio', 'desc')
+            ->get()
+            ->map(function ($registro) use ($propiedad) {
+                // Obtener el usuario que hizo el cambio
+                $usuarioCambio = User::find($registro->cambiado_por);
+                
+                // Determinar si el registro fue hecho por un residente o por la administración
+                // Verificar si el usuario tiene el rol "residente" para esta propiedad
+                $esResidente = false;
+                if ($usuarioCambio) {
+                    $esResidente = $usuarioCambio->hasRole('residente', $propiedad->id);
+                }
+                
+                return (object) [
+                    'id' => $registro->id,
+                    'estado_anterior' => $registro->estado_anterior,
+                    'estado_nuevo' => $registro->estado_nuevo,
+                    'comentario' => $registro->comentario,
+                    'soporte_url' => $registro->soporte_url,
+                    'cambiado_por' => $registro->cambiado_por,
+                    'fecha_cambio' => $registro->fecha_cambio,
+                    'es_residente' => $esResidente,
+                    'usuario' => $usuarioCambio ? $usuarioCambio->nombre : 'Usuario desconocido',
+                ];
+            });
+
+        return view('admin.pqrs.edit', compact('pqrs', 'propiedad', 'historial'));
     }
 
     /**
@@ -163,9 +194,14 @@ class PqrsController extends Controller
         ]);
 
         try {
+            DB::beginTransaction();
+
+            $estadoAnterior = $pqrs->estado;
+            $estadoNuevo = $validated['estado'];
+            
             // Si el estado cambia a respondida, cerrar o rechazada, actualizar fecha_respuesta
             $fechaRespuesta = $pqrs->fecha_respuesta;
-            if (in_array($validated['estado'], ['respondida', 'cerrada', 'rechazada']) && !$pqrs->fecha_respuesta) {
+            if (in_array($estadoNuevo, ['respondida', 'cerrada', 'rechazada']) && !$pqrs->fecha_respuesta) {
                 $fechaRespuesta = Carbon::now();
             }
 
@@ -175,9 +211,10 @@ class PqrsController extends Controller
                 $respondidoPor = Auth::id();
             }
 
+            // Actualizar la PQRS
             $pqrs->update([
                 'prioridad' => $validated['prioridad'],
-                'estado' => $validated['estado'],
+                'estado' => $estadoNuevo,
                 'respuesta' => $validated['respuesta'] ?? null,
                 'fecha_respuesta' => $fechaRespuesta,
                 'respondido_por' => $respondidoPor,
@@ -185,10 +222,51 @@ class PqrsController extends Controller
                 'calificacion_servicio' => $validated['calificacion_servicio'] ?? null,
             ]);
 
-            return redirect()->route('admin.pqrs.index')
+            // Crear registro en el historial si:
+            // 1. Hay una respuesta (cada respuesta se registra por separado, incluso si es la misma)
+            // 2. Hay cambio de estado
+            // 3. Hay observaciones nuevas (solo si no hay respuesta ni cambio de estado)
+            
+            $debeRegistrarHistorial = false;
+            $comentarioHistorial = null;
+
+            // Si hay respuesta, registrar en historial (cada respuesta se registra)
+            if (!empty($validated['respuesta'])) {
+                $debeRegistrarHistorial = true;
+                $comentarioHistorial = $validated['respuesta'];
+            }
+            // Si hay cambio de estado, también registrar
+            elseif ($estadoAnterior !== $estadoNuevo) {
+                $debeRegistrarHistorial = true;
+                $comentarioHistorial = "Cambio de estado: " . ucfirst(str_replace('_', ' ', $estadoAnterior)) . " → " . ucfirst(str_replace('_', ' ', $estadoNuevo));
+            }
+            // Si hay observaciones y no hay respuesta ni cambio de estado, registrar observaciones
+            elseif (!empty($validated['observaciones']) && $validated['observaciones'] !== $pqrs->observaciones) {
+                $debeRegistrarHistorial = true;
+                $comentarioHistorial = "Observaciones: " . $validated['observaciones'];
+            }
+
+            if ($debeRegistrarHistorial) {
+                DB::table('pqrs_historial')->insert([
+                    'pqrs_id' => $pqrs->id,
+                    'estado_anterior' => $estadoAnterior !== $estadoNuevo ? $estadoAnterior : null,
+                    'estado_nuevo' => $estadoNuevo,
+                    'comentario' => $comentarioHistorial,
+                    'soporte_url' => null, // Se puede agregar soporte en el futuro si es necesario
+                    'cambiado_por' => Auth::id(),
+                    'fecha_cambio' => Carbon::now(),
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.pqrs.edit', $pqrs->id)
                 ->with('success', 'PQRS actualizada correctamente.');
 
         } catch (\Exception $e) {
+            DB::rollBack();
             \Log::error('Error al actualizar PQRS: ' . $e->getMessage());
             return back()->with('error', 'Error al actualizar la PQRS: ' . $e->getMessage())
                 ->withInput();

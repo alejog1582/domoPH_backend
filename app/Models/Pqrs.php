@@ -134,6 +134,14 @@ class Pqrs extends Model
     }
 
     /**
+     * Relación con PqrsHistorial
+     */
+    public function historial()
+    {
+        return $this->hasMany(\App\Models\PqrsHistorial::class, 'pqrs_id');
+    }
+
+    /**
      * Scope para PQRS activas
      */
     public function scopeActivas($query)

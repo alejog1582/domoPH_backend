@@ -45,6 +45,12 @@ Route::prefix('residente')->group(function () {
         Route::get('/llamados-atencion', [App\Http\Controllers\Api\LlamadoAtencionController::class, 'index']);
         Route::get('/llamados-atencion/{id}/historial', [App\Http\Controllers\Api\LlamadoAtencionController::class, 'historial']);
         Route::post('/llamados-atencion/{id}/respuesta', [App\Http\Controllers\Api\LlamadoAtencionController::class, 'agregarRespuesta']);
+        
+        // Rutas de PQRS
+        Route::get('/pqrs', [App\Http\Controllers\Api\PqrsController::class, 'index']);
+        Route::get('/pqrs/{id}', [App\Http\Controllers\Api\PqrsController::class, 'show']);
+        Route::post('/pqrs', [App\Http\Controllers\Api\PqrsController::class, 'store']);
+        Route::post('/pqrs/{id}/respuesta', [App\Http\Controllers\Api\PqrsController::class, 'agregarRespuesta']);
     });
 });
 

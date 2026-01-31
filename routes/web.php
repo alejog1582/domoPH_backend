@@ -234,6 +234,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('llamados-atencion', [LlamadoAtencionController::class, 'index'])->name('llamados-atencion.index');
     Route::get('llamados-atencion/create', [LlamadoAtencionController::class, 'create'])->name('llamados-atencion.create');
     Route::post('llamados-atencion', [LlamadoAtencionController::class, 'store'])->name('llamados-atencion.store');
+    Route::get('llamados-atencion/{id}/edit', [LlamadoAtencionController::class, 'edit'])->name('llamados-atencion.edit');
+    Route::put('llamados-atencion/{id}', [LlamadoAtencionController::class, 'update'])->name('llamados-atencion.update');
     
     // Gestión de PQRS
     Route::get('pqrs', [PqrsController::class, 'index'])->name('pqrs.index');

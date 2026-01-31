@@ -40,6 +40,11 @@ Route::prefix('residente')->group(function () {
         // Rutas de visitas
         Route::get('/visitas', [App\Http\Controllers\Api\VisitaController::class, 'index']);
         Route::post('/visitas', [App\Http\Controllers\Api\VisitaController::class, 'store']);
+        
+        // Rutas de llamados de atención
+        Route::get('/llamados-atencion', [App\Http\Controllers\Api\LlamadoAtencionController::class, 'index']);
+        Route::get('/llamados-atencion/{id}/historial', [App\Http\Controllers\Api\LlamadoAtencionController::class, 'historial']);
+        Route::post('/llamados-atencion/{id}/respuesta', [App\Http\Controllers\Api\LlamadoAtencionController::class, 'agregarRespuesta']);
     });
 });
 

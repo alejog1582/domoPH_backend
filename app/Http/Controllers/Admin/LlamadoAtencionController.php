@@ -7,7 +7,9 @@ use App\Models\LlamadoAtencion;
 use App\Helpers\AdminHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class LlamadoAtencionController extends Controller
 {
@@ -147,6 +149,7 @@ class LlamadoAtencionController extends Controller
             'estado' => 'required|in:abierto,en_proceso,cerrado,anulado',
             'fecha_evento' => 'required|date',
             'evidencia' => 'nullable|array',
+            'soporte' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB máximo
             'observaciones' => 'nullable|string',
             'es_reincidencia' => 'boolean',
         ], [
@@ -175,6 +178,26 @@ class LlamadoAtencionController extends Controller
                 }
             }
 
+            // Procesar imagen de soporte si se proporciona
+            $evidencia = $validated['evidencia'] ?? null;
+            if ($request->hasFile('soporte')) {
+                $archivo = $request->file('soporte');
+                $result = Cloudinary::uploadApi()->upload($archivo->getRealPath(), [
+                    'folder' => 'llamados_atencion',
+                    'resource_type' => 'image',
+                ]);
+                $soporteUrl = $result['secure_url'];
+                
+                // Si evidencia es null, crear array, si no, agregar la nueva imagen
+                if (!$evidencia) {
+                    $evidencia = [];
+                }
+                if (!is_array($evidencia)) {
+                    $evidencia = json_decode($evidencia, true) ?? [];
+                }
+                $evidencia[] = $soporteUrl;
+            }
+
             $llamado = LlamadoAtencion::create([
                 'copropiedad_id' => $propiedad->id,
                 'unidad_id' => $validated['unidad_id'] ?? null,
@@ -187,10 +210,23 @@ class LlamadoAtencionController extends Controller
                 'fecha_evento' => Carbon::parse($validated['fecha_evento']),
                 'fecha_registro' => Carbon::now(),
                 'registrado_por' => Auth::id(),
-                'evidencia' => $validated['evidencia'] ?? null,
+                'evidencia' => $evidencia ? json_encode($evidencia) : null,
                 'observaciones' => $validated['observaciones'] ?? null,
                 'es_reincidencia' => $validated['es_reincidencia'] ?? false,
                 'activo' => true,
+            ]);
+
+            // Crear registro inicial en el historial
+            DB::table('llamados_atencion_historial')->insert([
+                'llamado_atencion_id' => $llamado->id,
+                'estado_anterior' => null,
+                'estado_nuevo' => $llamado->estado,
+                'comentario' => 'Llamado de atención creado',
+                'soporte_url' => null,
+                'cambiado_por' => Auth::id(),
+                'fecha_cambio' => Carbon::now(),
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
             ]);
 
             return redirect()->route('admin.llamados-atencion.index')
@@ -199,6 +235,107 @@ class LlamadoAtencionController extends Controller
         } catch (\Exception $e) {
             \Log::error('Error al crear llamado de atención: ' . $e->getMessage());
             return back()->with('error', 'Error al crear el llamado de atención: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
+
+    /**
+     * Mostrar el formulario de gestión de un llamado de atención
+     */
+    public function edit($id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $llamado = LlamadoAtencion::with(['unidad', 'residente', 'registradoPor'])
+            ->where('copropiedad_id', $propiedad->id)
+            ->where('id', $id)
+            ->where('activo', true)
+            ->firstOrFail();
+
+        // Obtener el historial
+        $historial = DB::table('llamados_atencion_historial')
+            ->where('llamado_atencion_id', $llamado->id)
+            ->orderBy('fecha_cambio', 'desc')
+            ->get();
+
+        return view('admin.llamados-atencion.edit', compact('llamado', 'historial', 'propiedad'));
+    }
+
+    /**
+     * Actualizar un llamado de atención (estado y comentarios)
+     */
+    public function update(Request $request, $id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $llamado = LlamadoAtencion::where('copropiedad_id', $propiedad->id)
+            ->where('id', $id)
+            ->where('activo', true)
+            ->firstOrFail();
+
+        $validated = $request->validate([
+            'estado' => 'required|in:abierto,en_proceso,cerrado,anulado',
+            'comentario' => 'nullable|string|max:1000',
+            'soporte' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120', // 5MB máximo
+        ], [
+            'estado.required' => 'El estado es obligatorio.',
+            'estado.in' => 'El estado seleccionado no es válido.',
+            'comentario.max' => 'El comentario no puede exceder 1000 caracteres.',
+            'soporte.image' => 'El archivo debe ser una imagen.',
+            'soporte.mimes' => 'La imagen debe ser jpeg, png, jpg o gif.',
+            'soporte.max' => 'La imagen no puede exceder 5MB.',
+        ]);
+
+        try {
+            $estadoAnterior = $llamado->estado;
+            $estadoNuevo = $validated['estado'];
+            $soporteUrl = null;
+
+            // Subir imagen de soporte si se proporciona
+            if ($request->hasFile('soporte')) {
+                $archivo = $request->file('soporte');
+                $result = Cloudinary::uploadApi()->upload($archivo->getRealPath(), [
+                    'folder' => 'llamados_atencion',
+                    'resource_type' => 'image',
+                ]);
+                $soporteUrl = $result['secure_url'];
+            }
+
+            // Actualizar el estado del llamado
+            $llamado->estado = $estadoNuevo;
+            $llamado->save();
+
+            // Crear registro en el historial si hay cambio de estado o comentario
+            if ($estadoAnterior !== $estadoNuevo || $validated['comentario']) {
+                DB::table('llamados_atencion_historial')->insert([
+                    'llamado_atencion_id' => $llamado->id,
+                    'estado_anterior' => $estadoAnterior !== $estadoNuevo ? $estadoAnterior : null,
+                    'estado_nuevo' => $estadoNuevo,
+                    'comentario' => $validated['comentario'] ?? null,
+                    'soporte_url' => $soporteUrl,
+                    'cambiado_por' => Auth::id(),
+                    'fecha_cambio' => Carbon::now(),
+                    'created_at' => Carbon::now(),
+                    'updated_at' => Carbon::now(),
+                ]);
+            }
+
+            return redirect()->route('admin.llamados-atencion.edit', $llamado->id)
+                ->with('success', 'Llamado de atención actualizado correctamente.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar llamado de atención: ' . $e->getMessage());
+            return back()->with('error', 'Error al actualizar el llamado de atención: ' . $e->getMessage())
                 ->withInput();
         }
     }

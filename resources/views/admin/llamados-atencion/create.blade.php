@@ -16,7 +16,7 @@
 </div>
 
 <div class="bg-white rounded-lg shadow p-6">
-    <form action="{{ route('admin.llamados-atencion.store') }}" method="POST">
+    <form action="{{ route('admin.llamados-atencion.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -127,6 +127,19 @@
             <textarea name="descripcion" id="descripcion" rows="5" required
                 class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('descripcion') border-red-500 @enderror">{{ old('descripcion') }}</textarea>
             @error('descripcion')
+                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+            @enderror
+        </div>
+
+        <!-- Soporte (Imagen) -->
+        <div class="mb-4">
+            <label for="soporte" class="block text-sm font-medium text-gray-700 mb-1">
+                Soporte (Imagen)
+            </label>
+            <input type="file" name="soporte" id="soporte" accept="image/*"
+                class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('soporte') border-red-500 @enderror">
+            <p class="mt-1 text-xs text-gray-500">Formatos permitidos: JPEG, PNG, JPG, GIF. Tamaño máximo: 5MB</p>
+            @error('soporte')
                 <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
             @enderror
         </div>

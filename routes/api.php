@@ -51,6 +51,10 @@ Route::prefix('residente')->group(function () {
         Route::get('/pqrs/{id}', [App\Http\Controllers\Api\PqrsController::class, 'show']);
         Route::post('/pqrs', [App\Http\Controllers\Api\PqrsController::class, 'store']);
         Route::post('/pqrs/{id}/respuesta', [App\Http\Controllers\Api\PqrsController::class, 'agregarRespuesta']);
+
+        // Rutas de Cartera
+        Route::get('/cartera', [App\Http\Controllers\Api\CarteraController::class, 'index']);
+        Route::post('/cartera/solicitar-acuerdo-pago', [App\Http\Controllers\Api\CarteraController::class, 'solicitarAcuerdoPago']);
     });
 });
 

@@ -140,6 +140,32 @@ class CarteraController extends Controller
             // Determinar si está en mora
             $estaEnMora = $cartera->saldo_mora > 0;
 
+            // Obtener cuentas de cobro en mora (para mostrar en la modal de acuerdo de pago)
+            $cuentasEnMora = CuentaCobro::where('copropiedad_id', $propiedadId)
+                ->where('unidad_id', $unidadId)
+                ->whereIn('estado', ['pendiente', 'vencida'])
+                ->with(['detalles'])
+                ->orderBy('periodo', 'desc')
+                ->orderBy('fecha_emision', 'desc')
+                ->get()
+                ->map(function ($cuenta) {
+                    $saldoPendiente = $cuenta->calcularSaldoPendiente();
+                    
+                    return [
+                        'id' => $cuenta->id,
+                        'periodo' => $cuenta->periodo,
+                        'fecha_emision' => $cuenta->fecha_emision 
+                            ? $cuenta->fecha_emision->format('Y-m-d')
+                            : null,
+                        'fecha_vencimiento' => $cuenta->fecha_vencimiento 
+                            ? $cuenta->fecha_vencimiento->format('Y-m-d')
+                            : null,
+                        'valor_total' => (float) $cuenta->valor_total,
+                        'saldo_pendiente' => $saldoPendiente,
+                        'estado' => $cuenta->estado,
+                    ];
+                });
+
             return response()->json([
                 'success' => true,
                 'data' => [
@@ -154,6 +180,7 @@ class CarteraController extends Controller
                         'esta_en_mora' => $estaEnMora,
                     ],
                     'cuentas_cobro' => $cuentasCobro,
+                    'cuentas_en_mora' => $cuentasEnMora, // Para la modal de acuerdo de pago
                     'acuerdos_pago' => $acuerdosPago,
                 ]
             ], 200);
@@ -169,7 +196,8 @@ class CarteraController extends Controller
     }
 
     /**
-     * Solicitar un acuerdo de pago (crea una PQRS de tipo peticion)
+     * Solicitar un acuerdo de pago
+     * Crea registros en acuerdos_pagos para que el administrador los revise
      */
     public function solicitarAcuerdoPago(Request $request)
     {
@@ -219,72 +247,149 @@ class CarteraController extends Controller
         // Validar datos
         $validated = $request->validate([
             'descripcion' => 'required|string|max:1000',
+            'valor_mensual_propuesto' => 'required|numeric|min:1',
+            'seleccionar_todas' => 'required|boolean',
+            'cuentas_cobro_ids' => 'required_if:seleccionar_todas,false|array',
+            'cuentas_cobro_ids.*' => 'exists:cuenta_cobros,id',
         ], [
             'descripcion.required' => 'La descripción es obligatoria.',
             'descripcion.max' => 'La descripción no puede exceder 1000 caracteres.',
+            'valor_mensual_propuesto.required' => 'El valor mensual propuesto es obligatorio.',
+            'valor_mensual_propuesto.numeric' => 'El valor mensual debe ser un número.',
+            'valor_mensual_propuesto.min' => 'El valor mensual debe ser mayor a 0.',
+            'seleccionar_todas.required' => 'Debes indicar si deseas seleccionar todas las cuentas.',
+            'cuentas_cobro_ids.required_if' => 'Debes seleccionar al menos una cuenta de cobro.',
+            'cuentas_cobro_ids.array' => 'Las cuentas de cobro deben ser un array.',
+            'cuentas_cobro_ids.*.exists' => 'Una o más cuentas de cobro seleccionadas no existen.',
         ]);
 
         try {
-            // Generar número de radicado único
-            $year = date('Y');
-            $month = date('m');
-            
-            $ultimoRadicado = DB::table('pqrs')
-                ->where('numero_radicado', 'like', "PQRS-{$year}-{$month}-%")
-                ->orderBy('numero_radicado', 'desc')
-                ->value('numero_radicado');
-            
-            if ($ultimoRadicado) {
-                $partes = explode('-', $ultimoRadicado);
-                $secuencial = intval(end($partes)) + 1;
-            } else {
-                $secuencial = 1;
+            DB::beginTransaction();
+
+            // Obtener cuentas de cobro en mora de la unidad
+            $cuentasEnMora = CuentaCobro::where('copropiedad_id', $propiedadId)
+                ->where('unidad_id', $unidadId)
+                ->whereIn('estado', ['pendiente', 'vencida'])
+                ->get();
+
+            if ($cuentasEnMora->isEmpty()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No tienes cuentas de cobro en mora.',
+                    'error' => 'NO_CUENTAS_MORA'
+                ], 400);
             }
+
+            // Determinar qué cuentas incluir en el acuerdo
+            $cuentasParaAcuerdo = [];
             
-            $numeroRadicado = sprintf('PQRS-%s-%s-%05d', $year, $month, $secuencial);
+            if ($validated['seleccionar_todas']) {
+                // Si selecciona todas, usar todas las cuentas en mora
+                $cuentasParaAcuerdo = $cuentasEnMora->pluck('id')->toArray();
+            } else {
+                // Validar que las cuentas seleccionadas pertenezcan a la unidad y estén en mora
+                $cuentasSeleccionadas = CuentaCobro::where('copropiedad_id', $propiedadId)
+                    ->where('unidad_id', $unidadId)
+                    ->whereIn('id', $validated['cuentas_cobro_ids'])
+                    ->whereIn('estado', ['pendiente', 'vencida'])
+                    ->get();
 
-            // Crear la PQRS
-            $pqrsId = DB::table('pqrs')->insertGetId([
-                'copropiedad_id' => $propiedadId,
-                'unidad_id' => $unidadId,
-                'residente_id' => $residente->id,
-                'tipo' => 'peticion',
-                'categoria' => 'administracion',
-                'asunto' => 'Solicitud de acuerdo de pago',
-                'descripcion' => $validated['descripcion'],
-                'prioridad' => 'alta',
-                'estado' => 'radicada',
-                'canal' => 'app',
-                'numero_radicado' => $numeroRadicado,
-                'fecha_radicacion' => Carbon::now(),
-                'activo' => true,
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+                if ($cuentasSeleccionadas->isEmpty()) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Las cuentas de cobro seleccionadas no son válidas o no están en mora.',
+                        'error' => 'CUENTAS_INVALIDAS'
+                    ], 400);
+                }
 
-            // Crear registro inicial en el historial
-            DB::table('pqrs_historial')->insert([
-                'pqrs_id' => $pqrsId,
-                'estado_anterior' => null,
-                'estado_nuevo' => 'radicada',
-                'comentario' => 'Solicitud de acuerdo de pago radicada',
-                'soporte_url' => null,
-                'cambiado_por' => $user->id,
-                'fecha_cambio' => Carbon::now(),
-                'created_at' => Carbon::now(),
-                'updated_at' => Carbon::now(),
-            ]);
+                $cuentasParaAcuerdo = $cuentasSeleccionadas->pluck('id')->toArray();
+            }
+
+            // Generar número de acuerdo único
+            $year = date('Y');
+            $ultimoAcuerdo = AcuerdoPago::where('copropiedad_id', $propiedadId)
+                ->whereYear('created_at', $year)
+                ->orderBy('id', 'desc')
+                ->first();
+            
+            $numeroSecuencial = $ultimoAcuerdo ? $ultimoAcuerdo->id + 1 : 1;
+            $numeroAcuerdo = 'ACU-' . str_pad($numeroSecuencial, 6, '0', STR_PAD_LEFT);
+
+            // Calcular valores totales
+            $totalSaldoMora = $cuentasEnMora->sum(function($cuenta) {
+                return $cuenta->calcularSaldoPendiente();
+            });
+
+            // Si se seleccionan todas las cuentas, crear un solo registro con cuenta_cobro_id = null
+            if ($validated['seleccionar_todas']) {
+                $acuerdo = AcuerdoPago::create([
+                    'copropiedad_id' => $propiedadId,
+                    'unidad_id' => $unidadId,
+                    'cartera_id' => $cartera->id,
+                    'cuenta_cobro_id' => null, // null porque incluye todas
+                    'numero_acuerdo' => $numeroAcuerdo,
+                    'fecha_acuerdo' => Carbon::now(),
+                    'fecha_inicio' => Carbon::now(),
+                    'fecha_fin' => null, // Se definirá cuando el admin apruebe
+                    'descripcion' => $validated['descripcion'],
+                    'saldo_original' => $totalSaldoMora,
+                    'valor_acordado' => $totalSaldoMora, // Se ajustará cuando el admin apruebe
+                    'valor_inicial' => 0,
+                    'saldo_pendiente' => $totalSaldoMora,
+                    'numero_cuotas' => 1, // Se calculará cuando el admin apruebe
+                    'valor_cuota' => $validated['valor_mensual_propuesto'],
+                    'valor_mensual_propuesto' => $validated['valor_mensual_propuesto'],
+                    'interes_acuerdo' => 0,
+                    'valor_intereses' => 0,
+                    'estado' => 'pendiente', // Pendiente de aprobación del admin
+                    'activo' => true,
+                    'usuario_id' => $user->id,
+                ]);
+            } else {
+                // Si se seleccionan cuentas específicas, crear un registro por cada cuenta
+                foreach ($cuentasParaAcuerdo as $cuentaCobroId) {
+                    $cuentaCobro = CuentaCobro::find($cuentaCobroId);
+                    $saldoPendiente = $cuentaCobro->calcularSaldoPendiente();
+
+                    AcuerdoPago::create([
+                        'copropiedad_id' => $propiedadId,
+                        'unidad_id' => $unidadId,
+                        'cartera_id' => $cartera->id,
+                        'cuenta_cobro_id' => $cuentaCobroId,
+                        'numero_acuerdo' => $numeroAcuerdo . '-' . $cuentaCobroId, // Número único por cuenta
+                        'fecha_acuerdo' => Carbon::now(),
+                        'fecha_inicio' => Carbon::now(),
+                        'fecha_fin' => null,
+                        'descripcion' => $validated['descripcion'],
+                        'saldo_original' => $saldoPendiente,
+                        'valor_acordado' => $saldoPendiente,
+                        'valor_inicial' => 0,
+                        'saldo_pendiente' => $saldoPendiente,
+                        'numero_cuotas' => 1,
+                        'valor_cuota' => $validated['valor_mensual_propuesto'],
+                        'valor_mensual_propuesto' => $validated['valor_mensual_propuesto'],
+                        'interes_acuerdo' => 0,
+                        'valor_intereses' => 0,
+                        'estado' => 'pendiente',
+                        'activo' => true,
+                        'usuario_id' => $user->id,
+                    ]);
+                }
+            }
+
+            DB::commit();
 
             return response()->json([
                 'success' => true,
-                'message' => 'Solicitud de acuerdo de pago enviada correctamente.',
+                'message' => 'Solicitud de acuerdo de pago enviada correctamente. El administrador la revisará.',
                 'data' => [
-                    'pqrs_id' => $pqrsId,
-                    'numero_radicado' => $numeroRadicado,
+                    'numero_acuerdo' => $numeroAcuerdo,
+                    'cuentas_incluidas' => count($cuentasParaAcuerdo),
                 ]
             ], 201);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             \Log::error('Error al solicitar acuerdo de pago: ' . $e->getMessage());
             return response()->json([
                 'success' => false,

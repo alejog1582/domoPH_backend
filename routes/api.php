@@ -55,6 +55,11 @@ Route::prefix('residente')->group(function () {
         // Rutas de Cartera
         Route::get('/cartera', [App\Http\Controllers\Api\CarteraController::class, 'index']);
         Route::post('/cartera/solicitar-acuerdo-pago', [App\Http\Controllers\Api\CarteraController::class, 'solicitarAcuerdoPago']);
+
+        // Rutas de Autorizaciones
+        Route::get('/autorizaciones', [App\Http\Controllers\Api\AutorizacionController::class, 'index']);
+        Route::post('/autorizaciones', [App\Http\Controllers\Api\AutorizacionController::class, 'store']);
+        Route::put('/autorizaciones/{id}', [App\Http\Controllers\Api\AutorizacionController::class, 'update']);
     });
 });
 

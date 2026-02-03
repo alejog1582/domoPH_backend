@@ -6,14 +6,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-class SorteoParqueadero extends Model
+class Deposito extends Model
 {
     use HasFactory, SoftDeletes;
 
     /**
      * Nombre de la tabla
      */
-    protected $table = 'sorteos_parqueadero';
+    protected $table = 'depositos';
 
     /**
      * Atributos asignables en masa
@@ -22,16 +22,14 @@ class SorteoParqueadero extends Model
      */
     protected $fillable = [
         'copropiedad_id',
-        'titulo',
-        'descripcion',
-        'fecha_inicio_recoleccion',
-        'fecha_fin_recoleccion',
-        'fecha_sorteo',
-        'fecha_inicio_uso',
-        'duracion_meses',
-        'capacidad_autos',
-        'capacidad_motos',
+        'codigo',
+        'nivel',
         'estado',
+        'area_m2',
+        'observaciones',
+        'unidad_id',
+        'residente_responsable_id',
+        'fecha_asignacion',
         'creado_por',
         'activo',
     ];
@@ -42,10 +40,8 @@ class SorteoParqueadero extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'fecha_inicio_recoleccion' => 'date',
-        'fecha_fin_recoleccion' => 'date',
-        'fecha_sorteo' => 'date',
-        'fecha_inicio_uso' => 'date',
+        'area_m2' => 'decimal:2',
+        'fecha_asignacion' => 'date',
         'activo' => 'boolean',
     ];
 
@@ -58,7 +54,23 @@ class SorteoParqueadero extends Model
     }
 
     /**
-     * Relación con el usuario que creó el sorteo
+     * Relación con la unidad
+     */
+    public function unidad()
+    {
+        return $this->belongsTo(Unidad::class, 'unidad_id');
+    }
+
+    /**
+     * Relación con el residente responsable
+     */
+    public function residenteResponsable()
+    {
+        return $this->belongsTo(Residente::class, 'residente_responsable_id');
+    }
+
+    /**
+     * Relación con el usuario que creó el registro
      */
     public function creadoPor()
     {
@@ -66,15 +78,7 @@ class SorteoParqueadero extends Model
     }
 
     /**
-     * Relación con los participantes del sorteo
-     */
-    public function participantes()
-    {
-        return $this->hasMany(ParticipanteSorteoParqueadero::class, 'sorteo_parqueadero_id');
-    }
-
-    /**
-     * Scope para obtener solo sorteos activos
+     * Scope para obtener solo depósitos activos
      */
     public function scopeActivos($query)
     {

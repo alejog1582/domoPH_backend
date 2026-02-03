@@ -27,6 +27,8 @@ use App\Http\Controllers\Admin\LlamadoAtencionController;
 use App\Http\Controllers\Admin\PqrsController;
 use App\Http\Controllers\Admin\ReservaController;
 use App\Http\Controllers\Admin\SorteoParqueaderoController;
+use App\Http\Controllers\Admin\ParqueaderoController;
+use App\Http\Controllers\Admin\DepositoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -172,6 +174,26 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('mascotas/{mascota}/edit', [MascotaController::class, 'edit'])->name('mascotas.edit');
     Route::put('mascotas/{mascota}', [MascotaController::class, 'update'])->name('mascotas.update');
     Route::delete('mascotas/{mascota}', [MascotaController::class, 'destroy'])->name('mascotas.destroy');
+    
+    // Gestión de Parqueaderos
+    Route::get('parqueaderos', [ParqueaderoController::class, 'index'])->name('parqueaderos.index');
+    Route::get('parqueaderos/create', [ParqueaderoController::class, 'create'])->name('parqueaderos.create');
+    Route::post('parqueaderos', [ParqueaderoController::class, 'store'])->name('parqueaderos.store');
+    Route::get('parqueaderos/template', [ParqueaderoController::class, 'downloadTemplate'])->name('parqueaderos.template');
+    Route::post('parqueaderos/import', [ParqueaderoController::class, 'import'])->name('parqueaderos.import');
+    Route::get('parqueaderos/{id}/edit', [ParqueaderoController::class, 'edit'])->name('parqueaderos.edit');
+    Route::put('parqueaderos/{id}', [ParqueaderoController::class, 'update'])->name('parqueaderos.update');
+    Route::delete('parqueaderos/{id}', [ParqueaderoController::class, 'destroy'])->name('parqueaderos.destroy');
+    
+    // Gestión de Depósitos
+    Route::get('depositos', [DepositoController::class, 'index'])->name('depositos.index');
+    Route::get('depositos/create', [DepositoController::class, 'create'])->name('depositos.create');
+    Route::post('depositos', [DepositoController::class, 'store'])->name('depositos.store');
+    Route::get('depositos/template', [DepositoController::class, 'downloadTemplate'])->name('depositos.template');
+    Route::post('depositos/import', [DepositoController::class, 'import'])->name('depositos.import');
+    Route::get('depositos/{id}/edit', [DepositoController::class, 'edit'])->name('depositos.edit');
+    Route::put('depositos/{id}', [DepositoController::class, 'update'])->name('depositos.update');
+    Route::delete('depositos/{id}', [DepositoController::class, 'destroy'])->name('depositos.destroy');
     
     // Gestión de Zonas Comunes
     Route::get('zonas-sociales', [ZonaSocialController::class, 'index'])->name('zonas-sociales.index');

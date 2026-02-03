@@ -86,6 +86,38 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Fecha Inicio Uso -->
+            <div>
+                <label for="fecha_inicio_uso" class="block text-sm font-medium text-gray-700 mb-1">
+                    Fecha Inicio de Uso
+                </label>
+                <input type="date" name="fecha_inicio_uso" id="fecha_inicio_uso" 
+                    value="{{ old('fecha_inicio_uso') }}"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('fecha_inicio_uso') border-red-500 @enderror"
+                    placeholder="Fecha desde cuando pueden usar el parqueadero">
+                <p class="mt-1 text-xs text-gray-500">Fecha desde la cual los ganadores pueden comenzar a usar el parqueadero asignado</p>
+                @error('fecha_inicio_uso')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Duración en Meses -->
+            <div>
+                <label for="duracion_meses" class="block text-sm font-medium text-gray-700 mb-1">
+                    Duración (Meses)
+                </label>
+                <input type="number" name="duracion_meses" id="duracion_meses" 
+                    value="{{ old('duracion_meses') }}" min="1" step="1"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('duracion_meses') border-red-500 @enderror"
+                    placeholder="Cantidad de meses de asignación">
+                <p class="mt-1 text-xs text-gray-500">Cantidad de meses que dura la asignación del parqueadero</p>
+                @error('duracion_meses')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <!-- Capacidad Autos -->
             <div>
                 <label for="capacidad_autos" class="block text-sm font-medium text-gray-700 mb-1">

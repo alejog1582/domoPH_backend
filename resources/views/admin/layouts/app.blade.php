@@ -105,6 +105,20 @@
                                     Mascotas
                                 </a>
                                 <a 
+                                    href="{{ route('admin.parqueaderos.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.parqueaderos.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-car mr-3 text-xs"></i>
+                                    Parqueaderos
+                                </a>
+                                <a 
+                                    href="{{ route('admin.depositos.index') }}" 
+                                    class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.depositos.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                                >
+                                    <i class="fas fa-warehouse mr-3 text-xs"></i>
+                                    Depósitos
+                                </a>
+                                <a 
                                     href="{{ route('admin.zonas-sociales.index') }}" 
                                     class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.zonas-sociales.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
                                 >

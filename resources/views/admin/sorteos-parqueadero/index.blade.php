@@ -137,11 +137,51 @@
                         </div>
                     </div>
 
+                    <!-- Capacidad y Disponibilidad -->
+                    @php
+                        $participantesAutos = $sorteo->participantes->where('tipo_vehiculo', 'carro')->count();
+                        $participantesMotos = $sorteo->participantes->where('tipo_vehiculo', 'moto')->count();
+                        $disponibilidadAutos = max(0, ($sorteo->capacidad_autos ?? 0) - $participantesAutos);
+                        $disponibilidadMotos = max(0, ($sorteo->capacidad_motos ?? 0) - $participantesMotos);
+                    @endphp
+                    <div class="mb-4 space-y-2">
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-car mr-2 text-gray-400"></i>
+                                <span class="font-medium">Autos:</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-700">
+                                    {{ $participantesAutos }} / {{ $sorteo->capacidad_autos ?? 0 }}
+                                </span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full 
+                                    {{ $disponibilidadAutos > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ $disponibilidadAutos }} disponibles
+                                </span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-sm">
+                            <div class="flex items-center text-gray-600">
+                                <i class="fas fa-motorcycle mr-2 text-gray-400"></i>
+                                <span class="font-medium">Motos:</span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="text-gray-700">
+                                    {{ $participantesMotos }} / {{ $sorteo->capacidad_motos ?? 0 }}
+                                </span>
+                                <span class="px-2 py-0.5 text-xs font-semibold rounded-full 
+                                    {{ $disponibilidadMotos > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">
+                                    {{ $disponibilidadMotos }} disponibles
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Participantes -->
                     <div class="mb-4">
                         <div class="flex items-center text-sm text-gray-600">
                             <i class="fas fa-users mr-2 text-gray-400"></i>
-                            <span class="font-medium">Participantes:</span>
+                            <span class="font-medium">Total Participantes:</span>
                             <span class="ml-2">{{ $sorteo->participantes->count() }}</span>
                         </div>
                     </div>

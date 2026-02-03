@@ -27,6 +27,8 @@ class SorteoParqueadero extends Model
         'fecha_inicio_recoleccion',
         'fecha_fin_recoleccion',
         'fecha_sorteo',
+        'capacidad_autos',
+        'capacidad_motos',
         'estado',
         'creado_por',
         'activo',

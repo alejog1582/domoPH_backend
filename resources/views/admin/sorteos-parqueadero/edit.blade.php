@@ -87,6 +87,36 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Capacidad Autos -->
+            <div>
+                <label for="capacidad_autos" class="block text-sm font-medium text-gray-700 mb-1">
+                    Capacidad de Autos <span class="text-red-500">*</span>
+                </label>
+                <input type="number" name="capacidad_autos" id="capacidad_autos" 
+                    value="{{ old('capacidad_autos', $sorteo->capacidad_autos ?? 0) }}" required min="0" step="1"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('capacidad_autos') border-red-500 @enderror"
+                    placeholder="Número de parqueaderos para autos">
+                @error('capacidad_autos')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Capacidad Motos -->
+            <div>
+                <label for="capacidad_motos" class="block text-sm font-medium text-gray-700 mb-1">
+                    Capacidad de Motos <span class="text-red-500">*</span>
+                </label>
+                <input type="number" name="capacidad_motos" id="capacidad_motos" 
+                    value="{{ old('capacidad_motos', $sorteo->capacidad_motos ?? 0) }}" required min="0" step="1"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('capacidad_motos') border-red-500 @enderror"
+                    placeholder="Número de parqueaderos para motos">
+                @error('capacidad_motos')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <!-- Estado -->
             <div>
                 <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">

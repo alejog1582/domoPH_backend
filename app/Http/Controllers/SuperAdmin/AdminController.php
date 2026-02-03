@@ -80,6 +80,17 @@ class AdminController extends Controller
     }
 
     /**
+     * Mostrar formulario de creación de administrador
+     *
+     * @return \Illuminate\View\View
+     */
+    public function create()
+    {
+        $propiedades = \App\Models\Propiedad::orderBy('nombre')->get();
+        return view('superadmin.administradores.create', compact('propiedades'));
+    }
+
+    /**
      * Mostrar formulario de edición de administrador
      *
      * @param User $administrador
@@ -102,9 +113,9 @@ class AdminController extends Controller
      * Crear un nuevo administrador
      *
      * @param StoreAdminRequest $request
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function store(StoreAdminRequest $request): JsonResponse
+    public function store(StoreAdminRequest $request)
     {
         DB::beginTransaction();
         try {
@@ -151,19 +162,35 @@ class AdminController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => $user->load(['roles', 'administracionesPropiedad.propiedad']),
-                'message' => 'Administrador creado exitosamente'
-            ], 201);
+            // Si es una petición API, devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $user->load(['roles', 'administracionesPropiedad.propiedad']),
+                    'message' => 'Administrador creado exitosamente'
+                ], 201);
+            }
+
+            // Si es web, redirigir
+            return redirect()->route('superadmin.administradores.index')
+                ->with('success', 'Administrador creado exitosamente');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al crear el administrador',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            // Si es una petición API, devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al crear el administrador',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            // Si es web, redirigir con error
+            return redirect()->back()
+                ->withInput()
+                ->with('error', 'Error al crear el administrador: ' . $e->getMessage());
         }
     }
 

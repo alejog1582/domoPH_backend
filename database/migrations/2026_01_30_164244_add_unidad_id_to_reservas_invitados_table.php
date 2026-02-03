@@ -12,14 +12,17 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('reservas_invitados', function (Blueprint $table) {
-            $table->foreignId('unidad_id')
-                ->nullable()
-                ->after('residente_id')
-                ->constrained('unidades')
-                ->nullOnDelete()
-                ->comment('ID de la unidad si el invitado es residente de la copropiedad (nullable para invitados externos)');
-            
-            $table->index('unidad_id');
+            // Verificar si la columna ya existe antes de intentar crearla
+            if (!Schema::hasColumn('reservas_invitados', 'unidad_id')) {
+                $table->foreignId('unidad_id')
+                    ->nullable()
+                    ->after('residente_id')
+                    ->constrained('unidades')
+                    ->nullOnDelete()
+                    ->comment('ID de la unidad si el invitado es residente de la copropiedad (nullable para invitados externos)');
+                
+                $table->index('unidad_id');
+            }
         });
     }
 

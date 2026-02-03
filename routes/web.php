@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\AutorizacionController;
 use App\Http\Controllers\Admin\LlamadoAtencionController;
 use App\Http\Controllers\Admin\PqrsController;
 use App\Http\Controllers\Admin\ReservaController;
+use App\Http\Controllers\Admin\SorteoParqueaderoController;
 
 /*
 |--------------------------------------------------------------------------
@@ -110,8 +111,10 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
         Route::put('modulos/{modulo}', [ModuloController::class, 'update'])->name('modulos.update');
         Route::delete('modulos/{modulo}', [ModuloController::class, 'destroy'])->name('modulos.destroy');
     
-        // Gestión de Usuarios Administradores (solo listar y editar, no crear ni eliminar)
+        // Gestión de Usuarios Administradores
         Route::get('administradores', [AdminController::class, 'index'])->name('administradores.index');
+        Route::get('administradores/create', [AdminController::class, 'create'])->name('administradores.create');
+        Route::post('administradores', [AdminController::class, 'store'])->name('administradores.store');
         Route::get('administradores/{administrador}/edit', [AdminController::class, 'edit'])->name('administradores.edit');
         Route::put('administradores/{administrador}', [AdminController::class, 'update'])->name('administradores.update');
     
@@ -246,4 +249,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('reservas', [ReservaController::class, 'index'])->name('reservas.index');
     Route::get('reservas/{reserva}', [ReservaController::class, 'show'])->name('reservas.show');
     Route::put('reservas/{reserva}', [ReservaController::class, 'update'])->name('reservas.update');
+    
+    // Gestión de Sorteos Parqueaderos
+    Route::get('sorteos-parqueadero', [SorteoParqueaderoController::class, 'index'])->name('sorteos-parqueadero.index');
+    Route::get('sorteos-parqueadero/create', [SorteoParqueaderoController::class, 'create'])->name('sorteos-parqueadero.create');
+    Route::post('sorteos-parqueadero', [SorteoParqueaderoController::class, 'store'])->name('sorteos-parqueadero.store');
+    Route::get('sorteos-parqueadero/{id}/edit', [SorteoParqueaderoController::class, 'edit'])->name('sorteos-parqueadero.edit');
+    Route::put('sorteos-parqueadero/{id}', [SorteoParqueaderoController::class, 'update'])->name('sorteos-parqueadero.update');
+    Route::get('sorteos-parqueadero/{id}/participantes', [SorteoParqueaderoController::class, 'participantes'])->name('sorteos-parqueadero.participantes');
 });

@@ -261,18 +261,16 @@
                             </a>
                         </div>
 
-                        <!-- Módulos activos de la propiedad -->
-                        <!-- @foreach($modulos as $modulo)
-                            <a href="{{ $modulo->ruta ?? '#' }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->is(trim($modulo->ruta, '/')) ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
-                                @if($modulo->icono)
-                                    <i class="fas fa-{{ $modulo->icono }} mr-3"></i>
-                                @else
-                                    <i class="fas fa-circle mr-3"></i>
-                                @endif
-                                {{ $modulo->nombre }}
+                        <!-- Menú Sorteos Parqueaderos -->
+                        <div class="mb-1">
+                            <a 
+                                href="{{ route('admin.sorteos-parqueadero.index') }}" 
+                                class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.sorteos-parqueadero.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                            >
+                                <i class="fas fa-car mr-3"></i>
+                                <span>Sorteos Parqueaderos</span>
                             </a>
-                        @endforeach -->
-
+                        </div>
                         @if($modulos->isEmpty())
                             <div class="px-2 py-4 text-sm text-gray-500">
                                 <i class="fas fa-info-circle mr-2"></i>
@@ -285,6 +283,17 @@
                             No hay propiedad asignada
                         </div>
                     @endif
+                    <!-- Módulos activos de la propiedad -->
+                    <!-- @foreach($modulos as $modulo)
+                        <a href="{{ $modulo->ruta ?? '#' }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->is(trim($modulo->ruta, '/')) ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                            @if($modulo->icono)
+                                <i class="fas fa-{{ $modulo->icono }} mr-3"></i>
+                            @else
+                                <i class="fas fa-circle mr-3"></i>
+                            @endif
+                            {{ $modulo->nombre }}
+                        </a>
+                    @endforeach -->
                 </nav>
             </aside>
 

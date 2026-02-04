@@ -213,6 +213,11 @@
                             Creado: {{ $sorteo->created_at->format('d/m/Y') }}
                         </div>
                         <div class="flex gap-2">
+                            <button type="button" 
+                                onclick="abrirModalIniciarSorteo({{ $sorteo->id }})"
+                                class="px-3 py-1.5 text-xs font-medium text-white bg-green-600 rounded-md hover:bg-green-700 transition-colors">
+                                <i class="fas fa-play mr-1"></i>Iniciar Sorteo
+                            </button>
                             <a href="{{ route('admin.sorteos-parqueadero.participantes', $sorteo->id) }}" 
                                 class="px-3 py-1.5 text-xs font-medium text-blue-600 bg-blue-50 rounded-md hover:bg-blue-100 transition-colors">
                                 <i class="fas fa-users mr-1"></i>Ver Participantes
@@ -243,4 +248,190 @@
         </a>
     </div>
 @endif
+
+<!-- Modal Iniciar Sorteo -->
+<div id="modalIniciarSorteo" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden z-50 flex items-center justify-center">
+    <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+        <div class="p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-xl font-bold text-gray-900">Iniciar Sorteo</h3>
+                <button type="button" onclick="cerrarModalIniciarSorteo()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <form id="formIniciarSorteo" method="POST">
+                @csrf
+                <input type="hidden" name="sorteo_id" id="sorteo_id_modal">
+                
+                <!-- Tipo de Sorteo -->
+                <div class="mb-4">
+                    <label for="tipo_sorteo" class="block text-sm font-medium text-gray-700 mb-1">
+                        Tipo de Sorteo <span class="text-red-500">*</span>
+                    </label>
+                    <select name="tipo_sorteo" id="tipo_sorteo" required
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                        <option value="">Seleccione...</option>
+                        <option value="manual">Manual</option>
+                        <option value="automatico">Automático</option>
+                    </select>
+                </div>
+
+                <!-- Balotas Blancas -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label for="balotas_blancas_carro" class="block text-sm font-medium text-gray-700 mb-1">
+                            Balotas Blancas Carro
+                        </label>
+                        <input type="number" name="balotas_blancas_carro" id="balotas_blancas_carro" 
+                            value="0" min="0" step="1"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label for="balotas_blancas_moto" class="block text-sm font-medium text-gray-700 mb-1">
+                            Balotas Blancas Moto
+                        </label>
+                        <input type="number" name="balotas_blancas_moto" id="balotas_blancas_moto" 
+                            value="0" min="0" step="1"
+                            class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Información de Balotas -->
+                <div id="infoBalotas" class="bg-blue-50 border border-blue-200 rounded-md p-4 mb-4">
+                    <h4 class="font-medium text-blue-900 mb-2">Información de Balotas Blancas</h4>
+                    <div class="space-y-2 text-sm">
+                        <div id="infoAutos" class="text-blue-800">
+                            <strong>Autos:</strong>
+                            <span id="participantesAutosInfo">0</span> / <span id="capacidadAutosInfo">0</span>
+                            <div id="disponibilidadAutosInfo" class="ml-4"></div>
+                        </div>
+                        <div id="infoMotos" class="text-blue-800">
+                            <strong>Motos:</strong>
+                            <span id="participantesMotosInfo">0</span> / <span id="capacidadMotosInfo">0</span>
+                            <div id="disponibilidadMotosInfo" class="ml-4"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botones -->
+                <div class="flex justify-end gap-2 pt-4 border-t">
+                    <button type="button" onclick="cerrarModalIniciarSorteo()" 
+                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" 
+                        class="px-4 py-2 border border-transparent rounded-md text-sm font-medium text-white bg-green-600 hover:bg-green-700">
+                        <i class="fas fa-play mr-2"></i>Iniciar Sorteo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+let sorteoData = {};
+
+function abrirModalIniciarSorteo(sorteoId) {
+    // Obtener datos del sorteo mediante AJAX
+    fetch(`/admin/sorteos-parqueadero/${sorteoId}/datos-sorteo`)
+        .then(response => response.json())
+        .then(data => {
+            sorteoData = data;
+            document.getElementById('sorteo_id_modal').value = sorteoId;
+            document.getElementById('balotas_blancas_carro').value = data.balotas_blancas_carro || 0;
+            document.getElementById('balotas_blancas_moto').value = data.balotas_blancas_moto || 0;
+            
+            // Actualizar información
+            actualizarInfoBalotas();
+            
+            // Mostrar modal
+            document.getElementById('modalIniciarSorteo').classList.remove('hidden');
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar datos del sorteo');
+        });
+}
+
+function cerrarModalIniciarSorteo() {
+    document.getElementById('modalIniciarSorteo').classList.add('hidden');
+}
+
+function actualizarInfoBalotas() {
+    const participantesAutos = sorteoData.participantes_autos || 0;
+    const participantesMotos = sorteoData.participantes_motos || 0;
+    const capacidadAutos = sorteoData.capacidad_autos || 0;
+    const capacidadMotos = sorteoData.capacidad_motos || 0;
+    
+    document.getElementById('participantesAutosInfo').textContent = participantesAutos;
+    document.getElementById('capacidadAutosInfo').textContent = capacidadAutos;
+    document.getElementById('participantesMotosInfo').textContent = participantesMotos;
+    document.getElementById('capacidadMotosInfo').textContent = capacidadMotos;
+    
+    // Calcular balotas necesarias
+    const balotasNecesariasAutos = Math.max(0, participantesAutos - capacidadAutos);
+    const balotasNecesariasMotos = Math.max(0, participantesMotos - capacidadMotos);
+    
+    const disponibilidadAutos = capacidadAutos - participantesAutos;
+    const disponibilidadMotos = capacidadMotos - participantesMotos;
+    
+    let textoAutos = '';
+    if (disponibilidadAutos >= 0) {
+        textoAutos = `${disponibilidadAutos} disponibles`;
+        if (balotasNecesariasAutos === 0) {
+            textoAutos += ' - No se requieren balotas blancas';
+        }
+    } else {
+        textoAutos = `Se requieren ${balotasNecesariasAutos} balotas blancas`;
+    }
+    
+    let textoMotos = '';
+    if (disponibilidadMotos >= 0) {
+        textoMotos = `${disponibilidadMotos} disponibles`;
+        if (balotasNecesariasMotos === 0) {
+            textoMotos += ' - No se requieren balotas blancas';
+        }
+    } else {
+        textoMotos = `Se requieren ${balotasNecesariasMotos} balotas blancas`;
+    }
+    
+    document.getElementById('disponibilidadAutosInfo').textContent = textoAutos;
+    document.getElementById('disponibilidadMotosInfo').textContent = textoMotos;
+}
+
+// Manejar envío del formulario
+document.getElementById('formIniciarSorteo').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const sorteoId = formData.get('sorteo_id');
+    const tipoSorteo = formData.get('tipo_sorteo');
+    
+    fetch(`/admin/sorteos-parqueadero/${sorteoId}/iniciar-sorteo`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || formData.get('_token')
+        }
+    })
+    .then(response => {
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else {
+            return response.json();
+        }
+    })
+    .then(data => {
+        if (data && data.redirect) {
+            window.location.href = data.redirect;
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error al iniciar el sorteo');
+    });
+});
+</script>
 @endsection

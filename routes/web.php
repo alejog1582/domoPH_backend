@@ -279,4 +279,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('sorteos-parqueadero/{id}/edit', [SorteoParqueaderoController::class, 'edit'])->name('sorteos-parqueadero.edit');
     Route::put('sorteos-parqueadero/{id}', [SorteoParqueaderoController::class, 'update'])->name('sorteos-parqueadero.update');
     Route::get('sorteos-parqueadero/{id}/participantes', [SorteoParqueaderoController::class, 'participantes'])->name('sorteos-parqueadero.participantes');
+    Route::get('sorteos-parqueadero/{id}/datos-sorteo', [SorteoParqueaderoController::class, 'datosSorteo'])->name('sorteos-parqueadero.datos-sorteo');
+    Route::post('sorteos-parqueadero/{id}/iniciar-sorteo', [SorteoParqueaderoController::class, 'iniciarSorteo'])->name('sorteos-parqueadero.iniciar-sorteo');
+    Route::get('sorteos-parqueadero/{id}/sorteo-manual', [SorteoParqueaderoController::class, 'sorteoManual'])->name('sorteos-parqueadero.sorteo-manual');
+    Route::get('sorteos-parqueadero/{id}/sorteo-automatico', [SorteoParqueaderoController::class, 'sorteoAutomatico'])->name('sorteos-parqueadero.sorteo-automatico');
+    Route::post('sorteos-parqueadero/{id}/asignar-parqueadero', [SorteoParqueaderoController::class, 'asignarParqueadero'])->name('sorteos-parqueadero.asignar-parqueadero');
+    Route::post('sorteos-parqueadero/{id}/asignar-balota-blanca', [SorteoParqueaderoController::class, 'asignarBalotaBlanca'])->name('sorteos-parqueadero.asignar-balota-blanca');
+    Route::post('sorteos-parqueadero/{id}/ejecutar-sorteo-automatico', [SorteoParqueaderoController::class, 'ejecutarSorteoAutomatico'])->name('sorteos-parqueadero.ejecutar-sorteo-automatico');
 });

@@ -141,9 +141,12 @@
                     Capacidad de Autos <span class="text-red-500">*</span>
                 </label>
                 <input type="number" name="capacidad_autos" id="capacidad_autos" 
-                    value="{{ old('capacidad_autos', 0) }}" required min="0" step="1"
+                    value="{{ old('capacidad_autos', $cantidadParqueaderosCarro ?? 0) }}" required min="0" step="1"
                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('capacidad_autos') border-red-500 @enderror"
                     placeholder="Número de parqueaderos para autos">
+                <p class="mt-1 text-xs text-gray-500">
+                    Parqueaderos disponibles: {{ $cantidadParqueaderosCarro ?? 0 }}
+                </p>
                 @error('capacidad_autos')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
@@ -155,9 +158,12 @@
                     Capacidad de Motos <span class="text-red-500">*</span>
                 </label>
                 <input type="number" name="capacidad_motos" id="capacidad_motos" 
-                    value="{{ old('capacidad_motos', 0) }}" required min="0" step="1"
+                    value="{{ old('capacidad_motos', $cantidadParqueaderosMoto ?? 0) }}" required min="0" step="1"
                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('capacidad_motos') border-red-500 @enderror"
                     placeholder="Número de parqueaderos para motos">
+                <p class="mt-1 text-xs text-gray-500">
+                    Parqueaderos disponibles: {{ $cantidadParqueaderosMoto ?? 0 }}
+                </p>
                 @error('capacidad_motos')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror

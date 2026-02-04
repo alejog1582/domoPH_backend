@@ -79,7 +79,22 @@ class SorteoParqueaderoController extends Controller
                 ->with('error', 'No hay propiedad asignada.');
         }
 
-        return view('admin.sorteos-parqueadero.create', compact('propiedad'));
+        // Contar parqueaderos disponibles por tipo de vehículo
+        $cantidadParqueaderosCarro = \App\Models\Parqueadero::where('copropiedad_id', $propiedad->id)
+            ->where('tipo_vehiculo', 'carro')
+            ->where('activo', true)
+            ->count();
+
+        $cantidadParqueaderosMoto = \App\Models\Parqueadero::where('copropiedad_id', $propiedad->id)
+            ->where('tipo_vehiculo', 'moto')
+            ->where('activo', true)
+            ->count();
+
+        return view('admin.sorteos-parqueadero.create', compact(
+            'propiedad',
+            'cantidadParqueaderosCarro',
+            'cantidadParqueaderosMoto'
+        ));
     }
 
     /**
@@ -301,5 +316,358 @@ class SorteoParqueaderoController extends Controller
         $participantes = $query->paginate(20)->withQueryString();
 
         return view('admin.sorteos-parqueadero.participantes', compact('sorteo', 'participantes'));
+    }
+
+    /**
+     * Obtener datos del sorteo para el modal
+     */
+    public function datosSorteo($id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return response()->json(['error' => 'No hay propiedad asignada.'], 404);
+        }
+
+        $sorteo = SorteoParqueadero::where('copropiedad_id', $propiedad->id)
+            ->with('participantes')
+            ->findOrFail($id);
+
+        $participantesAutos = $sorteo->participantes->where('tipo_vehiculo', 'carro')->count();
+        $participantesMotos = $sorteo->participantes->where('tipo_vehiculo', 'moto')->count();
+
+        return response()->json([
+            'capacidad_autos' => $sorteo->capacidad_autos ?? 0,
+            'capacidad_motos' => $sorteo->capacidad_motos ?? 0,
+            'participantes_autos' => $participantesAutos,
+            'participantes_motos' => $participantesMotos,
+            'balotas_blancas_carro' => $sorteo->balotas_blancas_carro ?? 0,
+            'balotas_blancas_moto' => $sorteo->balotas_blancas_moto ?? 0,
+        ]);
+    }
+
+    /**
+     * Iniciar sorteo - guardar balotas y redirigir
+     */
+    public function iniciarSorteo(Request $request, $id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.sorteos-parqueadero.index')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $sorteo = SorteoParqueadero::where('copropiedad_id', $propiedad->id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'tipo_sorteo' => 'required|in:manual,automatico',
+            'balotas_blancas_carro' => 'nullable|integer|min:0',
+            'balotas_blancas_moto' => 'nullable|integer|min:0',
+        ]);
+
+        // Actualizar balotas blancas
+        $sorteo->update([
+            'balotas_blancas_carro' => $validated['balotas_blancas_carro'] ?? 0,
+            'balotas_blancas_moto' => $validated['balotas_blancas_moto'] ?? 0,
+        ]);
+
+        // Redirigir según el tipo de sorteo
+        if ($validated['tipo_sorteo'] === 'manual') {
+            return redirect()->route('admin.sorteos-parqueadero.sorteo-manual', $id)
+                ->with('success', 'Sorteo manual iniciado correctamente.');
+        } else {
+            return redirect()->route('admin.sorteos-parqueadero.sorteo-automatico', $id)
+                ->with('success', 'Sorteo automático iniciado correctamente.');
+        }
+    }
+
+    /**
+     * Vista de sorteo manual
+     */
+    public function sorteoManual($id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.sorteos-parqueadero.index')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $sorteo = SorteoParqueadero::where('copropiedad_id', $propiedad->id)
+            ->with(['participantes.unidad', 'participantes.residente.user'])
+            ->findOrFail($id);
+
+        // Obtener participantes ordenados por fecha de inscripción
+        $participantesCarro = $sorteo->participantes
+            ->where('tipo_vehiculo', 'carro')
+            ->sortBy('fecha_inscripcion')
+            ->values();
+        
+        $participantesMoto = $sorteo->participantes
+            ->where('tipo_vehiculo', 'moto')
+            ->sortBy('fecha_inscripcion')
+            ->values();
+
+        // Obtener parqueaderos disponibles por tipo de vehículo
+        $parqueaderosCarro = \App\Models\Parqueadero::where('copropiedad_id', $propiedad->id)
+            ->where('tipo_vehiculo', 'carro')
+            ->where('activo', true)
+            ->orderBy('codigo')
+            ->get();
+
+        $parqueaderosMoto = \App\Models\Parqueadero::where('copropiedad_id', $propiedad->id)
+            ->where('tipo_vehiculo', 'moto')
+            ->where('activo', true)
+            ->orderBy('codigo')
+            ->get();
+
+        // Obtener parqueaderos ya asignados en este sorteo
+        $parqueaderosAsignados = $sorteo->participantes
+            ->whereNotNull('parqueadero_asignado')
+            ->where('parqueadero_asignado', '!=', 'Balota blanca')
+            ->pluck('parqueadero_asignado')
+            ->toArray();
+
+        return view('admin.sorteos-parqueadero.sorteo-manual', compact(
+            'sorteo',
+            'participantesCarro',
+            'participantesMoto',
+            'parqueaderosCarro',
+            'parqueaderosMoto',
+            'parqueaderosAsignados'
+        ));
+    }
+
+    /**
+     * Vista de sorteo automático
+     */
+    public function sorteoAutomatico($id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.sorteos-parqueadero.index')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $sorteo = SorteoParqueadero::where('copropiedad_id', $propiedad->id)
+            ->with(['participantes.unidad', 'participantes.residente.user'])
+            ->findOrFail($id);
+
+        // Obtener participantes ordenados por fecha de inscripción
+        $participantesCarro = $sorteo->participantes
+            ->where('tipo_vehiculo', 'carro')
+            ->sortBy('fecha_inscripcion')
+            ->values();
+        
+        $participantesMoto = $sorteo->participantes
+            ->where('tipo_vehiculo', 'moto')
+            ->sortBy('fecha_inscripcion')
+            ->values();
+
+        return view('admin.sorteos-parqueadero.sorteo-automatico', compact(
+            'sorteo',
+            'participantesCarro',
+            'participantesMoto'
+        ));
+    }
+
+    /**
+     * Asignar parqueadero manualmente
+     */
+    public function asignarParqueadero(Request $request, $id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return response()->json(['error' => 'No hay propiedad asignada.'], 404);
+        }
+
+        $sorteo = SorteoParqueadero::where('copropiedad_id', $propiedad->id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'participante_id' => 'required|exists:participantes_sorteos_parqueadero,id',
+            'parqueadero_codigo' => 'required|string',
+        ]);
+
+        $participante = ParticipanteSorteoParqueadero::where('sorteo_parqueadero_id', $id)
+            ->findOrFail($validated['participante_id']);
+
+        // Verificar que el parqueadero no esté ya asignado
+        $parqueaderoYaAsignado = ParticipanteSorteoParqueadero::where('sorteo_parqueadero_id', $id)
+            ->where('parqueadero_asignado', $validated['parqueadero_codigo'])
+            ->where('id', '!=', $participante->id)
+            ->exists();
+
+        if ($parqueaderoYaAsignado) {
+            return response()->json([
+                'error' => 'Este parqueadero ya está asignado a otro participante.'
+            ], 400);
+        }
+
+        // Verificar que el participante no tenga balota blanca (bloqueado)
+        if ($participante->parqueadero_asignado === 'Balota blanca') {
+            return response()->json([
+                'error' => 'Este participante tiene balota blanca y no puede ser modificado.'
+            ], 400);
+        }
+
+        $participante->update([
+            'parqueadero_asignado' => $validated['parqueadero_codigo'],
+            'fue_favorecido' => true,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Parqueadero asignado correctamente.'
+        ]);
+    }
+
+    /**
+     * Asignar balota blanca
+     */
+    public function asignarBalotaBlanca(Request $request, $id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return response()->json(['error' => 'No hay propiedad asignada.'], 404);
+        }
+
+        $sorteo = SorteoParqueadero::where('copropiedad_id', $propiedad->id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'participante_id' => 'required|exists:participantes_sorteos_parqueadero,id',
+        ]);
+
+        $participante = ParticipanteSorteoParqueadero::where('sorteo_parqueadero_id', $id)
+            ->findOrFail($validated['participante_id']);
+
+        // Verificar que el participante no esté ya bloqueado
+        if ($participante->parqueadero_asignado === 'Balota blanca') {
+            return response()->json([
+                'error' => 'Este participante ya tiene balota blanca.'
+            ], 400);
+        }
+
+        $participante->update([
+            'parqueadero_asignado' => 'Balota blanca',
+            'fue_favorecido' => false,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Balota blanca asignada correctamente.'
+        ]);
+    }
+
+    /**
+     * Ejecutar sorteo automático
+     */
+    public function ejecutarSorteoAutomatico(Request $request, $id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return response()->json(['error' => 'No hay propiedad asignada.'], 404);
+        }
+
+        $sorteo = SorteoParqueadero::where('copropiedad_id', $propiedad->id)
+            ->findOrFail($id);
+
+        $validated = $request->validate([
+            'participante_id' => 'required|exists:participantes_sorteos_parqueadero,id',
+        ]);
+
+        $participante = ParticipanteSorteoParqueadero::where('sorteo_parqueadero_id', $id)
+            ->findOrFail($validated['participante_id']);
+
+        // Verificar que el participante no esté ya asignado
+        if ($participante->parqueadero_asignado) {
+            return response()->json([
+                'error' => 'Este participante ya tiene un resultado asignado.'
+            ], 400);
+        }
+
+        $tipoVehiculo = $participante->tipo_vehiculo;
+
+        // Obtener parqueaderos disponibles para este tipo de vehículo
+        $parqueaderosDisponibles = \App\Models\Parqueadero::where('copropiedad_id', $propiedad->id)
+            ->where('tipo_vehiculo', $tipoVehiculo)
+            ->where('activo', true)
+            ->orderBy('codigo')
+            ->get();
+
+        // Obtener parqueaderos ya asignados en este sorteo
+        $parqueaderosAsignados = ParticipanteSorteoParqueadero::where('sorteo_parqueadero_id', $id)
+            ->whereNotNull('parqueadero_asignado')
+            ->where('parqueadero_asignado', '!=', 'Balota blanca')
+            ->pluck('parqueadero_asignado')
+            ->toArray();
+
+        // Filtrar parqueaderos disponibles (no asignados)
+        $parqueaderosDisponibles = $parqueaderosDisponibles->reject(function ($parqueadero) use ($parqueaderosAsignados) {
+            return in_array($parqueadero->codigo, $parqueaderosAsignados);
+        });
+
+        // Contar balotas blancas ya usadas
+        $balotasBlancasUsadas = ParticipanteSorteoParqueadero::where('sorteo_parqueadero_id', $id)
+            ->where('parqueadero_asignado', 'Balota blanca')
+            ->where('tipo_vehiculo', $tipoVehiculo)
+            ->count();
+
+        $balotasBlancasDisponibles = ($tipoVehiculo === 'carro' 
+            ? ($sorteo->balotas_blancas_carro ?? 0) 
+            : ($sorteo->balotas_blancas_moto ?? 0)) - $balotasBlancasUsadas;
+
+        // Calcular total de opciones (parqueaderos + balotas blancas)
+        $totalOpciones = $parqueaderosDisponibles->count() + max(0, $balotasBlancasDisponibles);
+
+        if ($totalOpciones === 0) {
+            return response()->json([
+                'error' => 'No hay opciones disponibles para el sorteo.'
+            ], 400);
+        }
+
+        // Generar número aleatorio
+        $numeroAleatorio = rand(1, $totalOpciones);
+
+        if ($numeroAleatorio <= $parqueaderosDisponibles->count()) {
+            // Asignar parqueadero
+            $parqueaderoAsignado = $parqueaderosDisponibles->random();
+            $participante->update([
+                'parqueadero_asignado' => $parqueaderoAsignado->codigo,
+                'fue_favorecido' => true,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Parqueadero asignado correctamente.',
+                'resultado' => [
+                    'tipo' => 'parqueadero',
+                    'codigo' => $parqueaderoAsignado->codigo,
+                    'fue_favorecido' => true,
+                ]
+            ]);
+        } else {
+            // Asignar balota blanca
+            $participante->update([
+                'parqueadero_asignado' => 'Balota blanca',
+                'fue_favorecido' => false,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Balota blanca asignada.',
+                'resultado' => [
+                    'tipo' => 'balota_blanca',
+                    'fue_favorecido' => false,
+                ]
+            ]);
+        }
     }
 }

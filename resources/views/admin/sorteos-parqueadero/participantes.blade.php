@@ -112,6 +112,9 @@
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Estado
                     </th>
+                    <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Documentos
+                    </th>
                 </tr>
             </thead>
             <tbody class="bg-white divide-y divide-gray-200">
@@ -121,13 +124,16 @@
                             <div class="text-sm font-medium text-gray-900">
                                 {{ $participante->unidad->numero ?? 'N/A' }}
                                 @if($participante->unidad && $participante->unidad->torre)
-                                    - Torre {{ $participante->unidad->torre }}
+                                    Torre {{ $participante->unidad->torre }}
+                                @endif
+                                @if($participante->unidad && $participante->unidad->bloque)
+                                    Bloque {{ $participante->unidad->bloque }}
                                 @endif
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             <div class="text-sm text-gray-900">
-                                {{ $participante->residente->user->name ?? 'N/A' }}
+                                {{ $participante->residente->user->nombre ?? 'N/A' }}
                             </div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
@@ -166,10 +172,43 @@
                                 </span>
                             @endif
                         </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center gap-2">
+                                @if($participante->tarjeta_propiedad_url)
+                                    <a href="{{ $participante->tarjeta_propiedad_url }}" target="_blank" 
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-blue-600 hover:text-blue-800 hover:underline"
+                                        title="Ver Tarjeta de Propiedad">
+                                        <i class="fas fa-file-pdf mr-1"></i> Tarjeta
+                                    </a>
+                                @else
+                                    <span class="text-xs text-gray-400">-</span>
+                                @endif
+                                
+                                @if($participante->soat_url)
+                                    <a href="{{ $participante->soat_url }}" target="_blank" 
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-green-600 hover:text-green-800 hover:underline"
+                                        title="Ver SOAT">
+                                        <i class="fas fa-file-pdf mr-1"></i> SOAT
+                                    </a>
+                                @else
+                                    <span class="text-xs text-gray-400">-</span>
+                                @endif
+                                
+                                @if($participante->tecnomecanica_url)
+                                    <a href="{{ $participante->tecnomecanica_url }}" target="_blank" 
+                                        class="inline-flex items-center px-2 py-1 text-xs font-medium text-purple-600 hover:text-purple-800 hover:underline"
+                                        title="Ver Tecnomecánica">
+                                        <i class="fas fa-file-pdf mr-1"></i> Tecno
+                                    </a>
+                                @else
+                                    <span class="text-xs text-gray-400">-</span>
+                                @endif
+                            </div>
+                        </td>
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="7" class="px-6 py-12 text-center">
+                        <td colspan="8" class="px-6 py-12 text-center">
                             <i class="fas fa-users text-gray-400 text-4xl mb-4"></i>
                             <p class="text-sm text-gray-500">No hay participantes registrados para este sorteo</p>
                         </td>

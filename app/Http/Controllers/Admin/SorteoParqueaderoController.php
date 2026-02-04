@@ -100,10 +100,13 @@ class SorteoParqueaderoController extends Controller
             'fecha_inicio_recoleccion' => 'required|date',
             'fecha_fin_recoleccion' => 'required|date|after_or_equal:fecha_inicio_recoleccion',
             'fecha_sorteo' => 'required|date|after_or_equal:fecha_fin_recoleccion',
+            'hora_sorteo' => 'nullable|date_format:H:i',
             'fecha_inicio_uso' => 'nullable|date|after_or_equal:fecha_sorteo',
             'duracion_meses' => 'nullable|integer|min:1',
             'capacidad_autos' => 'required|integer|min:0',
             'capacidad_motos' => 'required|integer|min:0',
+            'balotas_blancas_carro' => 'nullable|integer|min:0',
+            'balotas_blancas_moto' => 'nullable|integer|min:0',
             'estado' => 'required|in:borrador,activo,cerrado,anulado',
             'activo' => 'boolean',
         ], [
@@ -114,6 +117,7 @@ class SorteoParqueaderoController extends Controller
             'fecha_fin_recoleccion.after_or_equal' => 'La fecha de fin de recolección debe ser posterior o igual a la fecha de inicio.',
             'fecha_sorteo.required' => 'La fecha del sorteo es obligatoria.',
             'fecha_sorteo.after_or_equal' => 'La fecha del sorteo debe ser posterior o igual a la fecha de fin de recolección.',
+            'hora_sorteo.date_format' => 'La hora del sorteo debe tener el formato HH:MM.',
             'fecha_inicio_uso.after_or_equal' => 'La fecha de inicio de uso debe ser posterior o igual a la fecha del sorteo.',
             'duracion_meses.integer' => 'La duración en meses debe ser un número entero.',
             'duracion_meses.min' => 'La duración en meses debe ser al menos 1 mes.',
@@ -123,6 +127,10 @@ class SorteoParqueaderoController extends Controller
             'capacidad_motos.required' => 'La capacidad de motos es obligatoria.',
             'capacidad_motos.integer' => 'La capacidad de motos debe ser un número entero.',
             'capacidad_motos.min' => 'La capacidad de motos no puede ser negativa.',
+            'balotas_blancas_carro.integer' => 'Las balotas blancas para carros debe ser un número entero.',
+            'balotas_blancas_carro.min' => 'Las balotas blancas para carros no puede ser negativa.',
+            'balotas_blancas_moto.integer' => 'Las balotas blancas para motos debe ser un número entero.',
+            'balotas_blancas_moto.min' => 'Las balotas blancas para motos no puede ser negativa.',
             'estado.required' => 'El estado es obligatorio.',
             'estado.in' => 'El estado no es válido.',
         ]);
@@ -134,10 +142,13 @@ class SorteoParqueaderoController extends Controller
             'fecha_inicio_recoleccion' => $validated['fecha_inicio_recoleccion'],
             'fecha_fin_recoleccion' => $validated['fecha_fin_recoleccion'],
             'fecha_sorteo' => $validated['fecha_sorteo'],
+            'hora_sorteo' => $validated['hora_sorteo'] ?? null,
             'fecha_inicio_uso' => $validated['fecha_inicio_uso'] ?? null,
             'duracion_meses' => $validated['duracion_meses'] ?? null,
             'capacidad_autos' => $validated['capacidad_autos'],
             'capacidad_motos' => $validated['capacidad_motos'],
+            'balotas_blancas_carro' => $validated['balotas_blancas_carro'] ?? 0,
+            'balotas_blancas_moto' => $validated['balotas_blancas_moto'] ?? 0,
             'estado' => $validated['estado'],
             'creado_por' => Auth::id(),
             'activo' => $request->has('activo') ? (bool)$request->activo : true,
@@ -186,10 +197,13 @@ class SorteoParqueaderoController extends Controller
             'fecha_inicio_recoleccion' => 'required|date',
             'fecha_fin_recoleccion' => 'required|date|after_or_equal:fecha_inicio_recoleccion',
             'fecha_sorteo' => 'required|date|after_or_equal:fecha_fin_recoleccion',
+            'hora_sorteo' => 'nullable|date_format:H:i',
             'fecha_inicio_uso' => 'nullable|date|after_or_equal:fecha_sorteo',
             'duracion_meses' => 'nullable|integer|min:1',
             'capacidad_autos' => 'required|integer|min:0',
             'capacidad_motos' => 'required|integer|min:0',
+            'balotas_blancas_carro' => 'nullable|integer|min:0',
+            'balotas_blancas_moto' => 'nullable|integer|min:0',
             'estado' => 'required|in:borrador,activo,cerrado,anulado',
             'activo' => 'boolean',
         ], [
@@ -200,6 +214,7 @@ class SorteoParqueaderoController extends Controller
             'fecha_fin_recoleccion.after_or_equal' => 'La fecha de fin de recolección debe ser posterior o igual a la fecha de inicio.',
             'fecha_sorteo.required' => 'La fecha del sorteo es obligatoria.',
             'fecha_sorteo.after_or_equal' => 'La fecha del sorteo debe ser posterior o igual a la fecha de fin de recolección.',
+            'hora_sorteo.date_format' => 'La hora del sorteo debe tener el formato HH:MM.',
             'fecha_inicio_uso.after_or_equal' => 'La fecha de inicio de uso debe ser posterior o igual a la fecha del sorteo.',
             'duracion_meses.integer' => 'La duración en meses debe ser un número entero.',
             'duracion_meses.min' => 'La duración en meses debe ser al menos 1 mes.',
@@ -209,6 +224,10 @@ class SorteoParqueaderoController extends Controller
             'capacidad_motos.required' => 'La capacidad de motos es obligatoria.',
             'capacidad_motos.integer' => 'La capacidad de motos debe ser un número entero.',
             'capacidad_motos.min' => 'La capacidad de motos no puede ser negativa.',
+            'balotas_blancas_carro.integer' => 'Las balotas blancas para carros debe ser un número entero.',
+            'balotas_blancas_carro.min' => 'Las balotas blancas para carros no puede ser negativa.',
+            'balotas_blancas_moto.integer' => 'Las balotas blancas para motos debe ser un número entero.',
+            'balotas_blancas_moto.min' => 'Las balotas blancas para motos no puede ser negativa.',
             'estado.required' => 'El estado es obligatorio.',
             'estado.in' => 'El estado no es válido.',
         ]);
@@ -219,10 +238,13 @@ class SorteoParqueaderoController extends Controller
             'fecha_inicio_recoleccion' => $validated['fecha_inicio_recoleccion'],
             'fecha_fin_recoleccion' => $validated['fecha_fin_recoleccion'],
             'fecha_sorteo' => $validated['fecha_sorteo'],
+            'hora_sorteo' => $validated['hora_sorteo'] ?? null,
             'fecha_inicio_uso' => $validated['fecha_inicio_uso'] ?? null,
             'duracion_meses' => $validated['duracion_meses'] ?? null,
             'capacidad_autos' => $validated['capacidad_autos'],
             'capacidad_motos' => $validated['capacidad_motos'],
+            'balotas_blancas_carro' => $validated['balotas_blancas_carro'] ?? 0,
+            'balotas_blancas_moto' => $validated['balotas_blancas_moto'] ?? 0,
             'estado' => $validated['estado'],
             'activo' => $request->has('activo') ? (bool)$request->activo : true,
         ]);
@@ -248,9 +270,9 @@ class SorteoParqueaderoController extends Controller
             ->findOrFail($id);
 
         // Query base: participantes del sorteo
+        // Nota: No se filtra por copropiedad_id ya que pueden haber participantes de diferentes copropiedades
         $query = ParticipanteSorteoParqueadero::with(['unidad', 'residente.user'])
-            ->where('sorteo_parqueadero_id', $id)
-            ->where('copropiedad_id', $propiedad->id);
+            ->where('sorteo_parqueadero_id', $id);
 
         // Filtro por tipo de vehículo
         if ($request->filled('tipo_vehiculo')) {

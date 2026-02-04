@@ -87,6 +87,23 @@
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Hora Sorteo -->
+            <div>
+                <label for="hora_sorteo" class="block text-sm font-medium text-gray-700 mb-1">
+                    Hora Sorteo
+                </label>
+                <input type="time" name="hora_sorteo" id="hora_sorteo" 
+                    value="{{ old('hora_sorteo', $sorteo->hora_sorteo ? substr($sorteo->hora_sorteo, 0, 5) : '') }}"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('hora_sorteo') border-red-500 @enderror"
+                    placeholder="HH:MM">
+                <p class="mt-1 text-xs text-gray-500">Hora en que se realizará el sorteo</p>
+                @error('hora_sorteo')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <!-- Fecha Inicio Uso -->
             <div>
                 <label for="fecha_inicio_uso" class="block text-sm font-medium text-gray-700 mb-1">
@@ -143,6 +160,38 @@
                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('capacidad_motos') border-red-500 @enderror"
                     placeholder="Número de parqueaderos para motos">
                 @error('capacidad_motos')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <!-- Balotas Blancas Carro -->
+            <div>
+                <label for="balotas_blancas_carro" class="block text-sm font-medium text-gray-700 mb-1">
+                    Balotas Blancas Carro
+                </label>
+                <input type="number" name="balotas_blancas_carro" id="balotas_blancas_carro" 
+                    value="{{ old('balotas_blancas_carro', $sorteo->balotas_blancas_carro ?? 0) }}" min="0" step="1"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('balotas_blancas_carro') border-red-500 @enderror"
+                    placeholder="Número de balotas blancas para carros">
+                <p class="mt-1 text-xs text-gray-500">Número de balotas blancas (no favorecidos) para carros</p>
+                @error('balotas_blancas_carro')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <!-- Balotas Blancas Moto -->
+            <div>
+                <label for="balotas_blancas_moto" class="block text-sm font-medium text-gray-700 mb-1">
+                    Balotas Blancas Moto
+                </label>
+                <input type="number" name="balotas_blancas_moto" id="balotas_blancas_moto" 
+                    value="{{ old('balotas_blancas_moto', $sorteo->balotas_blancas_moto ?? 0) }}" min="0" step="1"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('balotas_blancas_moto') border-red-500 @enderror"
+                    placeholder="Número de balotas blancas para motos">
+                <p class="mt-1 text-xs text-gray-500">Número de balotas blancas (no favorecidos) para motos</p>
+                @error('balotas_blancas_moto')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>

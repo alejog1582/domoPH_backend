@@ -56,7 +56,8 @@ class ParticipanteSorteoParqueadero extends Model
     }
 
     /**
-     * Relación con la copropiedad
+     * Relación con la copropiedad (opcional, sin foreign key)
+     * Nota: La foreign key fue eliminada para permitir participantes de múltiples copropiedades
      */
     public function copropiedad()
     {

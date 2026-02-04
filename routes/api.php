@@ -60,6 +60,10 @@ Route::prefix('residente')->group(function () {
         Route::get('/autorizaciones', [App\Http\Controllers\Api\AutorizacionController::class, 'index']);
         Route::post('/autorizaciones', [App\Http\Controllers\Api\AutorizacionController::class, 'store']);
         Route::put('/autorizaciones/{id}', [App\Http\Controllers\Api\AutorizacionController::class, 'update']);
+
+        // Rutas de Sorteo de Parqueaderos
+        Route::get('/sorteo-parqueadero', [App\Http\Controllers\Api\SorteoParqueaderoController::class, 'getSorteoActivo']);
+        Route::post('/sorteo-parqueadero/inscribirse', [App\Http\Controllers\Api\SorteoParqueaderoController::class, 'inscribirse']);
     });
 });
 

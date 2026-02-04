@@ -12,6 +12,7 @@ use App\Models\Cartera;
 use App\Models\CuentaCobro;
 use App\Models\Pqrs;
 use App\Models\Comunicado;
+use App\Models\SorteoParqueadero;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
@@ -286,6 +287,30 @@ class ResidenteAuthController extends Controller
         $reservasActivas = [];
         $proximaReserva = null;
 
+        // Validar si existe un sorteo de parqueadero activo
+        $sorteoActivo = SorteoParqueadero::where('copropiedad_id', $propiedadData['id'])
+            ->where('estado', 'activo')
+            ->where('activo', true)
+            ->whereDate('fecha_inicio_recoleccion', '<=', Carbon::now())
+            ->whereDate('fecha_fin_recoleccion', '>=', Carbon::now())
+            ->first();
+
+        $sorteoData = null;
+        if ($sorteoActivo) {
+            $sorteoData = [
+                'id' => $sorteoActivo->id,
+                'titulo' => $sorteoActivo->titulo,
+                'descripcion' => $sorteoActivo->descripcion,
+                'fecha_inicio_recoleccion' => $sorteoActivo->fecha_inicio_recoleccion->format('Y-m-d'),
+                'fecha_fin_recoleccion' => $sorteoActivo->fecha_fin_recoleccion->format('Y-m-d'),
+                'fecha_sorteo' => $sorteoActivo->fecha_sorteo->format('Y-m-d'),
+                'fecha_inicio_uso' => $sorteoActivo->fecha_inicio_uso ? $sorteoActivo->fecha_inicio_uso->format('Y-m-d') : null,
+                'duracion_meses' => $sorteoActivo->duracion_meses,
+                'capacidad_autos' => $sorteoActivo->capacidad_autos,
+                'capacidad_motos' => $sorteoActivo->capacidad_motos,
+            ];
+        }
+
         // Respuesta exitosa
         return response()->json([
             'success' => true,
@@ -302,6 +327,7 @@ class ResidenteAuthController extends Controller
                 'comunicados_nuevos' => $comunicadosNuevos,
                 'reservas_activas' => $reservasActivas,
                 'proxima_reserva' => $proximaReserva,
+                'sorteo_parqueadero_activo' => $sorteoData,
                 'token' => $token,
                 'token_type' => 'Bearer',
             ]
@@ -323,7 +349,7 @@ class ResidenteAuthController extends Controller
     }
 
     /**
-     * Obtener información del usuario autenticado
+     * Obtener información del usuario autenticado (refrescar datos)
      */
     public function me(Request $request)
     {
@@ -391,6 +417,151 @@ class ResidenteAuthController extends Controller
             'email' => $residente->unidad->propiedad->email,
         ];
 
+        // Obtener todas las unidades del residente
+        $todasUnidades = Residente::where('user_id', $user->id)
+            ->activos()
+            ->with(['unidad.propiedad'])
+            ->get()
+            ->map(function ($res) {
+                return [
+                    'id' => $res->unidad->id,
+                    'numero' => $res->unidad->numero,
+                    'torre' => $res->unidad->torre,
+                    'bloque' => $res->unidad->bloque,
+                    'propiedad' => [
+                        'id' => $res->unidad->propiedad->id,
+                        'nombre' => $res->unidad->propiedad->nombre,
+                    ],
+                    'es_principal' => $res->es_principal,
+                ];
+            });
+
+        // Obtener información de cartera
+        $cartera = Cartera::where('unidad_id', $residente->unidad->id)
+            ->where('activo', true)
+            ->first();
+
+        $carteraData = null;
+        $proximoVencimiento = null;
+        if ($cartera) {
+            $carteraData = [
+                'saldo_total' => (float) $cartera->saldo_total,
+                'saldo_mora' => (float) $cartera->saldo_mora,
+                'saldo_corriente' => (float) $cartera->saldo_corriente,
+            ];
+
+            // Obtener próxima cuenta de cobro vencida o por vencer
+            $proximaCuenta = CuentaCobro::where('unidad_id', $residente->unidad->id)
+                ->where('estado', 'pendiente')
+                ->where('fecha_vencimiento', '>=', Carbon::now())
+                ->orderBy('fecha_vencimiento', 'asc')
+                ->first();
+
+            if ($proximaCuenta) {
+                $proximoVencimiento = [
+                    'fecha' => $proximaCuenta->fecha_vencimiento->format('Y-m-d'),
+                    'fecha_formateada' => $proximaCuenta->fecha_vencimiento->format('d M'),
+                    'valor' => (float) $proximaCuenta->valor_total,
+                ];
+            }
+        }
+
+        // Obtener PQRS abiertas
+        $pqrsAbiertas = Pqrs::where('copropiedad_id', $propiedadData['id'])
+            ->where(function($query) use ($residente) {
+                $query->where('unidad_id', $residente->unidad->id)
+                      ->orWhere('residente_id', $residente->id);
+            })
+            ->whereIn('estado', ['radicada', 'en_proceso'])
+            ->where('activo', true)
+            ->orderBy('fecha_radicacion', 'desc')
+            ->get()
+            ->map(function ($pqr) {
+                return [
+                    'id' => $pqr->id,
+                    'numero_radicado' => $pqr->numero_radicado,
+                    'asunto' => $pqr->asunto,
+                    'tipo' => $pqr->tipo,
+                    'estado' => $pqr->estado,
+                    'prioridad' => $pqr->prioridad,
+                    'fecha_radicacion' => $pqr->fecha_radicacion->format('Y-m-d H:i:s'),
+                ];
+            });
+
+        // Obtener comunicados nuevos
+        $comunicadosQuery = Comunicado::where('copropiedad_id', $propiedadData['id'])
+            ->where('publicado', true)
+            ->where('activo', true)
+            ->where(function($query) use ($residente) {
+                $query->where('visible_para', 'todos')
+                      ->orWhere(function($q) use ($residente) {
+                          if ($residente->tipo_relacion === 'propietario') {
+                              $q->where('visible_para', 'propietarios');
+                          }
+                      })
+                      ->orWhereHas('unidades', function($q) use ($residente) {
+                          $q->where('unidades.id', $residente->unidad->id);
+                      })
+                      ->orWhereHas('residentes', function($q) use ($residente) {
+                          $q->where('residentes.id', $residente->id);
+                      });
+            })
+            ->with(['residentes' => function($query) use ($residente) {
+                $query->where('residentes.id', $residente->id);
+            }])
+            ->orderBy('fecha_publicacion', 'desc')
+            ->limit(10)
+            ->get();
+
+        $comunicadosNuevos = $comunicadosQuery->map(function ($comunicado) use ($residente) {
+            $leido = false;
+            $pivotResidente = $comunicado->residentes->first();
+            if ($pivotResidente && $pivotResidente->pivot) {
+                $leido = (bool) $pivotResidente->pivot->leido;
+            }
+
+            return [
+                'id' => $comunicado->id,
+                'titulo' => $comunicado->titulo,
+                'resumen' => $comunicado->resumen,
+                'tipo' => $comunicado->tipo,
+                'fecha_publicacion' => $comunicado->fecha_publicacion?->format('Y-m-d H:i:s'),
+                'leido' => $leido,
+            ];
+        })
+        ->filter(function ($comunicado) {
+            return !$comunicado['leido'];
+        })
+        ->values();
+
+        // Obtener reservas activas
+        $reservasActivas = [];
+        $proximaReserva = null;
+
+        // Validar si existe un sorteo de parqueadero activo
+        $sorteoActivo = SorteoParqueadero::where('copropiedad_id', $propiedadData['id'])
+            ->where('estado', 'activo')
+            ->where('activo', true)
+            ->whereDate('fecha_inicio_recoleccion', '<=', Carbon::now())
+            ->whereDate('fecha_fin_recoleccion', '>=', Carbon::now())
+            ->first();
+
+        $sorteoData = null;
+        if ($sorteoActivo) {
+            $sorteoData = [
+                'id' => $sorteoActivo->id,
+                'titulo' => $sorteoActivo->titulo,
+                'descripcion' => $sorteoActivo->descripcion,
+                'fecha_inicio_recoleccion' => $sorteoActivo->fecha_inicio_recoleccion->format('Y-m-d'),
+                'fecha_fin_recoleccion' => $sorteoActivo->fecha_fin_recoleccion->format('Y-m-d'),
+                'fecha_sorteo' => $sorteoActivo->fecha_sorteo->format('Y-m-d'),
+                'fecha_inicio_uso' => $sorteoActivo->fecha_inicio_uso ? $sorteoActivo->fecha_inicio_uso->format('Y-m-d') : null,
+                'duracion_meses' => $sorteoActivo->duracion_meses,
+                'capacidad_autos' => $sorteoActivo->capacidad_autos,
+                'capacidad_motos' => $sorteoActivo->capacidad_motos,
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -398,6 +569,14 @@ class ResidenteAuthController extends Controller
                 'residente' => $residenteData,
                 'unidad' => $unidadData,
                 'propiedad' => $propiedadData,
+                'todas_unidades' => $todasUnidades,
+                'cartera' => $carteraData,
+                'proximo_vencimiento' => $proximoVencimiento,
+                'pqrs_abiertas' => $pqrsAbiertas,
+                'comunicados_nuevos' => $comunicadosNuevos,
+                'reservas_activas' => $reservasActivas,
+                'proxima_reserva' => $proximaReserva,
+                'sorteo_parqueadero_activo' => $sorteoData,
             ]
         ], 200);
     }

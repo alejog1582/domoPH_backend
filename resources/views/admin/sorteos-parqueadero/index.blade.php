@@ -135,6 +135,27 @@
                             <span class="font-medium">Fecha sorteo:</span>
                             <span class="ml-2 font-semibold text-blue-600">{{ $sorteo->fecha_sorteo->format('d/m/Y') }}</span>
                         </div>
+                        @if($sorteo->hora_sorteo)
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-clock mr-2 text-gray-400"></i>
+                            <span class="font-medium">Hora sorteo:</span>
+                            <span class="ml-2">{{ substr($sorteo->hora_sorteo, 0, 5) }}</span>
+                        </div>
+                        @endif
+                        @if($sorteo->fecha_inicio_uso)
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-calendar-plus mr-2 text-gray-400"></i>
+                            <span class="font-medium">Inicio uso:</span>
+                            <span class="ml-2">{{ $sorteo->fecha_inicio_uso->format('d/m/Y') }}</span>
+                        </div>
+                        @endif
+                        @if($sorteo->duracion_meses)
+                        <div class="flex items-center text-sm text-gray-600">
+                            <i class="fas fa-hourglass-half mr-2 text-gray-400"></i>
+                            <span class="font-medium">Duración:</span>
+                            <span class="ml-2">{{ $sorteo->duracion_meses }} {{ $sorteo->duracion_meses == 1 ? 'mes' : 'meses' }}</span>
+                        </div>
+                        @endif
                     </div>
 
                     <!-- Capacidad y Disponibilidad -->

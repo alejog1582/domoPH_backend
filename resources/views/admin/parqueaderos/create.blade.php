@@ -62,14 +62,15 @@
             <!-- Tipo de Vehículo -->
             <div>
                 <label for="tipo_vehiculo" class="block text-sm font-medium text-gray-700 mb-2">
-                    Tipo de Vehículo
+                    Tipo de Vehículo <span class="text-red-500">*</span>
                 </label>
                 <select 
                     id="tipo_vehiculo" 
                     name="tipo_vehiculo" 
+                    required
                     class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 @error('tipo_vehiculo') border-red-500 @enderror"
                 >
-                    <option value="">Seleccione (opcional)</option>
+                    <option value="">Seleccione un tipo</option>
                     <option value="carro" {{ old('tipo_vehiculo') == 'carro' ? 'selected' : '' }}>Carro</option>
                     <option value="moto" {{ old('tipo_vehiculo') == 'moto' ? 'selected' : '' }}>Moto</option>
                 </select>

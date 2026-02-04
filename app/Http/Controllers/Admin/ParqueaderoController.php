@@ -158,7 +158,7 @@ class ParqueaderoController extends Controller
                 'copropiedad_id' => $propiedad->id,
                 'codigo' => $validated['codigo'],
                 'tipo' => $validated['tipo'],
-                'tipo_vehiculo' => $validated['tipo_vehiculo'] ?? null,
+                'tipo_vehiculo' => $validated['tipo_vehiculo'],
                 'nivel' => $validated['nivel'] ?? null,
                 'estado' => $validated['estado'],
                 'es_cubierto' => $request->has('es_cubierto') ? (bool)$request->es_cubierto : false,
@@ -230,7 +230,7 @@ class ParqueaderoController extends Controller
         $validated = $request->validate([
             'codigo' => 'required|string|max:50',
             'tipo' => 'required|in:privado,comunal,visitantes',
-            'tipo_vehiculo' => 'nullable|in:carro,moto',
+            'tipo_vehiculo' => 'required|in:carro,moto',
             'nivel' => 'nullable|string|max:50',
             'estado' => 'required|in:disponible,asignado,en_mantenimiento,inhabilitado',
             'es_cubierto' => 'boolean',
@@ -243,6 +243,7 @@ class ParqueaderoController extends Controller
             'codigo.max' => 'El código no puede exceder 50 caracteres.',
             'tipo.required' => 'El tipo es obligatorio.',
             'tipo.in' => 'El tipo seleccionado no es válido.',
+            'tipo_vehiculo.required' => 'El tipo de vehículo es obligatorio.',
             'tipo_vehiculo.in' => 'El tipo de vehículo seleccionado no es válido.',
             'estado.required' => 'El estado es obligatorio.',
             'estado.in' => 'El estado seleccionado no es válido.',
@@ -266,7 +267,7 @@ class ParqueaderoController extends Controller
             $parqueadero->update([
                 'codigo' => $validated['codigo'],
                 'tipo' => $validated['tipo'],
-                'tipo_vehiculo' => $validated['tipo_vehiculo'] ?? null,
+                'tipo_vehiculo' => $validated['tipo_vehiculo'],
                 'nivel' => $validated['nivel'] ?? null,
                 'estado' => $validated['estado'],
                 'es_cubierto' => $request->has('es_cubierto') ? (bool)$request->es_cubierto : false,
@@ -431,10 +432,24 @@ class ParqueaderoController extends Controller
             $actualizados = 0;
             $ignorados = 0;
 
-            foreach ($rows as $row) {
+            foreach ($rows as $rowIndex => $row) {
+                $rowNumber = $rowIndex + 2; // +2 porque la fila 1 es el encabezado y empezamos desde 0
+                
                 if (!isset($columnIndexes['codigo']) || empty($row[$columnIndexes['codigo']])) {
                     $ignorados++;
                     continue;
+                }
+
+                // Validar tipo_vehiculo obligatorio
+                if (!isset($columnIndexes['tipo_vehiculo']) || empty($row[$columnIndexes['tipo_vehiculo']])) {
+                    return back()->with('error', "Fila {$rowNumber}: El campo 'tipo_vehiculo' es obligatorio y debe ser 'carro' o 'moto'.")
+                        ->withInput();
+                }
+
+                $tipoVehiculo = trim($row[$columnIndexes['tipo_vehiculo']]);
+                if (!in_array($tipoVehiculo, ['carro', 'moto'])) {
+                    return back()->with('error', "Fila {$rowNumber}: El campo 'tipo_vehiculo' debe ser 'carro' o 'moto'. Valor recibido: '{$tipoVehiculo}'.")
+                        ->withInput();
                 }
 
                 $codigo = trim($row[$columnIndexes['codigo']]);
@@ -450,9 +465,7 @@ class ParqueaderoController extends Controller
                     'tipo' => isset($columnIndexes['tipo']) && in_array(trim($row[$columnIndexes['tipo']]), ['privado', 'comunal', 'visitantes'])
                         ? trim($row[$columnIndexes['tipo']])
                         : 'privado',
-                    'tipo_vehiculo' => isset($columnIndexes['tipo_vehiculo']) && in_array(trim($row[$columnIndexes['tipo_vehiculo']]), ['carro', 'moto'])
-                        ? trim($row[$columnIndexes['tipo_vehiculo']])
-                        : null,
+                    'tipo_vehiculo' => $tipoVehiculo,
                     'nivel' => isset($columnIndexes['nivel']) ? trim($row[$columnIndexes['nivel']]) : null,
                     'estado' => isset($columnIndexes['estado']) && in_array(trim($row[$columnIndexes['estado']]), ['disponible', 'asignado', 'en_mantenimiento', 'inhabilitado'])
                         ? trim($row[$columnIndexes['estado']])

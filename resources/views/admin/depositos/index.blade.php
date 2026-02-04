@@ -177,7 +177,8 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 @if($deposito->unidad)
                                     {{ $deposito->unidad->numero }}
-                                    @if($deposito->unidad->torre) - T{{ $deposito->unidad->torre }} @endif
+                                    @if($deposito->unidad->torre) Torre {{ $deposito->unidad->torre }} @endif
+                                    @if($deposito->unidad->bloque) Bloque {{ $deposito->unidad->bloque }} @endif
                                 @else
                                     <span class="text-gray-400">-</span>
                                 @endif

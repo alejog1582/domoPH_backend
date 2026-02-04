@@ -510,13 +510,18 @@ class ParqueaderoController extends Controller
                 // Buscar residente por documento
                 if (isset($columnIndexes['residente_documento']) && !empty($row[$columnIndexes['residente_documento']])) {
                     $documento = trim($row[$columnIndexes['residente_documento']]);
-                    $residente = Residente::whereHas('unidad', function($q) use ($propiedad) {
-                        $q->where('propiedad_id', $propiedad->id);
-                    })
-                    ->where('documento_identidad', $documento)
-                    ->first();
-                    if ($residente) {
-                        $data['residente_responsable_id'] = $residente->id;
+                    // Buscar primero el usuario por documento_identidad
+                    $user = \App\Models\User::where('documento_identidad', $documento)->first();
+                    if ($user) {
+                        // Buscar el residente asociado a ese usuario y que pertenezca a una unidad de la propiedad
+                        $residente = Residente::whereHas('unidad', function($q) use ($propiedad) {
+                            $q->where('propiedad_id', $propiedad->id);
+                        })
+                        ->where('user_id', $user->id)
+                        ->first();
+                        if ($residente) {
+                            $data['residente_responsable_id'] = $residente->id;
+                        }
                     }
                 }
 

@@ -238,7 +238,8 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 @if($parqueadero->unidad)
                                     {{ $parqueadero->unidad->numero }}
-                                    @if($parqueadero->unidad->torre) - T{{ $parqueadero->unidad->torre }} @endif
+                                    @if($parqueadero->unidad->torre) Torre {{ $parqueadero->unidad->torre }} @endif
+                                    @if($parqueadero->unidad->bloque) Bloque {{ $parqueadero->unidad->bloque }} @endif
                                 @else
                                     <span class="text-gray-400">-</span>
                                 @endif

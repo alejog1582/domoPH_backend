@@ -298,26 +298,26 @@ class DepositoController extends Controller
         $sheet = $spreadsheet->getActiveSheet();
 
         // Encabezados
-        $headers = ['codigo', 'nivel', 'estado', 'area_m2', 'observaciones', 'unidad_numero', 'residente_documento', 'fecha_asignacion'];
+        $headers = ['codigo', 'nivel', 'estado', 'area_m2', 'observaciones', 'unidad_numero', 'torre', 'bloque', 'residente_documento', 'fecha_asignacion'];
         $sheet->fromArray($headers, null, 'A1');
 
         // Estilo de encabezados
-        $sheet->getStyle('A1:H1')->getFont()->setBold(true);
-        $sheet->getStyle('A1:H1')->getFill()
+        $sheet->getStyle('A1:J1')->getFont()->setBold(true);
+        $sheet->getStyle('A1:J1')->getFill()
             ->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID)
             ->getStartColor()->setARGB('FF4472C4');
-        $sheet->getStyle('A1:H1')->getFont()->getColor()->setARGB('FFFFFFFF');
+        $sheet->getStyle('A1:J1')->getFont()->getColor()->setARGB('FFFFFFFF');
 
         // Ejemplos de datos
         $examples = [
-            ['D-01', 'Sótano 1', 'disponible', '5.50', 'Depósito pequeño', '101', '', ''],
-            ['D-02', 'Piso 1', 'asignado', '8.00', '', '102', '1234567890', '2026-01-15'],
-            ['D-03', 'Sótano 2', 'disponible', '10.00', 'Depósito grande', '', '', ''],
+            ['D-01', 'Sótano 1', 'disponible', '5.50', 'Depósito pequeño', '101', 'A', '1', '', ''],
+            ['D-02', 'Piso 1', 'asignado', '8.00', '', '102', 'B', '2', '1234567890', '2026-01-15'],
+            ['D-03', 'Sótano 2', 'disponible', '10.00', 'Depósito grande', '', '', '', '', ''],
         ];
         $sheet->fromArray($examples, null, 'A2');
 
         // Ajustar ancho de columnas
-        foreach (range('A', 'H') as $col) {
+        foreach (range('A', 'J') as $col) {
             $sheet->getColumnDimension($col)->setAutoSize(true);
         }
 
@@ -435,12 +435,32 @@ class DepositoController extends Controller
                     'activo' => true,
                 ];
 
-                // Buscar unidad por número
+                // Buscar unidad por número, torre y bloque
                 if (isset($columnIndexes['unidad_numero']) && !empty($row[$columnIndexes['unidad_numero']])) {
                     $unidadNumero = trim($row[$columnIndexes['unidad_numero']]);
-                    $unidad = Unidad::where('propiedad_id', $propiedad->id)
-                        ->where('numero', $unidadNumero)
-                        ->first();
+                    $torre = isset($columnIndexes['torre']) && !empty($row[$columnIndexes['torre']]) 
+                        ? trim($row[$columnIndexes['torre']]) 
+                        : null;
+                    $bloque = isset($columnIndexes['bloque']) && !empty($row[$columnIndexes['bloque']]) 
+                        ? trim($row[$columnIndexes['bloque']]) 
+                        : null;
+                    
+                    $query = Unidad::where('propiedad_id', $propiedad->id)
+                        ->where('numero', $unidadNumero);
+                    
+                    if ($torre) {
+                        $query->where('torre', $torre);
+                    } else {
+                        $query->whereNull('torre');
+                    }
+                    
+                    if ($bloque) {
+                        $query->where('bloque', $bloque);
+                    } else {
+                        $query->whereNull('bloque');
+                    }
+                    
+                    $unidad = $query->first();
                     if ($unidad) {
                         $data['unidad_id'] = $unidad->id;
                     }
@@ -449,13 +469,18 @@ class DepositoController extends Controller
                 // Buscar residente por documento
                 if (isset($columnIndexes['residente_documento']) && !empty($row[$columnIndexes['residente_documento']])) {
                     $documento = trim($row[$columnIndexes['residente_documento']]);
-                    $residente = Residente::whereHas('unidad', function($q) use ($propiedad) {
-                        $q->where('propiedad_id', $propiedad->id);
-                    })
-                    ->where('documento_identidad', $documento)
-                    ->first();
-                    if ($residente) {
-                        $data['residente_responsable_id'] = $residente->id;
+                    // Buscar primero el usuario por documento_identidad
+                    $user = \App\Models\User::where('documento_identidad', $documento)->first();
+                    if ($user) {
+                        // Buscar el residente asociado a ese usuario y que pertenezca a una unidad de la propiedad
+                        $residente = Residente::whereHas('unidad', function($q) use ($propiedad) {
+                            $q->where('propiedad_id', $propiedad->id);
+                        })
+                        ->where('user_id', $user->id)
+                        ->first();
+                        if ($residente) {
+                            $data['residente_responsable_id'] = $residente->id;
+                        }
                     }
                 }
 

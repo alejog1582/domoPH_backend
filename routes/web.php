@@ -240,6 +240,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::get('comunicados', [ComunicadoController::class, 'index'])->name('comunicados.index');
     Route::get('comunicados/create', [ComunicadoController::class, 'create'])->name('comunicados.create');
     Route::post('comunicados', [ComunicadoController::class, 'store'])->name('comunicados.store');
+    Route::get('comunicados/{comunicado}/edit', [ComunicadoController::class, 'edit'])->name('comunicados.edit');
+    Route::put('comunicados/{comunicado}', [ComunicadoController::class, 'update'])->name('comunicados.update');
     
     // Gestión de Correspondencias
     Route::get('correspondencias', [CorrespondenciaController::class, 'index'])->name('correspondencias.index');

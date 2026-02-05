@@ -164,4 +164,113 @@ class ComunicadoController extends Controller
                 ->withInput();
         }
     }
+
+    /**
+     * Mostrar el formulario de edición de un comunicado
+     */
+    public function edit(Comunicado $comunicado)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        // Verificar que el comunicado pertenece a la propiedad activa
+        if ($comunicado->copropiedad_id !== $propiedad->id) {
+            return redirect()->route('admin.comunicados.index')
+                ->with('error', 'No tienes permiso para editar este comunicado.');
+        }
+
+        return view('admin.comunicados.edit', compact('comunicado', 'propiedad'));
+    }
+
+    /**
+     * Actualizar un comunicado existente
+     */
+    public function update(Request $request, Comunicado $comunicado)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        // Verificar que el comunicado pertenece a la propiedad activa
+        if ($comunicado->copropiedad_id !== $propiedad->id) {
+            return redirect()->route('admin.comunicados.index')
+                ->with('error', 'No tienes permiso para editar este comunicado.');
+        }
+
+        $validated = $request->validate([
+            'titulo' => 'required|string|max:200',
+            'slug' => 'nullable|string|max:220',
+            'contenido' => 'required|string',
+            'resumen' => 'nullable|string|max:500',
+            'tipo' => 'required|in:general,urgente,informativo,mantenimiento',
+            'publicado' => 'boolean',
+            'destacado' => 'boolean',
+            'fecha_publicacion' => 'nullable|date',
+            'visible_para' => 'required|in:todos,propietarios,arrendatarios,administracion',
+            'imagen_portada' => 'nullable|string|max:255',
+        ], [
+            'titulo.required' => 'El título es obligatorio.',
+            'titulo.max' => 'El título no puede exceder 200 caracteres.',
+            'contenido.required' => 'El contenido es obligatorio.',
+            'tipo.required' => 'El tipo es obligatorio.',
+            'tipo.in' => 'El tipo seleccionado no es válido.',
+            'visible_para.required' => 'La visibilidad es obligatoria.',
+            'visible_para.in' => 'La visibilidad seleccionada no es válida.',
+        ]);
+
+        try {
+            // Generar slug si no se proporciona o si cambió el título
+            $slug = $validated['slug'] ?? Str::slug($validated['titulo']);
+            
+            // Si el slug cambió, asegurar unicidad
+            if ($slug !== $comunicado->slug) {
+                $originalSlug = $slug;
+                $count = 1;
+                while (Comunicado::where('copropiedad_id', $propiedad->id)
+                    ->where('slug', $slug)
+                    ->where('id', '!=', $comunicado->id)
+                    ->exists()) {
+                    $slug = $originalSlug . '-' . $count;
+                    $count++;
+                }
+            }
+
+            // Si está publicado y no tiene fecha de publicación, usar la fecha actual
+            $fechaPublicacion = $comunicado->fecha_publicacion;
+            if ($validated['publicado'] ?? false) {
+                $fechaPublicacion = $validated['fecha_publicacion'] ?? ($comunicado->fecha_publicacion ?? Carbon::now());
+            } elseif (!($validated['publicado'] ?? false)) {
+                // Si se despublica, mantener la fecha pero no mostrar como publicado
+                $fechaPublicacion = $comunicado->fecha_publicacion;
+            }
+
+            $comunicado->update([
+                'titulo' => $validated['titulo'],
+                'slug' => $slug,
+                'contenido' => $validated['contenido'],
+                'resumen' => $validated['resumen'] ?? null,
+                'tipo' => $validated['tipo'],
+                'publicado' => $validated['publicado'] ?? false,
+                'destacado' => $validated['destacado'] ?? false,
+                'fecha_publicacion' => $fechaPublicacion,
+                'visible_para' => $validated['visible_para'],
+                'imagen_portada' => $validated['imagen_portada'] ?? null,
+            ]);
+
+            return redirect()->route('admin.comunicados.index')
+                ->with('success', 'Comunicado actualizado correctamente.');
+
+        } catch (\Exception $e) {
+            \Log::error('Error al actualizar comunicado: ' . $e->getMessage());
+            return back()->with('error', 'Error al actualizar el comunicado: ' . $e->getMessage())
+                ->withInput();
+        }
+    }
 }

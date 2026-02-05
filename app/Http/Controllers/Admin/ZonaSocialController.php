@@ -91,7 +91,7 @@ class ZonaSocialController extends Controller
             'max_invitados_por_reserva' => 'nullable|integer|min:0',
             'tiempo_minimo_uso_horas' => 'required|integer|min:1',
             'tiempo_maximo_uso_horas' => 'required|integer|min:1',
-            'reservas_simultaneas' => 'required|boolean',
+            'reservas_simultaneas' => 'nullable|boolean',
             'valor_alquiler' => 'nullable|numeric|min:0',
             'valor_deposito' => 'nullable|numeric|min:0',
             'requiere_aprobacion' => 'boolean',
@@ -127,7 +127,7 @@ class ZonaSocialController extends Controller
                 'max_invitados_por_reserva' => $validated['max_invitados_por_reserva'] ?? null,
                 'tiempo_minimo_uso_horas' => $validated['tiempo_minimo_uso_horas'],
                 'tiempo_maximo_uso_horas' => $validated['tiempo_maximo_uso_horas'],
-                'reservas_simultaneas' => $request->has('reservas_simultaneas'),
+                'reservas_simultaneas' => $validated['reservas_simultaneas'] ?? true,
                 'valor_alquiler' => $validated['valor_alquiler'] ?? null,
                 'valor_deposito' => $validated['valor_deposito'] ?? null,
                 'requiere_aprobacion' => $request->has('requiere_aprobacion'),
@@ -238,6 +238,26 @@ class ZonaSocialController extends Controller
         $zonaSocial = ZonaSocial::where('propiedad_id', $propiedad->id)
             ->findOrFail($id);
 
+        // Filter out empty values from arrays before validation
+        $imagenesEliminar = array_filter(
+            array_map('intval', $request->input('imagenes_eliminar', [])),
+            function($value) {
+                return $value > 0;
+            }
+        );
+        
+        $reglasEliminar = array_filter(
+            array_map('intval', $request->input('reglas_eliminar', [])),
+            function($value) {
+                return $value > 0;
+            }
+        );
+        
+        $request->merge([
+            'imagenes_eliminar' => array_values($imagenesEliminar),
+            'reglas_eliminar' => array_values($reglasEliminar),
+        ]);
+
         $validated = $request->validate([
             'nombre' => 'required|string|max:150',
             'descripcion' => 'nullable|string',
@@ -246,7 +266,7 @@ class ZonaSocialController extends Controller
             'max_invitados_por_reserva' => 'nullable|integer|min:0',
             'tiempo_minimo_uso_horas' => 'required|integer|min:1',
             'tiempo_maximo_uso_horas' => 'required|integer|min:1',
-            'reservas_simultaneas' => 'required|boolean',
+            'reservas_simultaneas' => 'nullable|boolean',
             'valor_alquiler' => 'nullable|numeric|min:0',
             'valor_deposito' => 'nullable|numeric|min:0',
             'requiere_aprobacion' => 'boolean',
@@ -287,7 +307,7 @@ class ZonaSocialController extends Controller
                 'max_invitados_por_reserva' => $validated['max_invitados_por_reserva'] ?? null,
                 'tiempo_minimo_uso_horas' => $validated['tiempo_minimo_uso_horas'],
                 'tiempo_maximo_uso_horas' => $validated['tiempo_maximo_uso_horas'],
-                'reservas_simultaneas' => $request->has('reservas_simultaneas'),
+                'reservas_simultaneas' => $validated['reservas_simultaneas'] ?? true,
                 'valor_alquiler' => $validated['valor_alquiler'] ?? null,
                 'valor_deposito' => $validated['valor_deposito'] ?? null,
                 'requiere_aprobacion' => $request->has('requiere_aprobacion'),
@@ -297,20 +317,52 @@ class ZonaSocialController extends Controller
                 'activo' => $request->has('activo'),
             ]);
 
-            // Eliminar horarios existentes y crear nuevos
-            $zonaSocial->todosLosHorarios()->delete();
-            if ($request->has('horarios') && is_array($request->horarios)) {
+            // Procesar horarios: primero crear los nuevos, luego eliminar los antiguos
+            $horariosCreados = [];
+            if ($request->has('horarios') && is_array($request->horarios) && count($request->horarios) > 0) {
+                // Array para rastrear horarios únicos y evitar duplicados
+                $horariosUnicos = [];
+                
                 foreach ($request->horarios as $horario) {
                     if (!empty($horario['dia_semana']) && !empty($horario['hora_inicio']) && !empty($horario['hora_fin'])) {
-                        ZonaSocialHorario::create([
-                            'zona_social_id' => $zonaSocial->id,
-                            'dia_semana' => $horario['dia_semana'],
-                            'hora_inicio' => $horario['hora_inicio'],
-                            'hora_fin' => $horario['hora_fin'],
-                            'activo' => isset($horario['activo']) ? true : true,
-                        ]);
+                        // Crear clave única para el horario
+                        $claveUnica = strtolower($horario['dia_semana']) . '-' . $horario['hora_inicio'] . '-' . $horario['hora_fin'];
+                        
+                        // Solo crear si no existe ya este horario
+                        if (!isset($horariosUnicos[$claveUnica])) {
+                            try {
+                                $horarioCreado = ZonaSocialHorario::create([
+                                    'zona_social_id' => $zonaSocial->id,
+                                    'dia_semana' => $horario['dia_semana'],
+                                    'hora_inicio' => $horario['hora_inicio'],
+                                    'hora_fin' => $horario['hora_fin'],
+                                    'activo' => isset($horario['activo']) ? true : true,
+                                ]);
+                                
+                                $horariosCreados[] = $horarioCreado->id;
+                                // Marcar como procesado
+                                $horariosUnicos[$claveUnica] = true;
+                            } catch (\Illuminate\Database\QueryException $e) {
+                                // Si hay error de duplicado, continuar sin insertar
+                                if ($e->getCode() == 23000) {
+                                    \Log::warning('Intento de crear horario duplicado: ' . $claveUnica . ' para zona ' . $zonaSocial->id);
+                                    continue;
+                                }
+                                throw $e;
+                            }
+                        }
                     }
                 }
+                
+                // Solo eliminar horarios antiguos si se crearon nuevos horarios exitosamente
+                if (count($horariosCreados) > 0) {
+                    $zonaSocial->todosLosHorarios()
+                        ->whereNotIn('id', $horariosCreados)
+                        ->delete();
+                }
+            } else {
+                // Si no se enviaron horarios, eliminar todos los existentes
+                $zonaSocial->todosLosHorarios()->delete();
             }
 
             // Eliminar imágenes marcadas

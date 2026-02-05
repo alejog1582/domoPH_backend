@@ -669,6 +669,84 @@
             agregarImagen();
         @endif
     });
+
+    // Deshabilitar inputs vacíos y eliminar horarios duplicados antes de enviar el formulario
+    document.getElementById('formZonaSocial')?.addEventListener('submit', function(e) {
+        // Deshabilitar inputs de imagenes_eliminar con valores vacíos
+        const imagenesEliminarInputs = document.querySelectorAll('input[name="imagenes_eliminar[]"]');
+        imagenesEliminarInputs.forEach(input => {
+            if (input.value === '' || input.value === '0' || !input.value) {
+                input.disabled = true;
+            }
+        });
+        
+        // Deshabilitar inputs de reglas_eliminar con valores vacíos
+        const reglasEliminarInputs = document.querySelectorAll('input[name^="reglas_eliminar"]');
+        reglasEliminarInputs.forEach(input => {
+            if (input.value === '' || input.value === '0' || !input.value) {
+                input.disabled = true;
+            }
+        });
+
+        // Validar y eliminar horarios duplicados (solo eliminar duplicados, no todos)
+        const horariosInputs = document.querySelectorAll('select[name*="[dia_semana]"], input[name*="[hora_inicio]"], input[name*="[hora_fin]"]');
+        const horariosMap = new Map();
+        const horariosDuplicados = [];
+
+        // Agrupar horarios por índice
+        const horariosPorIndice = {};
+        horariosInputs.forEach(input => {
+            const name = input.name;
+            const match = name.match(/horarios\[(\d+)\]/);
+            if (match) {
+                const index = match[1];
+                if (!horariosPorIndice[index]) {
+                    horariosPorIndice[index] = {};
+                }
+                if (name.includes('[dia_semana]')) {
+                    horariosPorIndice[index].dia = input.value;
+                } else if (name.includes('[hora_inicio]')) {
+                    horariosPorIndice[index].inicio = input.value;
+                } else if (name.includes('[hora_fin]')) {
+                    horariosPorIndice[index].fin = input.value;
+                }
+            }
+        });
+
+        // Detectar duplicados (mantener el primero, eliminar los siguientes)
+        Object.keys(horariosPorIndice).forEach(index => {
+            const horario = horariosPorIndice[index];
+            if (horario.dia && horario.inicio && horario.fin) {
+                const clave = `${horario.dia.toLowerCase()}-${horario.inicio}-${horario.fin}`;
+                if (horariosMap.has(clave)) {
+                    // Este es un duplicado, marcarlo para eliminar
+                    horariosDuplicados.push(index);
+                } else {
+                    // Primera ocurrencia, mantenerla
+                    horariosMap.set(clave, index);
+                }
+            }
+        });
+
+        // Eliminar solo los horarios duplicados del DOM (no todos)
+        if (horariosDuplicados.length > 0) {
+            console.log('Eliminando horarios duplicados:', horariosDuplicados);
+            horariosDuplicados.forEach(index => {
+                const horarioDiv = document.getElementById(`horario-${index}`);
+                if (horarioDiv) {
+                    horarioDiv.remove();
+                }
+            });
+        }
+        
+        // Verificar que queden horarios antes de enviar
+        const horariosRestantes = document.querySelectorAll('[id^="horario-"]');
+        if (horariosRestantes.length === 0) {
+            e.preventDefault();
+            alert('Debe tener al menos un horario configurado.');
+            return false;
+        }
+    });
 </script>
 @endpush
 @endsection

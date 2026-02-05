@@ -13,13 +13,12 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-blue-600 flex items-center justify-center min-h-screen">
-    <div class="bg-white rounded-lg shadow-xl p-8 w-full max-w-md">
-        <div class="text-center mb-6">
-            <div class="flex justify-center mb-4">
-                <i class="fas fa-building text-blue-600 text-5xl"></i>
+    <div class="bg-white rounded-lg shadow-xl px-8 pt-4 pb-8 w-full max-w-md">
+        <div class="text-center mb-2">
+            <div class="flex justify-center mb-1">
+                <img src="{{ asset('imagenes/logo.png') }}" alt="domoPH Logo" class="h-40 md:h-56 w-auto object-contain">
             </div>
-            <h1 class="text-3xl font-bold text-gray-800">domoPH</h1>
-            <p class="text-gray-600 mt-2">Panel de Administrador</p>
+            <p class="text-gray-600"><b>Panel de Administrador</b></p>
         </div>
 
         @if($errors->any())
@@ -83,6 +82,10 @@
                 Iniciar Sesión
             </button>
         </form>
+        <div class="text-center text-sm text-gray-600 mt-4">
+            <p>Credenciales Demo:</p>
+            <p class="font-mono text-xs mt-1">demo@domoph.com / 12345678</p>
+        </div>
     </div>
 </body>
 </html>

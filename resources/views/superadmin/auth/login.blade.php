@@ -9,16 +9,13 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gradient-to-br from-blue-500 to-blue-700 min-h-screen flex items-center justify-center">
-    <div class="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-2xl">
-        <div class="text-center">
-            <div class="flex justify-center mb-4">
-                <i class="fas fa-building text-blue-600 text-5xl"></i>
+    <div class="max-w-md w-full space-y-8 px-10 pt-4 pb-10 bg-white rounded-xl shadow-2xl">
+        <div class="text-center mb-2">
+            <div class="flex justify-center mb-1">
+                <img src="{{ asset('imagenes/logo.png') }}" alt="domoPH Logo" class="h-40 md:h-56 w-auto object-contain">
             </div>
-            <h2 class="text-3xl font-extrabold text-gray-900">
-                domoPH
-            </h2>
-            <p class="mt-2 text-sm text-gray-600">
-                Panel de Superadministrador
+            <p class="text-sm text-gray-600">
+                <b>Panel de Superadministrador</b>
             </p>
         </div>
 
@@ -89,11 +86,6 @@
                 </button>
             </div>
         </form>
-
-        <div class="text-center text-sm text-gray-600 mt-4">
-            <p>Credenciales por defecto:</p>
-            <p class="font-mono text-xs mt-1">admin@domoph.com / Abc1582Abc</p>
-        </div>
     </div>
 </body>
 </html>

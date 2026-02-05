@@ -15,32 +15,43 @@ class AsignarParqueaderosSorteo extends Command
      *
      * @var string
      */
-    protected $signature = 'sorteo:asignar-parqueaderos';
+    protected $signature = 'sorteo:asignar-parqueaderos {fecha? : Fecha del sorteo a procesar (formato: Y-m-d). Si no se proporciona, usa la fecha actual}';
 
     /**
      * The console command description.
      *
      * @var string
      */
-    protected $description = 'Asigna parqueaderos a los participantes favorecidos en sorteos cuya fecha de sorteo coincide con el día actual';
+    protected $description = 'Asigna parqueaderos a los participantes favorecidos en sorteos cuya fecha de sorteo coincide con la fecha especificada o el día actual';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        $this->info('Iniciando asignación de parqueaderos para sorteos del día...');
+        // Obtener la fecha del parámetro o usar la fecha actual
+        $fechaParametro = $this->argument('fecha');
+        
+        if ($fechaParametro) {
+            try {
+                $fechaProcesar = Carbon::createFromFormat('Y-m-d', $fechaParametro)->startOfDay();
+            } catch (\Exception $e) {
+                $this->error("Error: La fecha proporcionada '{$fechaParametro}' no es válida. Use el formato Y-m-d (ejemplo: 2024-12-25)");
+                return Command::FAILURE;
+            }
+        } else {
+            $fechaProcesar = Carbon::today();
+        }
 
-        // Obtener la fecha actual
-        $fechaHoy = Carbon::today();
+        $this->info("Iniciando asignación de parqueaderos para sorteos del día: {$fechaProcesar->format('Y-m-d')}...");
 
-        // Buscar sorteos cuya fecha_sorteo coincida con el día actual
-        $sorteos = SorteoParqueadero::whereDate('fecha_sorteo', $fechaHoy)
+        // Buscar sorteos cuya fecha_sorteo coincida con la fecha especificada
+        $sorteos = SorteoParqueadero::whereDate('fecha_sorteo', $fechaProcesar)
             ->where('activo', true)
             ->get();
 
         if ($sorteos->isEmpty()) {
-            $this->info('No se encontraron sorteos programados para hoy.');
+            $this->info("No se encontraron sorteos programados para la fecha {$fechaProcesar->format('Y-m-d')}.");
             return Command::SUCCESS;
         }
 
@@ -96,7 +107,7 @@ class AsignarParqueaderosSorteo extends Command
                 try {
                     $parqueadero->unidad_id = $participante->unidad_id;
                     $parqueadero->residente_responsable_id = $participante->residente_id;
-                    $parqueadero->fecha_asignacion = $fechaHoy;
+                    $parqueadero->fecha_asignacion = $fechaProcesar;
                     $parqueadero->estado = 'asignado';
                     $parqueadero->save();
 

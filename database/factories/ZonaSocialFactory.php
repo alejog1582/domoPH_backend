@@ -54,7 +54,7 @@ class ZonaSocialFactory extends Factory
             'max_invitados_por_reserva' => $this->faker->optional(0.6)->numberBetween(0, 10),
             'tiempo_minimo_uso_horas' => $this->faker->numberBetween(1, 4),
             'tiempo_maximo_uso_horas' => $this->faker->numberBetween(4, 24),
-            'reservas_simultaneas' => $this->faker->numberBetween(1, 3),
+            'reservas_simultaneas' => $this->faker->boolean(80), // 80% de probabilidad de permitir reservas simultáneas
             'valor_alquiler' => $this->faker->optional(0.5)->randomFloat(2, 50000, 500000),
             'valor_deposito' => $this->faker->optional(0.4)->randomFloat(2, 100000, 1000000),
             'requiere_aprobacion' => $this->faker->boolean(30),

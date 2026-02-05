@@ -53,7 +53,7 @@ class ZonaSocial extends Model
             'max_invitados_por_reserva' => 'integer',
             'tiempo_minimo_uso_horas' => 'integer',
             'tiempo_maximo_uso_horas' => 'integer',
-            'reservas_simultaneas' => 'integer',
+            'reservas_simultaneas' => 'boolean',
             'valor_alquiler' => 'decimal:2',
             'valor_deposito' => 'decimal:2',
             'requiere_aprobacion' => 'boolean',

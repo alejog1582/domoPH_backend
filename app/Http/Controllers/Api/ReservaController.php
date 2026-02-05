@@ -473,7 +473,7 @@ class ReservaController extends Controller
             'requiere_pago' => $costoReserva > 0 || ($zonaSocial->valor_deposito ?? 0) > 0,
             'estado_pago' => ($costoReserva > 0 || ($zonaSocial->valor_deposito ?? 0) > 0) ? 'pendiente' : 'exento',
             'estado' => $zonaSocial->requiere_aprobacion ? 'solicitada' : 'aprobada',
-            'es_exclusiva' => $zonaSocial->reservas_simultaneas == 1,
+            'es_exclusiva' => !$zonaSocial->reservas_simultaneas,
             'permite_invitados' => $zonaSocial->acepta_invitados,
             'adjuntos' => $adjuntos,
             'activo' => true,

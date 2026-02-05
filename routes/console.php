@@ -20,3 +20,10 @@ Schedule::command('cartera:actualizar-cuentas-vencidas')
     })
     ->timezone('America/Bogota')
     ->description('Actualizar cuentas de cobro pendientes a vencidas y ajustar carteras');
+
+// Programar el comando para ejecutarse diariamente a las 00:00
+Schedule::command('sorteo:asignar-parqueaderos')
+    ->daily()
+    ->at('00:00')
+    ->timezone('America/Bogota')
+    ->description('Asignar parqueaderos a participantes favorecidos en sorteos del día');

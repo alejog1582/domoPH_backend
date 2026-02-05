@@ -27,23 +27,24 @@ class CuentaCobroController extends Controller
         $mesActual = Carbon::now()->format('Y-m');
         
         // Query base: cuentas de cobro con sus relaciones
-        $query = CuentaCobro::with(['unidad', 'detalles'])
+        $query = CuentaCobro::with(['unidad', 'detalles', 'recaudos' => function($q) {
+                $q->where('estado', '!=', 'anulado')
+                  ->where('activo', true);
+            }])
             ->where('copropiedad_id', $propiedad->id);
 
-        // Filtro por estado (por defecto: pendiente del mes actual)
+        // Filtro por periodo
+        if ($request->filled('periodo')) {
+            $query->where('periodo', $request->periodo);
+        }
+        // Si NO se especifica período: mostrar todos los períodos (sin filtro de período)
+        
+        // Filtro por estado
         if ($request->filled('estado')) {
             $query->where('estado', $request->estado);
         } else {
-            // Por defecto: solo pendientes
-            $query->where('estado', 'pendiente');
-        }
-
-        // Filtro por periodo (por defecto: mes actual)
-        if ($request->filled('periodo')) {
-            $query->where('periodo', $request->periodo);
-        } else {
-            // Por defecto: mes actual
-            $query->where('periodo', $mesActual);
+            // Por defecto: pendientes y vencidas de todos los períodos
+            $query->whereIn('estado', ['pendiente', 'vencida']);
         }
 
         // Filtro por unidad
@@ -126,5 +127,39 @@ class CuentaCobroController extends Controller
             'total_meses_anteriores' => $totalMesesAnteriores,
             'total_recaudos_mes' => $totalRecaudosMes,
         ];
+    }
+
+    /**
+     * Obtener los detalles de un recaudo
+     */
+    public function obtenerRecaudo($recaudoId)
+    {
+        $recaudo = Recaudo::with([
+            'cuentaCobro.unidad',
+            'unidad',
+            'registradoPor',
+            'detalles.cuentaCobroDetalle'
+        ])
+        ->where('id', $recaudoId)
+        ->where('activo', true)
+        ->first();
+
+        if (!$recaudo) {
+            return response()->json(['error' => 'Recaudo no encontrado'], 404);
+        }
+
+        return response()->json([
+            'recaudo' => $recaudo,
+            'formatted' => [
+                'numero_recaudo' => $recaudo->numero_recaudo,
+                'fecha_pago' => $recaudo->fecha_pago ? Carbon::parse($recaudo->fecha_pago)->format('d/m/Y') : '-',
+                'valor_pagado' => number_format($recaudo->valor_pagado, 2, ',', '.'),
+                'tipo_pago' => ucfirst($recaudo->tipo_pago),
+                'medio_pago' => ucfirst($recaudo->medio_pago),
+                'estado' => ucfirst($recaudo->estado),
+                'unidad' => $recaudo->unidad ? $recaudo->unidad->numero . ($recaudo->unidad->torre ? ' - Torre ' . $recaudo->unidad->torre : '') : 'N/A',
+                'registrado_por' => $recaudo->registradoPor ? $recaudo->registradoPor->nombre : 'N/A',
+            ]
+        ]);
     }
 }

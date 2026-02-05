@@ -208,9 +208,13 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-blue-600 hover:text-blue-900" title="Ver detalles">
+                                <button 
+                                    onclick="verRecaudo({{ $recaudo->id }})" 
+                                    class="text-blue-600 hover:text-blue-900" 
+                                    title="Ver detalles"
+                                >
                                     <i class="fas fa-eye"></i>
-                                </a>
+                                </button>
                             </td>
                         </tr>
                     @empty
@@ -251,5 +255,173 @@
         </div>
     </div>
 @endif
+
+<!-- Modal para ver detalles del recaudo -->
+<div id="recaudoModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Detalles del Recaudo</h3>
+                <button onclick="cerrarModalRecaudo()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="recaudoContent" class="mt-4">
+                <!-- Contenido se cargará dinámicamente -->
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    <p class="mt-2 text-gray-500">Cargando información...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let recaudosData = {};
+
+    // Cargar datos de todos los recaudos al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        @foreach($recaudos as $recaudo)
+            @php
+                $recaudoFormateado = [
+                    'id' => $recaudo->id,
+                    'numero_recaudo' => $recaudo->numero_recaudo,
+                    'fecha_pago' => $recaudo->fecha_pago ? \Carbon\Carbon::parse($recaudo->fecha_pago)->format('d/m/Y H:i') : '-',
+                    'valor_pagado' => number_format($recaudo->valor_pagado, 2, ',', '.'),
+                    'tipo_pago' => ucfirst($recaudo->tipo_pago ?? ''),
+                    'medio_pago' => ucfirst($recaudo->medio_pago ?? ''),
+                    'referencia_pago' => $recaudo->referencia_pago ?? '',
+                    'descripcion' => $recaudo->descripcion ?? '',
+                    'estado' => ucfirst($recaudo->estado ?? ''),
+                    'unidad' => $recaudo->unidad ? $recaudo->unidad->numero . ($recaudo->unidad->torre ? ' - Torre ' . $recaudo->unidad->torre : '') . ($recaudo->unidad->bloque ? ' - Bloque ' . $recaudo->unidad->bloque : '') : 'N/A',
+                    'cuenta_cobro' => $recaudo->cuentaCobro ? (\Carbon\Carbon::createFromFormat('Y-m', $recaudo->cuentaCobro->periodo)->locale('es')->translatedFormat('F Y')) : 'Abono general',
+                    'registrado_por' => $recaudo->registradoPor ? $recaudo->registradoPor->nombre : 'N/A',
+                    'detalles' => $recaudo->detalles->map(function($detalle) {
+                        return [
+                            'concepto' => $detalle->concepto ?? '',
+                            'valor_aplicado' => number_format($detalle->valor_aplicado ?? 0, 2, ',', '.'),
+                        ];
+                    })->toArray(),
+                ];
+            @endphp
+            recaudosData[{{ $recaudo->id }}] = @json($recaudoFormateado);
+        @endforeach
+    });
+
+    function verRecaudo(recaudoId) {
+        const modal = document.getElementById('recaudoModal');
+        const content = document.getElementById('recaudoContent');
+        
+        if (!recaudosData[recaudoId]) {
+            content.innerHTML = '<div class="text-center py-8 text-gray-500">No se encontró información del recaudo.</div>';
+        } else {
+            const recaudo = recaudosData[recaudoId];
+            
+            let html = `
+                <div class="space-y-4">
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Número de Recaudo</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.numero_recaudo}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Fecha de Pago</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.fecha_pago}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Valor Pagado</p>
+                                <p class="text-base font-semibold text-green-600">$${recaudo.valor_pagado}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Tipo de Pago</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.tipo_pago}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Medio de Pago</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.medio_pago}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Estado</p>
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                    recaudo.estado === 'Aplicado' ? 'bg-green-100 text-green-800' : 
+                                    recaudo.estado === 'Registrado' ? 'bg-yellow-100 text-yellow-800' : 
+                                    'bg-red-100 text-red-800'
+                                }">
+                                    ${recaudo.estado}
+                                </span>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Unidad</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.unidad}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Cuenta de Cobro</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.cuenta_cobro}</p>
+                            </div>
+                            ${recaudo.referencia_pago ? `
+                                <div>
+                                    <p class="text-sm text-gray-500">Referencia de Pago</p>
+                                    <p class="text-base font-semibold text-gray-900">${recaudo.referencia_pago}</p>
+                                </div>
+                            ` : ''}
+                            <div>
+                                <p class="text-sm text-gray-500">Registrado por</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.registrado_por}</p>
+                            </div>
+                            ${recaudo.descripcion ? `
+                                <div class="md:col-span-2">
+                                    <p class="text-sm text-gray-500">Descripción</p>
+                                    <p class="text-base text-gray-900">${recaudo.descripcion}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+            `;
+            
+            // Mostrar detalles del recaudo si existen
+            if (recaudo.detalles && recaudo.detalles.length > 0) {
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4">
+                        <h4 class="text-md font-semibold text-gray-900 mb-3">Detalles del Recaudo</h4>
+                        <div class="space-y-2">
+                `;
+                
+                recaudo.detalles.forEach(function(detalle) {
+                    html += `
+                        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                            <span class="text-sm text-gray-700">${detalle.concepto}</span>
+                            <span class="text-sm font-semibold text-gray-900">$${detalle.valor_aplicado}</span>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            content.innerHTML = html;
+        }
+        
+        modal.classList.remove('hidden');
+    }
+
+    function cerrarModalRecaudo() {
+        const modal = document.getElementById('recaudoModal');
+        modal.classList.add('hidden');
+    }
+
+    // Cerrar modal al hacer clic fuera de él
+    document.getElementById('recaudoModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            cerrarModalRecaudo();
+        }
+    });
+</script>
 
 @endsection

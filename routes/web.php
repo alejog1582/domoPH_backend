@@ -221,6 +221,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     
     // Gestión de Cuentas de Cobro
     Route::get('cuentas-cobro', [CuentaCobroController::class, 'index'])->name('cuentas-cobro.index');
+    Route::get('cuentas-cobro/recaudo/{recaudoId}', [CuentaCobroController::class, 'obtenerRecaudo'])->name('cuentas-cobro.recaudo');
     
     // Gestión de Recaudos
     Route::get('recaudos', [RecaudoController::class, 'index'])->name('recaudos.index');

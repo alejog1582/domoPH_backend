@@ -38,7 +38,7 @@ class CuotaAdministracion extends Model
     protected function casts(): array
     {
         return [
-            'coeficiente' => 'decimal:4',
+            'coeficiente' => 'integer',
             'valor' => 'decimal:2',
             'mes_desde' => 'date',
             'mes_hasta' => 'date',

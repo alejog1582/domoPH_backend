@@ -201,6 +201,8 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">FECHA EMISIÓN</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">FECHA VENCIMIENTO</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">VALOR TOTAL</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">RECAUDOS</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">SALDO</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ESTADO</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ACCIONES</th>
                     </tr>
@@ -237,6 +239,16 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                 ${{ number_format($cuenta->valor_total, 2, ',', '.') }}
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                @php
+                                    $totalRecaudos = $cuenta->recaudos->sum('valor_pagado');
+                                    $saldo = $cuenta->valor_total - $totalRecaudos;
+                                @endphp
+                                ${{ number_format($totalRecaudos, 2, ',', '.') }}
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium {{ $saldo > 0 ? 'text-red-600' : 'text-green-600' }}">
+                                ${{ number_format($saldo, 2, ',', '.') }}
+                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm">
                                 @if($cuenta->estado === 'pendiente')
                                     <span class="px-2 py-1 text-xs font-semibold rounded-full bg-yellow-100 text-yellow-800">
@@ -257,14 +269,23 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <a href="#" class="text-blue-600 hover:text-blue-900" title="Ver detalles">
+                                @if($cuenta->recaudos->count() > 0)
+                                    <button 
+                                        onclick="verRecaudos({{ $cuenta->id }})" 
+                                        class="text-blue-600 hover:text-blue-900 mr-2" 
+                                        title="Ver recaudos"
+                                    >
+                                        <i class="fas fa-money-bill-wave"></i>
+                                    </button>
+                                @endif
+                                <!-- <a href="#" class="text-blue-600 hover:text-blue-900" title="Ver detalles">
                                     <i class="fas fa-eye"></i>
-                                </a>
+                                </a> -->
                             </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-4 text-center text-sm text-gray-500">
+                            <td colspan="9" class="px-6 py-4 text-center text-sm text-gray-500">
                                 No se encontraron cuentas de cobro.
                                 @if(request('estado') || request('periodo') || request('unidad_id') || request('buscar_unidad'))
                                     Intenta con otro criterio de búsqueda.
@@ -300,5 +321,130 @@
         </div>
     </div>
 @endif
+
+<!-- Modal para ver recaudos -->
+<div id="recaudosModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+    <div class="relative top-20 mx-auto p-5 border w-11/12 md:w-3/4 lg:w-1/2 shadow-lg rounded-md bg-white">
+        <div class="mt-3">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">Recaudos de la Cuenta de Cobro</h3>
+                <button onclick="cerrarModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="recaudosContent" class="mt-4">
+                <!-- Contenido se cargará dinámicamente -->
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-gray-400 text-2xl"></i>
+                    <p class="mt-2 text-gray-500">Cargando recaudos...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let recaudosPorCuenta = {};
+
+    // Cargar recaudos de todas las cuentas al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        @foreach($cuentasCobro as $cuenta)
+            @if($cuenta->recaudos->count() > 0)
+                @php
+                    $recaudosFormateados = $cuenta->recaudos->map(function($recaudo) {
+                        return [
+                            'id' => $recaudo->id,
+                            'numero_recaudo' => $recaudo->numero_recaudo,
+                            'fecha_pago' => $recaudo->fecha_pago ? \Carbon\Carbon::parse($recaudo->fecha_pago)->format('d/m/Y') : '-',
+                            'valor_pagado' => number_format($recaudo->valor_pagado, 2, ',', '.'),
+                            'tipo_pago' => ucfirst($recaudo->tipo_pago ?? ''),
+                            'medio_pago' => ucfirst($recaudo->medio_pago ?? ''),
+                            'referencia_pago' => $recaudo->referencia_pago ?? '',
+                            'descripcion' => $recaudo->descripcion ?? '',
+                            'estado' => ucfirst($recaudo->estado ?? ''),
+                        ];
+                    })->values();
+                @endphp
+                recaudosPorCuenta[{{ $cuenta->id }}] = @json($recaudosFormateados);
+            @endif
+        @endforeach
+    });
+
+    function verRecaudos(cuentaId) {
+        const modal = document.getElementById('recaudosModal');
+        const content = document.getElementById('recaudosContent');
+        
+        if (!recaudosPorCuenta[cuentaId] || recaudosPorCuenta[cuentaId].length === 0) {
+            content.innerHTML = '<div class="text-center py-8 text-gray-500">No hay recaudos asociados a esta cuenta de cobro.</div>';
+        } else {
+            let html = '<div class="space-y-4">';
+            
+            recaudosPorCuenta[cuentaId].forEach(function(recaudo) {
+                html += `
+                    <div class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm text-gray-500">Número de Recaudo</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.numero_recaudo}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Fecha de Pago</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.fecha_pago}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Valor Pagado</p>
+                                <p class="text-base font-semibold text-green-600">$${recaudo.valor_pagado}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Tipo de Pago</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.tipo_pago}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Medio de Pago</p>
+                                <p class="text-base font-semibold text-gray-900">${recaudo.medio_pago}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500">Estado</p>
+                                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                    ${recaudo.estado}
+                                </span>
+                            </div>
+                            ${recaudo.referencia_pago ? `
+                                <div>
+                                    <p class="text-sm text-gray-500">Referencia de Pago</p>
+                                    <p class="text-base font-semibold text-gray-900">${recaudo.referencia_pago}</p>
+                                </div>
+                            ` : ''}
+                            ${recaudo.descripcion ? `
+                                <div class="md:col-span-2">
+                                    <p class="text-sm text-gray-500">Descripción</p>
+                                    <p class="text-base text-gray-900">${recaudo.descripcion}</p>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            content.innerHTML = html;
+        }
+        
+        modal.classList.remove('hidden');
+    }
+
+    function cerrarModal() {
+        const modal = document.getElementById('recaudosModal');
+        modal.classList.add('hidden');
+    }
+
+    // Cerrar modal al hacer clic fuera de él
+    document.getElementById('recaudosModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            cerrarModal();
+        }
+    });
+</script>
 
 @endsection

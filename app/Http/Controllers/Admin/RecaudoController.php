@@ -33,7 +33,7 @@ class RecaudoController extends Controller
         $mesActual = Carbon::now()->format('Y-m');
         
         // Query base: recaudos con sus relaciones
-        $query = Recaudo::with(['unidad', 'cuentaCobro'])
+        $query = Recaudo::with(['unidad', 'cuentaCobro', 'registradoPor', 'detalles.cuentaCobroDetalle'])
             ->where('copropiedad_id', $propiedad->id)
             ->where('activo', true);
 

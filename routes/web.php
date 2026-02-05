@@ -28,6 +28,7 @@ use App\Http\Controllers\Admin\PqrsController;
 use App\Http\Controllers\Admin\ReservaController;
 use App\Http\Controllers\Admin\SorteoParqueaderoController;
 use App\Http\Controllers\Admin\ParqueaderoController;
+use App\Http\Controllers\Admin\ManualConvivenciaController;
 use App\Http\Controllers\Admin\DepositoController;
 
 /*
@@ -286,4 +287,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     Route::post('sorteos-parqueadero/{id}/asignar-parqueadero', [SorteoParqueaderoController::class, 'asignarParqueadero'])->name('sorteos-parqueadero.asignar-parqueadero');
     Route::post('sorteos-parqueadero/{id}/asignar-balota-blanca', [SorteoParqueaderoController::class, 'asignarBalotaBlanca'])->name('sorteos-parqueadero.asignar-balota-blanca');
     Route::post('sorteos-parqueadero/{id}/ejecutar-sorteo-automatico', [SorteoParqueaderoController::class, 'ejecutarSorteoAutomatico'])->name('sorteos-parqueadero.ejecutar-sorteo-automatico');
+    
+    // Gestión de Manual de Convivencia
+    Route::get('manual-convivencia', [ManualConvivenciaController::class, 'index'])->name('manual-convivencia.index');
+    Route::post('manual-convivencia', [ManualConvivenciaController::class, 'store'])->name('manual-convivencia.store');
 });

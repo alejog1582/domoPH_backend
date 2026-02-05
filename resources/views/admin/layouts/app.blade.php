@@ -285,6 +285,17 @@
                                 <span>Sorteos Parqueaderos</span>
                             </a>
                         </div>
+
+                        <!-- Menú Manual de Convivencia -->
+                        <div class="mb-1">
+                            <a 
+                                href="{{ route('admin.manual-convivencia.index') }}" 
+                                class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.manual-convivencia.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                            >
+                                <i class="fas fa-book mr-3"></i>
+                                <span>Manual de Convivencia</span>
+                            </a>
+                        </div>
                         @if($modulos->isEmpty())
                             <div class="px-2 py-4 text-sm text-gray-500">
                                 <i class="fas fa-info-circle mr-2"></i>

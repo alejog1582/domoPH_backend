@@ -15,6 +15,7 @@ use App\Models\Comunicado;
 use App\Models\SorteoParqueadero;
 use App\Models\Parqueadero;
 use App\Models\Deposito;
+use App\Models\ManualConvivencia;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
@@ -348,6 +349,21 @@ class ResidenteAuthController extends Controller
             ];
         }
 
+        // Obtener manual de convivencia activo
+        $manualConvivencia = ManualConvivencia::where('copropiedad_id', $propiedadData['id'])
+            ->where('activo', true)
+            ->first();
+
+        $manualConvivenciaData = null;
+        if ($manualConvivencia) {
+            $manualConvivenciaData = [
+                'id' => $manualConvivencia->id,
+                'manual_url' => $manualConvivencia->manual_url,
+                'principales_deberes' => $manualConvivencia->principales_deberes,
+                'principales_obligaciones' => $manualConvivencia->principales_obligaciones,
+            ];
+        }
+
         // Respuesta exitosa
         return response()->json([
             'success' => true,
@@ -367,6 +383,7 @@ class ResidenteAuthController extends Controller
                 'sorteo_parqueadero_activo' => $sorteoData,
                 'parqueadero' => $parqueaderoData,
                 'deposito' => $depositoData,
+                'manual_convivencia' => $manualConvivenciaData,
                 'token' => $token,
                 'token_type' => 'Bearer',
             ]
@@ -636,6 +653,21 @@ class ResidenteAuthController extends Controller
             ];
         }
 
+        // Obtener manual de convivencia activo
+        $manualConvivencia = ManualConvivencia::where('copropiedad_id', $propiedadData['id'])
+            ->where('activo', true)
+            ->first();
+
+        $manualConvivenciaData = null;
+        if ($manualConvivencia) {
+            $manualConvivenciaData = [
+                'id' => $manualConvivencia->id,
+                'manual_url' => $manualConvivencia->manual_url,
+                'principales_deberes' => $manualConvivencia->principales_deberes,
+                'principales_obligaciones' => $manualConvivencia->principales_obligaciones,
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -653,6 +685,7 @@ class ResidenteAuthController extends Controller
                 'sorteo_parqueadero_activo' => $sorteoData,
                 'parqueadero' => $parqueaderoData,
                 'deposito' => $depositoData,
+                'manual_convivencia' => $manualConvivenciaData,
             ]
         ], 200);
     }

@@ -13,6 +13,8 @@ use App\Models\CuentaCobro;
 use App\Models\Pqrs;
 use App\Models\Comunicado;
 use App\Models\SorteoParqueadero;
+use App\Models\Parqueadero;
+use App\Models\Deposito;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
@@ -311,6 +313,41 @@ class ResidenteAuthController extends Controller
             ];
         }
 
+        // Obtener parqueadero asignado a la unidad
+        $parqueadero = Parqueadero::where('unidad_id', $residente->unidad->id)
+            ->where('activo', true)
+            ->where('estado', 'asignado')
+            ->first();
+
+        $parqueaderoData = null;
+        if ($parqueadero) {
+            $parqueaderoData = [
+                'id' => $parqueadero->id,
+                'codigo' => $parqueadero->codigo,
+                'tipo' => $parqueadero->tipo,
+                'tipo_vehiculo' => $parqueadero->tipo_vehiculo,
+                'nivel' => $parqueadero->nivel,
+                'fecha_asignacion' => $parqueadero->fecha_asignacion ? $parqueadero->fecha_asignacion->format('Y-m-d') : null,
+            ];
+        }
+
+        // Obtener depósito asignado a la unidad
+        $deposito = Deposito::where('unidad_id', $residente->unidad->id)
+            ->where('activo', true)
+            ->where('estado', 'asignado')
+            ->first();
+
+        $depositoData = null;
+        if ($deposito) {
+            $depositoData = [
+                'id' => $deposito->id,
+                'codigo' => $deposito->codigo,
+                'nivel' => $deposito->nivel,
+                'area_m2' => $deposito->area_m2 ? (float) $deposito->area_m2 : null,
+                'fecha_asignacion' => $deposito->fecha_asignacion ? $deposito->fecha_asignacion->format('Y-m-d') : null,
+            ];
+        }
+
         // Respuesta exitosa
         return response()->json([
             'success' => true,
@@ -328,6 +365,8 @@ class ResidenteAuthController extends Controller
                 'reservas_activas' => $reservasActivas,
                 'proxima_reserva' => $proximaReserva,
                 'sorteo_parqueadero_activo' => $sorteoData,
+                'parqueadero' => $parqueaderoData,
+                'deposito' => $depositoData,
                 'token' => $token,
                 'token_type' => 'Bearer',
             ]
@@ -541,9 +580,9 @@ class ResidenteAuthController extends Controller
         // Validar si existe un sorteo de parqueadero activo
         $sorteoActivo = SorteoParqueadero::where('copropiedad_id', $propiedadData['id'])
             ->where('estado', 'activo')
-            ->where('activo', true)
+            #->where('activo', true)
             ->whereDate('fecha_inicio_recoleccion', '<=', Carbon::now())
-            ->whereDate('fecha_fin_recoleccion', '>=', Carbon::now())
+            ->whereDate('fecha_inicio_uso', '>=', Carbon::now())
             ->first();
 
         $sorteoData = null;
@@ -562,6 +601,41 @@ class ResidenteAuthController extends Controller
             ];
         }
 
+        // Obtener parqueadero asignado a la unidad
+        $parqueadero = Parqueadero::where('unidad_id', $residente->unidad->id)
+            ->where('activo', true)
+            ->where('estado', 'asignado')
+            ->first();
+
+        $parqueaderoData = null;
+        if ($parqueadero) {
+            $parqueaderoData = [
+                'id' => $parqueadero->id,
+                'codigo' => $parqueadero->codigo,
+                'tipo' => $parqueadero->tipo,
+                'tipo_vehiculo' => $parqueadero->tipo_vehiculo,
+                'nivel' => $parqueadero->nivel,
+                'fecha_asignacion' => $parqueadero->fecha_asignacion ? $parqueadero->fecha_asignacion->format('Y-m-d') : null,
+            ];
+        }
+
+        // Obtener depósito asignado a la unidad
+        $deposito = Deposito::where('unidad_id', $residente->unidad->id)
+            ->where('activo', true)
+            ->where('estado', 'asignado')
+            ->first();
+
+        $depositoData = null;
+        if ($deposito) {
+            $depositoData = [
+                'id' => $deposito->id,
+                'codigo' => $deposito->codigo,
+                'nivel' => $deposito->nivel,
+                'area_m2' => $deposito->area_m2 ? (float) $deposito->area_m2 : null,
+                'fecha_asignacion' => $deposito->fecha_asignacion ? $deposito->fecha_asignacion->format('Y-m-d') : null,
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -577,6 +651,8 @@ class ResidenteAuthController extends Controller
                 'reservas_activas' => $reservasActivas,
                 'proxima_reserva' => $proximaReserva,
                 'sorteo_parqueadero_activo' => $sorteoData,
+                'parqueadero' => $parqueaderoData,
+                'deposito' => $depositoData,
             ]
         ], 200);
     }

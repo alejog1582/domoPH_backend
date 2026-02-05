@@ -87,11 +87,15 @@ class SorteoParqueaderoController extends Controller
                         'id' => $inscritoCarro->id,
                         'placa' => $inscritoCarro->placa,
                         'fecha_inscripcion' => $inscritoCarro->fecha_inscripcion->format('Y-m-d H:i:s'),
+                        'parqueadero_asignado' => $inscritoCarro->parqueadero_asignado,
+                        'fue_favorecido' => $inscritoCarro->fue_favorecido,
                     ] : null,
                     'moto' => $inscritoMoto ? [
                         'id' => $inscritoMoto->id,
                         'placa' => $inscritoMoto->placa,
                         'fecha_inscripcion' => $inscritoMoto->fecha_inscripcion->format('Y-m-d H:i:s'),
+                        'parqueadero_asignado' => $inscritoMoto->parqueadero_asignado,
+                        'fue_favorecido' => $inscritoMoto->fue_favorecido,
                     ] : null,
                 ],
             ]

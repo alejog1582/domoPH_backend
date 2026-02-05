@@ -38,17 +38,21 @@ class PlanSeeder extends Seeder
                     'modelo_cobro' => 'por_unidad',
                     'precio_por_unidad' => 2000,
                     'modulos' => [
+                        // GESTIÓN ADMINISTRATIVA
                         'cartera',
-                        'reservas_zonas_comunes',
-                        'pqrs',
+                        'reservas-zonas-comunes',
                         'comunicados',
                         'correspondencia',
-                        'citofono',
-                        'visitantes',
+                        'visitas',
+                        'autorizaciones',
+                        'llamados-atencion',
+                        'pqrs',
+                        'sorteos-parqueadero',
+                        'manual-convivencia',
+                        // COMUNIDAD
                         'mascotas',
-                        'tienda_ph',
-                        'control_personal',
-                        'configuraciones',
+                        'parqueaderos',
+                        'zonas-comunes',
                     ],
                     'beneficios' => [
                         'Acceso completo a módulos básicos',

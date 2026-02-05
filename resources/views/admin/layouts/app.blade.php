@@ -18,16 +18,8 @@
     <div class="min-h-screen flex flex-col">
         <!-- Navbar -->
         <nav class="bg-white shadow-lg">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="flex justify-between h-16">
-                    <div class="flex items-center">
-                        <a href="{{ route('admin.dashboard') }}" class="flex items-center">
-                            <i class="fas fa-building text-blue-600 text-2xl mr-2"></i>
-                            <span class="text-xl font-bold text-gray-800">domoPH</span>
-                            <span class="ml-2 text-sm text-gray-500">Admin</span>
-                        </a>
-                    </div>
-                    
+            <div class="w-full px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-end items-center h-16">
                     <div class="flex items-center space-x-4">
                         @php
                             $propiedad = \App\Helpers\AdminHelper::getPropiedadActiva();
@@ -59,6 +51,21 @@
                         $modulos = \App\Helpers\AdminHelper::getModulosActivos();
                         $propiedad = \App\Helpers\AdminHelper::getPropiedadActiva();
                     @endphp
+
+                    <!-- Logo -->
+                    <div class="mb-6 px-2">
+                        <a href="{{ route('admin.dashboard') }}" class="flex items-center">
+                            @if($propiedad && $propiedad->logo)
+                                <img src="{{ $propiedad->logo }}" alt="{{ $propiedad->nombre }}" class="h-12 w-auto object-contain mr-2">
+                            @else
+                                <img src="{{ asset('imagenes/logo.png') }}" alt="domoPH Logo" class="h-12 w-auto object-contain mr-2">
+                            @endif
+                            <div class="flex flex-col">
+                                <span class="text-xl font-bold text-gray-800">domoPH</span>
+                                <span class="text-xs text-gray-500">Admin</span>
+                            </div>
+                        </a>
+                    </div>
 
                     <!-- Dashboard -->
                     <a href="{{ route('admin.dashboard') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.dashboard') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">

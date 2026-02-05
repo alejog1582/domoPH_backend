@@ -20,7 +20,7 @@ class SuperAdminSeeder extends Seeder
             [
                 'nombre' => 'Super Administrador',
                 'email' => 'admin@domoph.com',
-                'password' => Hash::make('Abc1582Abc'),
+                'password' => Hash::make('Jagr15Dmzm82Sjgz19Jsgz'),
                 'activo' => true,
                 'tipo_documento' => 'CC',
             ]
@@ -39,7 +39,7 @@ class SuperAdminSeeder extends Seeder
             
             $this->command->info('Superadministrador creado exitosamente');
             $this->command->info('Email: admin@domoph.com');
-            $this->command->info('Password: Abc1582Abc');
+            $this->command->info('Password: Jagr15Dmzm82Sjgz19Jsgz');
         } else {
             $this->command->error('El rol superadministrador no existe. Ejecuta primero RoleSeeder.');
         }

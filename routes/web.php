@@ -99,7 +99,9 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
     })->name('dashboard');
 
     // Gestión de Copropiedades
-    Route::resource('propiedades', PropiedadController::class);
+    Route::resource('propiedades', PropiedadController::class)->parameters([
+        'propiedades' => 'propiedad'
+    ]);
     
     // Gestión de Planes
     Route::resource('planes', PlanController::class)->parameters([

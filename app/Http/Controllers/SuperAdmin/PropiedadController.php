@@ -206,6 +206,22 @@ class PropiedadController extends Controller
     }
 
     /**
+     * Mostrar formulario de edición de propiedad
+     *
+     * @param Propiedad $propiedad
+     * @return \Illuminate\View\View
+     */
+    public function edit(Propiedad $propiedad)
+    {
+        $propiedad->load(['plan', 'modulos', 'administradores.user']);
+        $planes = Plan::activos()->ordenados()->get();
+        $modulos = Modulo::activos()->ordenados()->get();
+        $administradorPrincipal = $propiedad->administradores->where('es_principal', true)->first();
+        
+        return view('superadmin.propiedades.edit', compact('propiedad', 'planes', 'modulos', 'administradorPrincipal'));
+    }
+
+    /**
      * Obtener una propiedad específica
      *
      * @param Propiedad $propiedad
@@ -234,14 +250,35 @@ class PropiedadController extends Controller
      *
      * @param UpdatePropiedadRequest $request
      * @param Propiedad $propiedad
-     * @return JsonResponse
+     * @return \Illuminate\Http\RedirectResponse|JsonResponse
      */
-    public function update(UpdatePropiedadRequest $request, Propiedad $propiedad): JsonResponse
+    public function update(UpdatePropiedadRequest $request, Propiedad $propiedad)
     {
         DB::beginTransaction();
         try {
             $datosAnteriores = $propiedad->toArray();
-            $propiedad->update($request->validated());
+            
+            // Actualizar datos de la propiedad
+            $datosPropiedad = $request->only([
+                'nombre', 'nit', 'direccion', 'ciudad', 'departamento', 
+                'codigo_postal', 'telefono', 'email', 'logo', 
+                'color_primario', 'color_secundario', 'descripcion', 
+                'total_unidades', 'estado', 'plan_id'
+            ]);
+            
+            $propiedad->update($datosPropiedad);
+
+            // Actualizar módulos si se enviaron
+            if ($request->has('modulos') && is_array($request->modulos)) {
+                $modulosData = [];
+                foreach ($request->modulos as $moduloId) {
+                    $modulosData[$moduloId] = [
+                        'activo' => true,
+                        'fecha_activacion' => Carbon::now(),
+                    ];
+                }
+                $propiedad->modulos()->sync($modulosData);
+            }
 
             // Registrar auditoría
             LogAuditoria::create([
@@ -260,19 +297,34 @@ class PropiedadController extends Controller
 
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'data' => $propiedad->load(['plan', 'suscripcionActiva']),
-                'message' => 'Propiedad actualizada exitosamente'
-            ]);
+            // Si es una petición API, devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'data' => $propiedad->load(['plan', 'suscripcionActiva']),
+                    'message' => 'Propiedad actualizada exitosamente'
+                ]);
+            }
+
+            // Si es web, redirigir
+            return redirect()->route('superadmin.propiedades.index')
+                ->with('success', 'Propiedad actualizada exitosamente.');
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al actualizar la propiedad',
-                'error' => $e->getMessage()
-            ], 500);
+            
+            // Si es una petición API, devolver JSON
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al actualizar la propiedad',
+                    'error' => $e->getMessage()
+                ], 500);
+            }
+
+            // Si es web, redirigir con error
+            return back()->withInput()
+                ->with('error', 'Error al actualizar la propiedad: ' . $e->getMessage());
         }
     }
 

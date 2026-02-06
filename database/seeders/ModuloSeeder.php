@@ -26,6 +26,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 1,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Usuarios y Roles',
@@ -37,6 +38,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 2,
                 'configuracion_default' => [],
+                'es_admin' => false,
             ],
             [
                 'nombre' => 'Copropiedades',
@@ -48,6 +50,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 3,
                 'configuracion_default' => [],
+                'es_admin' => false,
             ],
             [
                 'nombre' => 'Configuración General',
@@ -63,6 +66,7 @@ class ModuloSeeder extends Seeder
                     'permitir_visitantes_con_mora' => true,
                     'habilitar_notificaciones_push' => true,
                 ],
+                'es_admin' => false,
             ],
 
             // ========================
@@ -82,6 +86,7 @@ class ModuloSeeder extends Seeder
                     'aplicar_intereses_por_mora' => true,
                     'habilitar_pagos_en_linea' => true,
                 ],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Reservas de Zonas Comunes',
@@ -96,6 +101,7 @@ class ModuloSeeder extends Seeder
                     'requerir_aprobacion_reservas' => false,
                     'limitar_reservas_por_mes' => 4,
                 ],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Comunicados',
@@ -107,6 +113,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 12,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Correspondencia',
@@ -118,6 +125,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 13,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Visitas',
@@ -132,6 +140,7 @@ class ModuloSeeder extends Seeder
                     'habilitar_acceso_qr' => true,
                     'requerir_aprobacion_residente_visitas' => true,
                 ],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Autorizaciones',
@@ -143,6 +152,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 15,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Llamados de Atención',
@@ -154,6 +164,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 16,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'PQRS',
@@ -168,6 +179,7 @@ class ModuloSeeder extends Seeder
                     'permitir_pqrs_anonimas' => false,
                     'habilitar_sla_pqrs' => true,
                 ],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Sorteos Parqueaderos',
@@ -179,6 +191,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 18,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Manual de Convivencia',
@@ -190,6 +203,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 19,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
 
             // ========================
@@ -207,6 +221,7 @@ class ModuloSeeder extends Seeder
                 'configuracion_default' => [
                     'limitar_mascotas_por_unidad' => 2,
                 ],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Parqueaderos',
@@ -218,6 +233,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 31,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
             [
                 'nombre' => 'Zonas Comunes',
@@ -229,6 +245,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 32,
                 'configuracion_default' => [],
+                'es_admin' => true,
             ],
 
             // ========================
@@ -244,6 +261,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 50,
                 'configuracion_default' => [],
+                'es_admin' => false,
             ],
             [
                 'nombre' => 'Auditoría',
@@ -255,6 +273,7 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 51,
                 'configuracion_default' => [],
+                'es_admin' => false,
             ],
             [
                 'nombre' => 'Notificaciones',
@@ -266,6 +285,19 @@ class ModuloSeeder extends Seeder
                 'requiere_configuracion' => false,
                 'orden' => 52,
                 'configuracion_default' => [],
+                'es_admin' => false,
+            ],
+            [
+                'nombre' => 'Usuarios Admin',
+                'slug' => 'usuarios-admin',
+                'descripcion' => 'Gestión de usuarios administrados por el administrador de la propiedad.',
+                'icono' => 'user-cog',
+                'ruta' => '/usuarios-admin',
+                'activo' => true,
+                'requiere_configuracion' => false,
+                'orden' => 20,
+                'configuracion_default' => [],
+                'es_admin' => true,
             ],
         ];
 

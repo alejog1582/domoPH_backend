@@ -30,6 +30,7 @@ class Modulo extends Model
         'requiere_configuracion',
         'orden',
         'configuracion_default',
+        'es_admin',
     ];
 
     /**
@@ -42,6 +43,7 @@ class Modulo extends Model
         return [
             'activo' => 'boolean',
             'requiere_configuracion' => 'boolean',
+            'es_admin' => 'boolean',
             'configuracion_default' => 'array',
         ];
     }

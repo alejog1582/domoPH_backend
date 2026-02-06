@@ -23,6 +23,7 @@ class SuperAdminSeeder extends Seeder
                 'password' => Hash::make('Jagr15Dmzm82Sjgz19Jsgz'),
                 'activo' => true,
                 'tipo_documento' => 'CC',
+                'perfil' => 'superadministrador', // Asignar perfil de superadministrador
             ]
         );
 

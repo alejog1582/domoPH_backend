@@ -152,6 +152,12 @@ class PermissionSeeder extends Seeder
             // Manual de Convivencia
             ['nombre' => 'Ver manual de convivencia', 'slug' => 'manual-convivencia.view', 'modulo' => 'manual-convivencia'],
             ['nombre' => 'Editar manual de convivencia', 'slug' => 'manual-convivencia.edit', 'modulo' => 'manual-convivencia'],
+            
+            // Usuarios Admin
+            ['nombre' => 'Ver usuarios admin', 'slug' => 'usuarios-admin.view', 'modulo' => 'usuarios-admin'],
+            ['nombre' => 'Crear usuarios admin', 'slug' => 'usuarios-admin.create', 'modulo' => 'usuarios-admin'],
+            ['nombre' => 'Editar usuarios admin', 'slug' => 'usuarios-admin.edit', 'modulo' => 'usuarios-admin'],
+            ['nombre' => 'Eliminar usuarios admin', 'slug' => 'usuarios-admin.delete', 'modulo' => 'usuarios-admin'],
         ];
 
         // Permisos del Residente (Frontend)

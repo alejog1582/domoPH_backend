@@ -115,6 +115,7 @@ class DemoSeeder extends Seeder
                 'documento_identidad' => '1234567890',
                 'tipo_documento' => 'CC',
                 'activo' => true,
+                'perfil' => 'administrador', // Asignar perfil de administrador
             ]
         );
 
@@ -391,6 +392,7 @@ class DemoSeeder extends Seeder
                     'documento_identidad' => rand(1000000000, 9999999999),
                     'tipo_documento' => 'CC',
                     'activo' => true,
+                    'perfil' => 'residente', // Asignar perfil de residente
                 ]
             );
             
@@ -400,6 +402,12 @@ class DemoSeeder extends Seeder
                 $user->save();
             } else {
                 $user->agregarPropiedadId($propiedadId);
+            }
+            
+            // Asegurar que el perfil sea residente
+            if ($user->perfil !== 'residente') {
+                $user->perfil = 'residente';
+                $user->save();
             }
 
             // Crear residente propietario
@@ -440,6 +448,7 @@ class DemoSeeder extends Seeder
                     'documento_identidad' => rand(1000000000, 9999999999),
                     'tipo_documento' => 'CC',
                     'activo' => true,
+                    'perfil' => 'residente', // Asignar perfil de residente
                 ]
             );
             
@@ -449,6 +458,12 @@ class DemoSeeder extends Seeder
                 $user->save();
             } else {
                 $user->agregarPropiedadId($propiedadId);
+            }
+            
+            // Asegurar que el perfil sea residente
+            if ($user->perfil !== 'residente') {
+                $user->perfil = 'residente';
+                $user->save();
             }
 
             $tipoRelacion = $tiposRelacion[rand(1, 3)]; // No propietario

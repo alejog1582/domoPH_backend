@@ -267,6 +267,7 @@ class ResidenteController extends Controller
                         'telefono' => $telefono,
                         'activo' => true,
                         'propiedad_id' => (string) $propiedad->id, // Asignar propiedad_id al crear
+                        'perfil' => 'residente', // Asignar perfil de residente
                     ]);
                 } else {
                     // Si el usuario ya existe, agregar la propiedad_id si no está presente
@@ -470,10 +471,16 @@ class ResidenteController extends Controller
                     'telefono' => $request->telefono,
                     'activo' => true,
                     'propiedad_id' => (string) $propiedad->id, // Asignar propiedad_id al crear
+                    'perfil' => 'residente', // Asignar perfil de residente
                 ]);
             } else {
                 // Si el usuario ya existe, agregar la propiedad_id si no está presente
                 $user->agregarPropiedadId($propiedad->id);
+                // Actualizar perfil a residente si no tiene uno asignado o si es necesario
+                if (empty($user->perfil) || $user->perfil !== 'residente') {
+                    $user->perfil = 'residente';
+                    $user->save();
+                }
             }
 
             // Asignar rol de residente

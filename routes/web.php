@@ -30,6 +30,7 @@ use App\Http\Controllers\Admin\SorteoParqueaderoController;
 use App\Http\Controllers\Admin\ParqueaderoController;
 use App\Http\Controllers\Admin\ManualConvivenciaController;
 use App\Http\Controllers\Admin\DepositoController;
+use App\Http\Controllers\Admin\UsuarioAdminController;
 
 /*
 |--------------------------------------------------------------------------
@@ -403,5 +404,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     });
     Route::middleware('permission:manual-convivencia.edit')->group(function () {
         Route::post('manual-convivencia', [ManualConvivenciaController::class, 'store'])->name('manual-convivencia.store');
+    });
+    
+    // Gestión de Usuarios Admin
+    Route::middleware('permission:usuarios-admin.view')->group(function () {
+        Route::get('usuarios-admin', [UsuarioAdminController::class, 'index'])->name('usuarios-admin.index');
+    });
+    Route::middleware('permission:usuarios-admin.create')->group(function () {
+        Route::get('usuarios-admin/create', [UsuarioAdminController::class, 'create'])->name('usuarios-admin.create');
+        Route::post('usuarios-admin', [UsuarioAdminController::class, 'store'])->name('usuarios-admin.store');
+    });
+    Route::middleware('permission:usuarios-admin.edit')->group(function () {
+        Route::get('usuarios-admin/{usuarioAdmin}/edit', [UsuarioAdminController::class, 'edit'])->name('usuarios-admin.edit');
+        Route::put('usuarios-admin/{usuarioAdmin}', [UsuarioAdminController::class, 'update'])->name('usuarios-admin.update');
+    });
+    Route::middleware('permission:usuarios-admin.delete')->group(function () {
+        Route::delete('usuarios-admin/{usuarioAdmin}', [UsuarioAdminController::class, 'destroy'])->name('usuarios-admin.destroy');
     });
 });

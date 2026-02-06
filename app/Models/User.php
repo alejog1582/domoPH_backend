@@ -27,6 +27,7 @@ class User extends Authenticatable
         'activo',
         'avatar',
         'propiedad_id',
+        'perfil',
     ];
 
     /**

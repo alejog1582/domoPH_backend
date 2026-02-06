@@ -20,6 +20,7 @@ use App\Models\ZonaSocialRegla;
 use App\Models\AdministradorPropiedad;
 use App\Models\Plan;
 use App\Models\Modulo;
+use App\Models\Permission;
 use Carbon\Carbon;
 
 class DemoSeeder extends Seeder
@@ -41,7 +42,7 @@ class DemoSeeder extends Seeder
         $propiedad = $this->crearPropiedadDemo($adminDemo);
 
         // 2.1. Asociar módulos del plan a la propiedad
-        $this->asociarModulosAPropiedad($propiedad);
+        $this->asociarModulosAPropiedad($propiedad, $adminDemo);
 
         // 3. Crear 20 unidades
         $unidades = $this->crearUnidades($propiedad);
@@ -160,11 +161,6 @@ class DemoSeeder extends Seeder
             ]
         );
 
-        // Actualizar el role_user con la propiedad_id
-        DB::table('role_user')
-            ->where('user_id', $adminDemo->id)
-            ->update(['propiedad_id' => $propiedad->id]);
-
         // Crear registro en administradores_propiedad
         AdministradorPropiedad::updateOrCreate(
             [
@@ -188,7 +184,7 @@ class DemoSeeder extends Seeder
     /**
      * Asociar módulos del plan a la propiedad
      */
-    private function asociarModulosAPropiedad(Propiedad $propiedad): void
+    private function asociarModulosAPropiedad(Propiedad $propiedad, User $adminDemo): void
     {
         $this->command->info('📦 Asociando módulos del plan a la propiedad...');
 
@@ -242,6 +238,73 @@ class DemoSeeder extends Seeder
         $propiedad->modulos()->sync($modulosData);
 
         $this->command->info('   ✓ ' . count($modulos) . ' módulos asociados a la propiedad');
+
+        // Crear rol específico para la propiedad y asignar permisos
+        $modulosIds = $modulos->pluck('id')->toArray();
+        $this->crearRolYAsignarPermisos($propiedad, $modulosIds, $adminDemo);
+    }
+
+    /**
+     * Crear o actualizar rol específico de la propiedad y asignar permisos
+     *
+     * @param Propiedad $propiedad
+     * @param array $modulosIds
+     * @param User $adminUser
+     * @return void
+     */
+    private function crearRolYAsignarPermisos(Propiedad $propiedad, array $modulosIds, User $adminUser): void
+    {
+        $this->command->info('🔐 Creando rol específico de la propiedad y asignando permisos...');
+
+        // Generar nombre y slug del rol
+        $nombreRol = "Administrador {$propiedad->nombre}";
+        $slugRol = 'administrador_' . \Illuminate\Support\Str::slug($propiedad->nombre, '_');
+
+        // Crear o actualizar el rol específico de la propiedad
+        $rolPropiedad = Role::updateOrCreate(
+            ['slug' => $slugRol],
+            [
+                'nombre' => $nombreRol,
+                'descripcion' => "Rol de administrador específico para la propiedad {$propiedad->nombre}",
+                'activo' => true,
+            ]
+        );
+
+        // Si hay módulos asignados, obtener sus permisos
+        if (!empty($modulosIds)) {
+            // Obtener los slugs de los módulos asignados
+            $modulosAsignados = Modulo::whereIn('id', $modulosIds)->pluck('slug')->toArray();
+            
+            // Obtener los permisos cuyo campo modulo coincida con los slugs de los módulos asignados
+            $permisos = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
+            
+            // Asignar permisos al rol específico de la propiedad
+            $rolPropiedad->permissions()->sync($permisos);
+            
+            $this->command->info("   ✓ Rol '{$nombreRol}' creado/actualizado");
+            $this->command->info('   ✓ ' . count($permisos) . ' permisos asignados al rol');
+        } else {
+            // Si no hay módulos, eliminar todos los permisos del rol
+            $rolPropiedad->permissions()->sync([]);
+            $this->command->info("   ✓ Rol '{$nombreRol}' creado/actualizado (sin permisos)");
+        }
+
+        // Eliminar roles anteriores del usuario para esta propiedad
+        DB::table('role_user')
+            ->where('user_id', $adminUser->id)
+            ->where('propiedad_id', $propiedad->id)
+            ->delete();
+
+        // Asignar el rol específico al usuario administrador
+        DB::table('role_user')->insert([
+            'user_id' => $adminUser->id,
+            'role_id' => $rolPropiedad->id,
+            'propiedad_id' => $propiedad->id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->command->info('   ✓ Rol asignado al usuario administrador');
     }
 
     /**

@@ -126,8 +126,6 @@ class PropiedadController extends Controller
             $propiedad = Propiedad::create($datosPropiedad);
 
             // Crear usuario administrador
-            $adminRole = Role::where('slug', 'administrador')->firstOrFail();
-            
             $adminUser = User::create([
                 'nombre' => $request->admin_nombre,
                 'email' => $request->admin_email,
@@ -136,11 +134,6 @@ class PropiedadController extends Controller
                 'documento_identidad' => $request->admin_documento_identidad,
                 'tipo_documento' => $request->admin_tipo_documento,
                 'activo' => true,
-            ]);
-
-            // Asignar rol de administrador a la propiedad
-            $adminUser->roles()->attach($adminRole->id, [
-                'propiedad_id' => $propiedad->id
             ]);
 
             // Crear registro en administradores_propiedad
@@ -152,6 +145,7 @@ class PropiedadController extends Controller
             ]);
 
             // Asociar módulos seleccionados
+            $modulosIds = [];
             if ($request->has('modulos') && is_array($request->modulos)) {
                 $modulosData = [];
                 foreach ($request->modulos as $moduloId) {
@@ -161,17 +155,16 @@ class PropiedadController extends Controller
                     ];
                 }
                 $propiedad->modulos()->attach($modulosData);
-                
-                // Obtener los slugs de los módulos asignados
-                $modulosAsignados = Modulo::whereIn('id', $request->modulos)->pluck('slug')->toArray();
-                
-                // Obtener los permisos cuyo campo modulo coincida con los slugs de los módulos asignados
-                $permisos = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
-                
-                // Asignar permisos al rol de administrador (el usuario ya tiene el rol asignado)
-                // Los permisos se asignan al rol, pero el usuario los hereda a través del rol
-                $adminRole->permissions()->syncWithoutDetaching($permisos);
+                $modulosIds = $request->modulos;
             }
+
+            // Crear rol específico para esta propiedad y asignar permisos
+            $rolPropiedad = $this->crearRolYAsignarPermisos($propiedad, $modulosIds);
+
+            // Asignar el rol específico al usuario administrador
+            $adminUser->roles()->attach($rolPropiedad->id, [
+                'propiedad_id' => $propiedad->id
+            ]);
 
             // Registrar auditoría
             LogAuditoria::create([
@@ -280,6 +273,7 @@ class PropiedadController extends Controller
             $propiedad->update($datosPropiedad);
 
             // Actualizar módulos si se enviaron
+            $modulosIds = [];
             if ($request->has('modulos') && is_array($request->modulos)) {
                 $modulosData = [];
                 foreach ($request->modulos as $moduloId) {
@@ -289,25 +283,32 @@ class PropiedadController extends Controller
                     ];
                 }
                 $propiedad->modulos()->sync($modulosData);
-                
-                // Obtener los slugs de los módulos asignados
-                $modulosAsignados = Modulo::whereIn('id', $request->modulos)->pluck('slug')->toArray();
-                
-                // Obtener los permisos cuyo campo modulo coincida con los slugs de los módulos asignados
-                $permisos = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
-                
-                // Obtener el administrador principal de la propiedad
-                $administradorPrincipal = $propiedad->administradores()->where('es_principal', true)->first();
-                
-                if ($administradorPrincipal && $administradorPrincipal->user) {
-                    // Obtener el rol de administrador
-                    $adminRole = Role::where('slug', 'administrador')->first();
-                    
-                    if ($adminRole) {
-                        // Asignar permisos al rol de administrador
-                        $adminRole->permissions()->syncWithoutDetaching($permisos);
-                    }
-                }
+                $modulosIds = $request->modulos;
+            } else {
+                // Si no se enviaron módulos, obtener los módulos actuales de la propiedad
+                $modulosIds = $propiedad->modulos()->pluck('modulos.id')->toArray();
+            }
+
+            // Actualizar o crear rol específico para esta propiedad y asignar permisos
+            $rolPropiedad = $this->crearRolYAsignarPermisos($propiedad, $modulosIds);
+
+            // Actualizar el rol del administrador principal si existe
+            $administradorPrincipal = $propiedad->administradores()->where('es_principal', true)->first();
+            if ($administradorPrincipal && $administradorPrincipal->user) {
+                // Eliminar roles anteriores del usuario para esta propiedad
+                DB::table('role_user')
+                    ->where('user_id', $administradorPrincipal->user_id)
+                    ->where('propiedad_id', $propiedad->id)
+                    ->delete();
+
+                // Asignar el rol específico al usuario administrador
+                DB::table('role_user')->insert([
+                    'user_id' => $administradorPrincipal->user_id,
+                    'role_id' => $rolPropiedad->id,
+                    'propiedad_id' => $propiedad->id,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]);
             }
 
             // Registrar auditoría
@@ -401,5 +402,46 @@ class PropiedadController extends Controller
                 'error' => $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Crear o actualizar rol específico de la propiedad y asignar permisos
+     *
+     * @param Propiedad $propiedad
+     * @param array $modulosIds
+     * @return Role
+     */
+    private function crearRolYAsignarPermisos(Propiedad $propiedad, array $modulosIds): Role
+    {
+        // Generar nombre y slug del rol
+        $nombreRol = "Administrador {$propiedad->nombre}";
+        $slugRol = 'administrador_' . \Illuminate\Support\Str::slug($propiedad->nombre, '_');
+
+        // Crear o actualizar el rol específico de la propiedad
+        $rolPropiedad = Role::updateOrCreate(
+            ['slug' => $slugRol],
+            [
+                'nombre' => $nombreRol,
+                'descripcion' => "Rol de administrador específico para la propiedad {$propiedad->nombre}",
+                'activo' => true,
+            ]
+        );
+
+        // Si hay módulos asignados, obtener sus permisos
+        if (!empty($modulosIds)) {
+            // Obtener los slugs de los módulos asignados
+            $modulosAsignados = Modulo::whereIn('id', $modulosIds)->pluck('slug')->toArray();
+            
+            // Obtener los permisos cuyo campo modulo coincida con los slugs de los módulos asignados
+            $permisos = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
+            
+            // Asignar permisos al rol específico de la propiedad
+            $rolPropiedad->permissions()->sync($permisos);
+        } else {
+            // Si no hay módulos, eliminar todos los permisos del rol
+            $rolPropiedad->permissions()->sync([]);
+        }
+
+        return $rolPropiedad;
     }
 }

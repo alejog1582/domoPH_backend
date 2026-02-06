@@ -95,7 +95,7 @@ class ModuloSeeder extends Seeder
                 'icono' => 'calendar',
                 'ruta' => '/reservas',
                 'activo' => true,
-                'requiere_configuracion' => true,
+                'requiere_configuracion' => false,
                 'orden' => 11,
                 'configuracion_default' => [
                     'requerir_aprobacion_reservas' => false,

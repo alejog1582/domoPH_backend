@@ -146,154 +146,262 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'
     // Dashboard
     Route::get('dashboard', function () {
         return view('admin.dashboard');
-    })->name('dashboard');
+    })->name('dashboard')->middleware('permission:dashboard.view');
     
     // Gestión de Unidades
-    Route::get('unidades', [UnidadController::class, 'index'])->name('unidades.index');
-    Route::get('unidades/create', [UnidadController::class, 'create'])->name('unidades.create');
-    Route::post('unidades', [UnidadController::class, 'store'])->name('unidades.store');
-    Route::get('unidades/template', [UnidadController::class, 'downloadTemplate'])->name('unidades.template');
-    Route::post('unidades/import', [UnidadController::class, 'import'])->name('unidades.import');
-    Route::get('unidades/{unidad}/edit', [UnidadController::class, 'edit'])->name('unidades.edit');
-    Route::put('unidades/{unidad}', [UnidadController::class, 'update'])->name('unidades.update');
-    Route::delete('unidades/{unidad}', [UnidadController::class, 'destroy'])->name('unidades.destroy');
+    Route::middleware('permission:unidades.view')->group(function () {
+        Route::get('unidades', [UnidadController::class, 'index'])->name('unidades.index');
+        Route::get('unidades/template', [UnidadController::class, 'downloadTemplate'])->name('unidades.template');
+    });
+    Route::middleware('permission:unidades.create')->group(function () {
+        Route::get('unidades/create', [UnidadController::class, 'create'])->name('unidades.create');
+        Route::post('unidades', [UnidadController::class, 'store'])->name('unidades.store');
+        Route::post('unidades/import', [UnidadController::class, 'import'])->name('unidades.import');
+    });
+    Route::middleware('permission:unidades.edit')->group(function () {
+        Route::get('unidades/{unidad}/edit', [UnidadController::class, 'edit'])->name('unidades.edit');
+        Route::put('unidades/{unidad}', [UnidadController::class, 'update'])->name('unidades.update');
+    });
+    Route::middleware('permission:unidades.delete')->group(function () {
+        Route::delete('unidades/{unidad}', [UnidadController::class, 'destroy'])->name('unidades.destroy');
+    });
     
     // Gestión de Residentes
-    Route::get('residentes', [ResidenteController::class, 'index'])->name('residentes.index');
-    Route::get('residentes/create', [ResidenteController::class, 'create'])->name('residentes.create');
-    Route::post('residentes', [ResidenteController::class, 'store'])->name('residentes.store');
-    Route::get('residentes/template', [ResidenteController::class, 'downloadTemplate'])->name('residentes.template');
-    Route::post('residentes/import', [ResidenteController::class, 'import'])->name('residentes.import');
-    Route::get('residentes/{residente}/edit', [ResidenteController::class, 'edit'])->name('residentes.edit');
-    Route::put('residentes/{residente}', [ResidenteController::class, 'update'])->name('residentes.update');
-    Route::delete('residentes/{residente}', [ResidenteController::class, 'destroy'])->name('residentes.destroy');
+    Route::middleware('permission:residentes.view')->group(function () {
+        Route::get('residentes', [ResidenteController::class, 'index'])->name('residentes.index');
+        Route::get('residentes/template', [ResidenteController::class, 'downloadTemplate'])->name('residentes.template');
+    });
+    Route::middleware('permission:residentes.create')->group(function () {
+        Route::get('residentes/create', [ResidenteController::class, 'create'])->name('residentes.create');
+        Route::post('residentes', [ResidenteController::class, 'store'])->name('residentes.store');
+        Route::post('residentes/import', [ResidenteController::class, 'import'])->name('residentes.import');
+    });
+    Route::middleware('permission:residentes.edit')->group(function () {
+        Route::get('residentes/{residente}/edit', [ResidenteController::class, 'edit'])->name('residentes.edit');
+        Route::put('residentes/{residente}', [ResidenteController::class, 'update'])->name('residentes.update');
+    });
+    Route::middleware('permission:residentes.delete')->group(function () {
+        Route::delete('residentes/{residente}', [ResidenteController::class, 'destroy'])->name('residentes.destroy');
+    });
     
     // Gestión de Mascotas
-    Route::get('mascotas', [MascotaController::class, 'index'])->name('mascotas.index');
-    Route::get('mascotas/create', [MascotaController::class, 'create'])->name('mascotas.create');
-    Route::post('mascotas', [MascotaController::class, 'store'])->name('mascotas.store');
-    Route::get('mascotas/template', [MascotaController::class, 'downloadTemplate'])->name('mascotas.template');
-    Route::post('mascotas/import', [MascotaController::class, 'import'])->name('mascotas.import');
-    Route::get('mascotas/{mascota}/edit', [MascotaController::class, 'edit'])->name('mascotas.edit');
-    Route::put('mascotas/{mascota}', [MascotaController::class, 'update'])->name('mascotas.update');
-    Route::delete('mascotas/{mascota}', [MascotaController::class, 'destroy'])->name('mascotas.destroy');
+    Route::middleware('permission:mascotas.view')->group(function () {
+        Route::get('mascotas', [MascotaController::class, 'index'])->name('mascotas.index');
+        Route::get('mascotas/template', [MascotaController::class, 'downloadTemplate'])->name('mascotas.template');
+    });
+    Route::middleware('permission:mascotas.create')->group(function () {
+        Route::get('mascotas/create', [MascotaController::class, 'create'])->name('mascotas.create');
+        Route::post('mascotas', [MascotaController::class, 'store'])->name('mascotas.store');
+        Route::post('mascotas/import', [MascotaController::class, 'import'])->name('mascotas.import');
+    });
+    Route::middleware('permission:mascotas.edit')->group(function () {
+        Route::get('mascotas/{mascota}/edit', [MascotaController::class, 'edit'])->name('mascotas.edit');
+        Route::put('mascotas/{mascota}', [MascotaController::class, 'update'])->name('mascotas.update');
+    });
+    Route::middleware('permission:mascotas.delete')->group(function () {
+        Route::delete('mascotas/{mascota}', [MascotaController::class, 'destroy'])->name('mascotas.destroy');
+    });
     
     // Gestión de Parqueaderos
-    Route::get('parqueaderos', [ParqueaderoController::class, 'index'])->name('parqueaderos.index');
-    Route::get('parqueaderos/create', [ParqueaderoController::class, 'create'])->name('parqueaderos.create');
-    Route::post('parqueaderos', [ParqueaderoController::class, 'store'])->name('parqueaderos.store');
-    Route::get('parqueaderos/template', [ParqueaderoController::class, 'downloadTemplate'])->name('parqueaderos.template');
-    Route::post('parqueaderos/import', [ParqueaderoController::class, 'import'])->name('parqueaderos.import');
-    Route::get('parqueaderos/{id}/edit', [ParqueaderoController::class, 'edit'])->name('parqueaderos.edit');
-    Route::put('parqueaderos/{id}', [ParqueaderoController::class, 'update'])->name('parqueaderos.update');
-    Route::delete('parqueaderos/{id}', [ParqueaderoController::class, 'destroy'])->name('parqueaderos.destroy');
+    Route::middleware('permission:parqueaderos.view')->group(function () {
+        Route::get('parqueaderos', [ParqueaderoController::class, 'index'])->name('parqueaderos.index');
+        Route::get('parqueaderos/template', [ParqueaderoController::class, 'downloadTemplate'])->name('parqueaderos.template');
+    });
+    Route::middleware('permission:parqueaderos.create')->group(function () {
+        Route::get('parqueaderos/create', [ParqueaderoController::class, 'create'])->name('parqueaderos.create');
+        Route::post('parqueaderos', [ParqueaderoController::class, 'store'])->name('parqueaderos.store');
+        Route::post('parqueaderos/import', [ParqueaderoController::class, 'import'])->name('parqueaderos.import');
+    });
+    Route::middleware('permission:parqueaderos.edit')->group(function () {
+        Route::get('parqueaderos/{id}/edit', [ParqueaderoController::class, 'edit'])->name('parqueaderos.edit');
+        Route::put('parqueaderos/{id}', [ParqueaderoController::class, 'update'])->name('parqueaderos.update');
+    });
+    Route::middleware('permission:parqueaderos.delete')->group(function () {
+        Route::delete('parqueaderos/{id}', [ParqueaderoController::class, 'destroy'])->name('parqueaderos.destroy');
+    });
     
     // Gestión de Depósitos
-    Route::get('depositos', [DepositoController::class, 'index'])->name('depositos.index');
-    Route::get('depositos/create', [DepositoController::class, 'create'])->name('depositos.create');
-    Route::post('depositos', [DepositoController::class, 'store'])->name('depositos.store');
-    Route::get('depositos/template', [DepositoController::class, 'downloadTemplate'])->name('depositos.template');
-    Route::post('depositos/import', [DepositoController::class, 'import'])->name('depositos.import');
-    Route::get('depositos/{id}/edit', [DepositoController::class, 'edit'])->name('depositos.edit');
-    Route::put('depositos/{id}', [DepositoController::class, 'update'])->name('depositos.update');
-    Route::delete('depositos/{id}', [DepositoController::class, 'destroy'])->name('depositos.destroy');
+    Route::middleware('permission:depositos.view')->group(function () {
+        Route::get('depositos', [DepositoController::class, 'index'])->name('depositos.index');
+        Route::get('depositos/template', [DepositoController::class, 'downloadTemplate'])->name('depositos.template');
+    });
+    Route::middleware('permission:depositos.create')->group(function () {
+        Route::get('depositos/create', [DepositoController::class, 'create'])->name('depositos.create');
+        Route::post('depositos', [DepositoController::class, 'store'])->name('depositos.store');
+        Route::post('depositos/import', [DepositoController::class, 'import'])->name('depositos.import');
+    });
+    Route::middleware('permission:depositos.edit')->group(function () {
+        Route::get('depositos/{id}/edit', [DepositoController::class, 'edit'])->name('depositos.edit');
+        Route::put('depositos/{id}', [DepositoController::class, 'update'])->name('depositos.update');
+    });
+    Route::middleware('permission:depositos.delete')->group(function () {
+        Route::delete('depositos/{id}', [DepositoController::class, 'destroy'])->name('depositos.destroy');
+    });
     
     // Gestión de Zonas Comunes
-    Route::get('zonas-sociales', [ZonaSocialController::class, 'index'])->name('zonas-sociales.index');
-    Route::get('zonas-sociales/create', [ZonaSocialController::class, 'create'])->name('zonas-sociales.create');
-    Route::post('zonas-sociales', [ZonaSocialController::class, 'store'])->name('zonas-sociales.store');
-    Route::get('zonas-sociales/{zonaSocial}/edit', [ZonaSocialController::class, 'edit'])->name('zonas-sociales.edit');
-    Route::put('zonas-sociales/{zonaSocial}', [ZonaSocialController::class, 'update'])->name('zonas-sociales.update');
-    Route::delete('zonas-sociales/{zonaSocial}', [ZonaSocialController::class, 'destroy'])->name('zonas-sociales.destroy');
+    Route::middleware('permission:zonas-sociales.view')->group(function () {
+        Route::get('zonas-sociales', [ZonaSocialController::class, 'index'])->name('zonas-sociales.index');
+    });
+    Route::middleware('permission:zonas-sociales.create')->group(function () {
+        Route::get('zonas-sociales/create', [ZonaSocialController::class, 'create'])->name('zonas-sociales.create');
+        Route::post('zonas-sociales', [ZonaSocialController::class, 'store'])->name('zonas-sociales.store');
+    });
+    Route::middleware('permission:zonas-sociales.edit')->group(function () {
+        Route::get('zonas-sociales/{zonaSocial}/edit', [ZonaSocialController::class, 'edit'])->name('zonas-sociales.edit');
+        Route::put('zonas-sociales/{zonaSocial}', [ZonaSocialController::class, 'update'])->name('zonas-sociales.update');
+    });
+    Route::middleware('permission:zonas-sociales.delete')->group(function () {
+        Route::delete('zonas-sociales/{zonaSocial}', [ZonaSocialController::class, 'destroy'])->name('zonas-sociales.destroy');
+    });
     
     // Gestión de Cuotas de Administración
-    Route::get('cuotas-administracion', [CuotaAdministracionController::class, 'index'])->name('cuotas-administracion.index');
-    Route::get('cuotas-administracion/create', [CuotaAdministracionController::class, 'create'])->name('cuotas-administracion.create');
-    Route::post('cuotas-administracion', [CuotaAdministracionController::class, 'store'])->name('cuotas-administracion.store');
-    Route::get('cuotas-administracion/{cuotaAdministracion}/edit', [CuotaAdministracionController::class, 'edit'])->name('cuotas-administracion.edit');
-    Route::put('cuotas-administracion/{cuotaAdministracion}', [CuotaAdministracionController::class, 'update'])->name('cuotas-administracion.update');
-    Route::delete('cuotas-administracion/{cuotaAdministracion}', [CuotaAdministracionController::class, 'destroy'])->name('cuotas-administracion.destroy');
+    Route::middleware('permission:cuotas-administracion.view')->group(function () {
+        Route::get('cuotas-administracion', [CuotaAdministracionController::class, 'index'])->name('cuotas-administracion.index');
+    });
+    Route::middleware('permission:cuotas-administracion.create')->group(function () {
+        Route::get('cuotas-administracion/create', [CuotaAdministracionController::class, 'create'])->name('cuotas-administracion.create');
+        Route::post('cuotas-administracion', [CuotaAdministracionController::class, 'store'])->name('cuotas-administracion.store');
+    });
+    Route::middleware('permission:cuotas-administracion.edit')->group(function () {
+        Route::get('cuotas-administracion/{cuotaAdministracion}/edit', [CuotaAdministracionController::class, 'edit'])->name('cuotas-administracion.edit');
+        Route::put('cuotas-administracion/{cuotaAdministracion}', [CuotaAdministracionController::class, 'update'])->name('cuotas-administracion.update');
+    });
+    Route::middleware('permission:cuotas-administracion.delete')->group(function () {
+        Route::delete('cuotas-administracion/{cuotaAdministracion}', [CuotaAdministracionController::class, 'destroy'])->name('cuotas-administracion.destroy');
+    });
     
     // Gestión de Cartera de Unidades (Solo lectura)
-    Route::get('cartera', [CarteraController::class, 'index'])->name('cartera.index');
-    Route::get('cartera/{cartera}/detalles', [CarteraController::class, 'detalles'])->name('cartera.detalles');
-    Route::get('cartera/cargar-saldos', [CarteraController::class, 'showCargarSaldos'])->name('cartera.cargar-saldos');
-    Route::get('cartera/template', [CarteraController::class, 'downloadTemplate'])->name('cartera.download-template');
-    Route::post('cartera/import-saldos', [CarteraController::class, 'importSaldos'])->name('cartera.import-saldos');
+    Route::middleware('permission:cartera.view')->group(function () {
+        Route::get('cartera', [CarteraController::class, 'index'])->name('cartera.index');
+        Route::get('cartera/{cartera}/detalles', [CarteraController::class, 'detalles'])->name('cartera.detalles');
+        Route::get('cartera/cargar-saldos', [CarteraController::class, 'showCargarSaldos'])->name('cartera.cargar-saldos');
+        Route::get('cartera/template', [CarteraController::class, 'downloadTemplate'])->name('cartera.download-template');
+        Route::post('cartera/import-saldos', [CarteraController::class, 'importSaldos'])->name('cartera.import-saldos');
+    });
     
     // Gestión de Cuentas de Cobro
-    Route::get('cuentas-cobro', [CuentaCobroController::class, 'index'])->name('cuentas-cobro.index');
-    Route::get('cuentas-cobro/recaudo/{recaudoId}', [CuentaCobroController::class, 'obtenerRecaudo'])->name('cuentas-cobro.recaudo');
+    Route::middleware('permission:cuentas-cobro.view')->group(function () {
+        Route::get('cuentas-cobro', [CuentaCobroController::class, 'index'])->name('cuentas-cobro.index');
+        Route::get('cuentas-cobro/recaudo/{recaudoId}', [CuentaCobroController::class, 'obtenerRecaudo'])->name('cuentas-cobro.recaudo');
+    });
     
     // Gestión de Recaudos
-    Route::get('recaudos', [RecaudoController::class, 'index'])->name('recaudos.index');
-    Route::get('recaudos/cargar', [RecaudoController::class, 'showCargarRecaudos'])->name('recaudos.cargar');
-    Route::get('recaudos/template', [RecaudoController::class, 'downloadTemplate'])->name('recaudos.download-template');
-    Route::post('recaudos/import', [RecaudoController::class, 'importRecaudos'])->name('recaudos.import');
+    Route::middleware('permission:recaudos.view')->group(function () {
+        Route::get('recaudos', [RecaudoController::class, 'index'])->name('recaudos.index');
+        Route::get('recaudos/cargar', [RecaudoController::class, 'showCargarRecaudos'])->name('recaudos.cargar');
+        Route::get('recaudos/template', [RecaudoController::class, 'downloadTemplate'])->name('recaudos.download-template');
+        Route::post('recaudos/import', [RecaudoController::class, 'importRecaudos'])->name('recaudos.import');
+    });
     
     // Gestión de Acuerdos de Pago
-    Route::get('acuerdos-pagos', [AcuerdoPagoController::class, 'index'])->name('acuerdos-pagos.index');
-    Route::get('acuerdos-pagos/create', [AcuerdoPagoController::class, 'create'])->name('acuerdos-pagos.create');
-    Route::post('acuerdos-pagos', [AcuerdoPagoController::class, 'store'])->name('acuerdos-pagos.store');
-    Route::get('acuerdos-pagos/{acuerdoPago}/edit', [AcuerdoPagoController::class, 'edit'])->name('acuerdos-pagos.edit');
-    Route::put('acuerdos-pagos/{acuerdoPago}', [AcuerdoPagoController::class, 'update'])->name('acuerdos-pagos.update');
+    Route::middleware('permission:acuerdos-pagos.view')->group(function () {
+        Route::get('acuerdos-pagos', [AcuerdoPagoController::class, 'index'])->name('acuerdos-pagos.index');
+    });
+    Route::middleware('permission:acuerdos-pagos.create')->group(function () {
+        Route::get('acuerdos-pagos/create', [AcuerdoPagoController::class, 'create'])->name('acuerdos-pagos.create');
+        Route::post('acuerdos-pagos', [AcuerdoPagoController::class, 'store'])->name('acuerdos-pagos.store');
+    });
+    Route::middleware('permission:acuerdos-pagos.edit')->group(function () {
+        Route::get('acuerdos-pagos/{acuerdoPago}/edit', [AcuerdoPagoController::class, 'edit'])->name('acuerdos-pagos.edit');
+        Route::put('acuerdos-pagos/{acuerdoPago}', [AcuerdoPagoController::class, 'update'])->name('acuerdos-pagos.update');
+    });
     
     // Gestión de Comunicados
-    Route::get('comunicados', [ComunicadoController::class, 'index'])->name('comunicados.index');
-    Route::get('comunicados/create', [ComunicadoController::class, 'create'])->name('comunicados.create');
-    Route::post('comunicados', [ComunicadoController::class, 'store'])->name('comunicados.store');
-    Route::get('comunicados/{comunicado}/edit', [ComunicadoController::class, 'edit'])->name('comunicados.edit');
-    Route::put('comunicados/{comunicado}', [ComunicadoController::class, 'update'])->name('comunicados.update');
+    Route::middleware('permission:comunicados.view')->group(function () {
+        Route::get('comunicados', [ComunicadoController::class, 'index'])->name('comunicados.index');
+    });
+    Route::middleware('permission:comunicados.create')->group(function () {
+        Route::get('comunicados/create', [ComunicadoController::class, 'create'])->name('comunicados.create');
+        Route::post('comunicados', [ComunicadoController::class, 'store'])->name('comunicados.store');
+    });
+    Route::middleware('permission:comunicados.edit')->group(function () {
+        Route::get('comunicados/{comunicado}/edit', [ComunicadoController::class, 'edit'])->name('comunicados.edit');
+        Route::put('comunicados/{comunicado}', [ComunicadoController::class, 'update'])->name('comunicados.update');
+    });
     
     // Gestión de Correspondencias
-    Route::get('correspondencias', [CorrespondenciaController::class, 'index'])->name('correspondencias.index');
-    Route::get('correspondencias/cargar', [CorrespondenciaController::class, 'showCargarCorrespondencias'])->name('correspondencias.cargar');
-    Route::get('correspondencias/template', [CorrespondenciaController::class, 'downloadTemplate'])->name('correspondencias.download-template');
+    Route::middleware('permission:correspondencias.view')->group(function () {
+        Route::get('correspondencias', [CorrespondenciaController::class, 'index'])->name('correspondencias.index');
+        Route::get('correspondencias/cargar', [CorrespondenciaController::class, 'showCargarCorrespondencias'])->name('correspondencias.cargar');
+        Route::get('correspondencias/template', [CorrespondenciaController::class, 'downloadTemplate'])->name('correspondencias.download-template');
+    });
     
     // Gestión de Visitas
-    Route::get('visitas', [VisitaController::class, 'index'])->name('visitas.index');
-    Route::get('visitas/create', [VisitaController::class, 'create'])->name('visitas.create');
-    Route::post('visitas', [VisitaController::class, 'store'])->name('visitas.store');
-    Route::post('visitas/{id}/activar', [VisitaController::class, 'activar'])->name('visitas.activar');
+    Route::middleware('permission:visitas.view')->group(function () {
+        Route::get('visitas', [VisitaController::class, 'index'])->name('visitas.index');
+    });
+    Route::middleware('permission:visitas.create')->group(function () {
+        Route::get('visitas/create', [VisitaController::class, 'create'])->name('visitas.create');
+        Route::post('visitas', [VisitaController::class, 'store'])->name('visitas.store');
+        Route::post('visitas/{id}/activar', [VisitaController::class, 'activar'])->name('visitas.activar');
+    });
     
     // Gestión de Autorizaciones
-    Route::get('autorizaciones', [AutorizacionController::class, 'index'])->name('autorizaciones.index');
-    Route::get('autorizaciones/create', [AutorizacionController::class, 'create'])->name('autorizaciones.create');
-    Route::post('autorizaciones', [AutorizacionController::class, 'store'])->name('autorizaciones.store');
+    Route::middleware('permission:autorizaciones.view')->group(function () {
+        Route::get('autorizaciones', [AutorizacionController::class, 'index'])->name('autorizaciones.index');
+    });
+    Route::middleware('permission:autorizaciones.create')->group(function () {
+        Route::get('autorizaciones/create', [AutorizacionController::class, 'create'])->name('autorizaciones.create');
+        Route::post('autorizaciones', [AutorizacionController::class, 'store'])->name('autorizaciones.store');
+    });
     
     // Gestión de Llamados de Atención
-    Route::get('llamados-atencion', [LlamadoAtencionController::class, 'index'])->name('llamados-atencion.index');
-    Route::get('llamados-atencion/create', [LlamadoAtencionController::class, 'create'])->name('llamados-atencion.create');
-    Route::post('llamados-atencion', [LlamadoAtencionController::class, 'store'])->name('llamados-atencion.store');
-    Route::get('llamados-atencion/{id}/edit', [LlamadoAtencionController::class, 'edit'])->name('llamados-atencion.edit');
-    Route::put('llamados-atencion/{id}', [LlamadoAtencionController::class, 'update'])->name('llamados-atencion.update');
+    Route::middleware('permission:llamados-atencion.view')->group(function () {
+        Route::get('llamados-atencion', [LlamadoAtencionController::class, 'index'])->name('llamados-atencion.index');
+    });
+    Route::middleware('permission:llamados-atencion.create')->group(function () {
+        Route::get('llamados-atencion/create', [LlamadoAtencionController::class, 'create'])->name('llamados-atencion.create');
+        Route::post('llamados-atencion', [LlamadoAtencionController::class, 'store'])->name('llamados-atencion.store');
+    });
+    Route::middleware('permission:llamados-atencion.edit')->group(function () {
+        Route::get('llamados-atencion/{id}/edit', [LlamadoAtencionController::class, 'edit'])->name('llamados-atencion.edit');
+        Route::put('llamados-atencion/{id}', [LlamadoAtencionController::class, 'update'])->name('llamados-atencion.update');
+    });
     
     // Gestión de PQRS
-    Route::get('pqrs', [PqrsController::class, 'index'])->name('pqrs.index');
-    Route::get('pqrs/{pqrs}/edit', [PqrsController::class, 'edit'])->name('pqrs.edit');
-    Route::put('pqrs/{pqrs}', [PqrsController::class, 'update'])->name('pqrs.update');
+    Route::middleware('permission:pqrs.view')->group(function () {
+        Route::get('pqrs', [PqrsController::class, 'index'])->name('pqrs.index');
+    });
+    Route::middleware('permission:pqrs.edit')->group(function () {
+        Route::get('pqrs/{pqrs}/edit', [PqrsController::class, 'edit'])->name('pqrs.edit');
+        Route::put('pqrs/{pqrs}', [PqrsController::class, 'update'])->name('pqrs.update');
+    });
     
     // Gestión de Reservas
-    Route::get('reservas', [ReservaController::class, 'index'])->name('reservas.index');
-    Route::get('reservas/{reserva}', [ReservaController::class, 'show'])->name('reservas.show');
-    Route::put('reservas/{reserva}', [ReservaController::class, 'update'])->name('reservas.update');
+    Route::middleware('permission:reservas.view')->group(function () {
+        Route::get('reservas', [ReservaController::class, 'index'])->name('reservas.index');
+        Route::get('reservas/{reserva}', [ReservaController::class, 'show'])->name('reservas.show');
+    });
+    Route::middleware('permission:reservas.edit')->group(function () {
+        Route::put('reservas/{reserva}', [ReservaController::class, 'update'])->name('reservas.update');
+    });
     
     // Gestión de Sorteos Parqueaderos
-    Route::get('sorteos-parqueadero', [SorteoParqueaderoController::class, 'index'])->name('sorteos-parqueadero.index');
-    Route::get('sorteos-parqueadero/create', [SorteoParqueaderoController::class, 'create'])->name('sorteos-parqueadero.create');
-    Route::post('sorteos-parqueadero', [SorteoParqueaderoController::class, 'store'])->name('sorteos-parqueadero.store');
-    Route::get('sorteos-parqueadero/{id}/edit', [SorteoParqueaderoController::class, 'edit'])->name('sorteos-parqueadero.edit');
-    Route::put('sorteos-parqueadero/{id}', [SorteoParqueaderoController::class, 'update'])->name('sorteos-parqueadero.update');
-    Route::get('sorteos-parqueadero/{id}/participantes', [SorteoParqueaderoController::class, 'participantes'])->name('sorteos-parqueadero.participantes');
-    Route::get('sorteos-parqueadero/{id}/datos-sorteo', [SorteoParqueaderoController::class, 'datosSorteo'])->name('sorteos-parqueadero.datos-sorteo');
-    Route::post('sorteos-parqueadero/{id}/iniciar-sorteo', [SorteoParqueaderoController::class, 'iniciarSorteo'])->name('sorteos-parqueadero.iniciar-sorteo');
-    Route::get('sorteos-parqueadero/{id}/sorteo-manual', [SorteoParqueaderoController::class, 'sorteoManual'])->name('sorteos-parqueadero.sorteo-manual');
-    Route::get('sorteos-parqueadero/{id}/sorteo-automatico', [SorteoParqueaderoController::class, 'sorteoAutomatico'])->name('sorteos-parqueadero.sorteo-automatico');
-    Route::post('sorteos-parqueadero/{id}/asignar-parqueadero', [SorteoParqueaderoController::class, 'asignarParqueadero'])->name('sorteos-parqueadero.asignar-parqueadero');
-    Route::post('sorteos-parqueadero/{id}/asignar-balota-blanca', [SorteoParqueaderoController::class, 'asignarBalotaBlanca'])->name('sorteos-parqueadero.asignar-balota-blanca');
-    Route::post('sorteos-parqueadero/{id}/ejecutar-sorteo-automatico', [SorteoParqueaderoController::class, 'ejecutarSorteoAutomatico'])->name('sorteos-parqueadero.ejecutar-sorteo-automatico');
+    Route::middleware('permission:sorteos-parqueadero.view')->group(function () {
+        Route::get('sorteos-parqueadero', [SorteoParqueaderoController::class, 'index'])->name('sorteos-parqueadero.index');
+        Route::get('sorteos-parqueadero/{id}/participantes', [SorteoParqueaderoController::class, 'participantes'])->name('sorteos-parqueadero.participantes');
+        Route::get('sorteos-parqueadero/{id}/datos-sorteo', [SorteoParqueaderoController::class, 'datosSorteo'])->name('sorteos-parqueadero.datos-sorteo');
+        Route::get('sorteos-parqueadero/{id}/sorteo-manual', [SorteoParqueaderoController::class, 'sorteoManual'])->name('sorteos-parqueadero.sorteo-manual');
+        Route::get('sorteos-parqueadero/{id}/sorteo-automatico', [SorteoParqueaderoController::class, 'sorteoAutomatico'])->name('sorteos-parqueadero.sorteo-automatico');
+    });
+    Route::middleware('permission:sorteos-parqueadero.create')->group(function () {
+        Route::get('sorteos-parqueadero/create', [SorteoParqueaderoController::class, 'create'])->name('sorteos-parqueadero.create');
+        Route::post('sorteos-parqueadero', [SorteoParqueaderoController::class, 'store'])->name('sorteos-parqueadero.store');
+        Route::post('sorteos-parqueadero/{id}/iniciar-sorteo', [SorteoParqueaderoController::class, 'iniciarSorteo'])->name('sorteos-parqueadero.iniciar-sorteo');
+        Route::post('sorteos-parqueadero/{id}/asignar-parqueadero', [SorteoParqueaderoController::class, 'asignarParqueadero'])->name('sorteos-parqueadero.asignar-parqueadero');
+        Route::post('sorteos-parqueadero/{id}/asignar-balota-blanca', [SorteoParqueaderoController::class, 'asignarBalotaBlanca'])->name('sorteos-parqueadero.asignar-balota-blanca');
+        Route::post('sorteos-parqueadero/{id}/ejecutar-sorteo-automatico', [SorteoParqueaderoController::class, 'ejecutarSorteoAutomatico'])->name('sorteos-parqueadero.ejecutar-sorteo-automatico');
+    });
+    Route::middleware('permission:sorteos-parqueadero.edit')->group(function () {
+        Route::get('sorteos-parqueadero/{id}/edit', [SorteoParqueaderoController::class, 'edit'])->name('sorteos-parqueadero.edit');
+        Route::put('sorteos-parqueadero/{id}', [SorteoParqueaderoController::class, 'update'])->name('sorteos-parqueadero.update');
+    });
     
     // Gestión de Manual de Convivencia
-    Route::get('manual-convivencia', [ManualConvivenciaController::class, 'index'])->name('manual-convivencia.index');
-    Route::post('manual-convivencia', [ManualConvivenciaController::class, 'store'])->name('manual-convivencia.store');
+    Route::middleware('permission:manual-convivencia.view')->group(function () {
+        Route::get('manual-convivencia', [ManualConvivenciaController::class, 'index'])->name('manual-convivencia.index');
+    });
+    Route::middleware('permission:manual-convivencia.edit')->group(function () {
+        Route::post('manual-convivencia', [ManualConvivenciaController::class, 'store'])->name('manual-convivencia.store');
+    });
 });

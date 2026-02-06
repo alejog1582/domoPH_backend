@@ -87,4 +87,56 @@ class AdminHelper
 
         return false;
     }
+
+    /**
+     * Verificar si el usuario tiene un permiso específico
+     * Considera la propiedad activa si está disponible
+     *
+     * @param string $permissionSlug
+     * @return bool
+     */
+    public static function hasPermission($permissionSlug)
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        $user = Auth::user();
+        $propiedad = self::getPropiedadActiva();
+
+        // Si hay propiedad activa, verificar permisos del rol específico de esa propiedad
+        if ($propiedad) {
+            return $user->roles()
+                ->where('role_user.propiedad_id', $propiedad->id)
+                ->whereHas('permissions', function ($query) use ($permissionSlug) {
+                    $query->where('slug', $permissionSlug);
+                })
+                ->exists();
+        }
+
+        // Si no hay propiedad activa, verificar todos los roles
+        return $user->hasPermission($permissionSlug);
+    }
+
+    /**
+     * Verificar si el usuario tiene al menos uno de los permisos especificados
+     * Considera la propiedad activa si está disponible
+     *
+     * @param array $permissionSlugs
+     * @return bool
+     */
+    public static function hasAnyPermission(array $permissionSlugs)
+    {
+        if (!Auth::check()) {
+            return false;
+        }
+
+        foreach ($permissionSlugs as $permissionSlug) {
+            if (self::hasPermission($permissionSlug)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

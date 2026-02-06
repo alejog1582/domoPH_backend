@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Helpers\AdminHelper;
 
 class PermissionMiddleware
 {
@@ -16,10 +17,13 @@ class PermissionMiddleware
     public function handle(Request $request, Closure $next, ...$permissions): Response
     {
         if (!auth()->check()) {
-            return response()->json([
-                'message' => 'No autenticado',
-                'error' => 'Unauthenticated'
-            ], 401);
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'No autenticado',
+                    'error' => 'Unauthenticated'
+                ], 401);
+            }
+            return redirect()->route('admin.login');
         }
 
         $user = auth()->user();
@@ -30,18 +34,28 @@ class PermissionMiddleware
         }
 
         // Verificar si el usuario tiene alguno de los permisos requeridos
+        // Usar AdminHelper para considerar la propiedad activa
         $hasPermission = false;
         foreach ($permissions as $permission) {
-            if ($user->hasPermission($permission)) {
+            if (AdminHelper::hasPermission($permission)) {
                 $hasPermission = true;
                 break;
             }
         }
 
         if (!$hasPermission) {
-            return response()->json([
-                'message' => 'No autorizado. Se requiere uno de los siguientes permisos: ' . implode(', ', $permissions),
-                'error' => 'Forbidden'
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'No autorizado. Se requiere uno de los siguientes permisos: ' . implode(', ', $permissions),
+                    'error' => 'Forbidden'
+                ], 403);
+            }
+
+            // Para peticiones web, mostrar vista amigable
+            $routeName = $request->route() ? $request->route()->getName() : null;
+            return response()->view('admin.errors.no-permission', [
+                'permissions' => $permissions,
+                'route' => $routeName ?? $request->path()
             ], 403);
         }
 

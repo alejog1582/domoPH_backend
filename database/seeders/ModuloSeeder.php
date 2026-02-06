@@ -95,13 +95,13 @@ class ModuloSeeder extends Seeder
                 'icono' => 'calendar',
                 'ruta' => '/reservas',
                 'activo' => true,
-                'requiere_configuracion' => false,
+                'requiere_configuracion' => true,
                 'orden' => 11,
                 'configuracion_default' => [
                     'requerir_aprobacion_reservas' => false,
                     'limitar_reservas_por_mes' => 4,
                 ],
-                'es_admin' => true,
+                'es_admin' => false,
             ],
             [
                 'nombre' => 'Comunicados',

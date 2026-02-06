@@ -134,6 +134,7 @@ class PropiedadController extends Controller
                 'documento_identidad' => $request->admin_documento_identidad,
                 'tipo_documento' => $request->admin_tipo_documento,
                 'activo' => true,
+                'propiedad_id' => (string) $propiedad->id, // Asignar propiedad_id al crear administrador
             ]);
 
             // Crear registro en administradores_propiedad

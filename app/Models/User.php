@@ -26,6 +26,7 @@ class User extends Authenticatable
         'tipo_documento',
         'activo',
         'avatar',
+        'propiedad_id',
     ];
 
     /**
@@ -113,5 +114,51 @@ class User extends Authenticatable
             $query->where('users.id', $this->id)
                   ->where('roles.slug', $roleSlug);
         })->get();
+    }
+
+    /**
+     * Agregar un propiedad_id al campo propiedad_id del usuario
+     * Si ya existe, lo agrega separado por coma
+     *
+     * @param int $propiedadId
+     * @return void
+     */
+    public function agregarPropiedadId(int $propiedadId): void
+    {
+        $propiedadesIds = $this->getPropiedadesIds();
+        
+        // Si el ID ya existe, no hacer nada
+        if (in_array($propiedadId, $propiedadesIds)) {
+            return;
+        }
+        
+        // Agregar el nuevo ID
+        $propiedadesIds[] = $propiedadId;
+        
+        // Actualizar el campo con los IDs separados por comas
+        $this->propiedad_id = implode(',', $propiedadesIds);
+        $this->save();
+    }
+
+    /**
+     * Obtener los IDs de propiedades como array
+     *
+     * @return array
+     */
+    public function getPropiedadesIds(): array
+    {
+        if (empty($this->propiedad_id)) {
+            return [];
+        }
+        
+        // Dividir por comas y limpiar espacios
+        $ids = array_map('trim', explode(',', $this->propiedad_id));
+        
+        // Filtrar valores vacíos y convertir a enteros, luego filtrar ceros
+        $ids = array_filter(array_map('intval', $ids), function($id) {
+            return $id > 0;
+        });
+        
+        return array_values($ids); // Reindexar el array
     }
 }

@@ -40,6 +40,10 @@ class DemoSeeder extends Seeder
 
         // 2. Crear propiedad demo
         $propiedad = $this->crearPropiedadDemo($adminDemo);
+        
+        // 2.1. Asignar propiedad_id al administrador demo
+        $adminDemo->propiedad_id = (string) $propiedad->id;
+        $adminDemo->save();
 
         // 2.1. Asociar módulos del plan a la propiedad
         $this->asociarModulosAPropiedad($propiedad, $adminDemo);
@@ -373,6 +377,9 @@ class DemoSeeder extends Seeder
             $email = strtolower($nombre . '.' . $apellido . '@demo.com');
             $telefono = '3' . rand(100000000, 999999999);
 
+            // Obtener propiedad_id de la unidad
+            $propiedadId = $unidad->propiedad_id;
+            
             // Crear usuario para el residente
             $user = User::updateOrCreate(
                 ['email' => $email],
@@ -386,6 +393,14 @@ class DemoSeeder extends Seeder
                     'activo' => true,
                 ]
             );
+            
+            // Asignar propiedad_id al usuario (agregar si ya existe)
+            if (empty($user->propiedad_id)) {
+                $user->propiedad_id = (string) $propiedadId;
+                $user->save();
+            } else {
+                $user->agregarPropiedadId($propiedadId);
+            }
 
             // Crear residente propietario
             $residente = Residente::updateOrCreate(
@@ -412,6 +427,9 @@ class DemoSeeder extends Seeder
             $apellido = $apellidos[rand(0, count($apellidos) - 1)];
             $email = strtolower($nombre . '.' . $apellido . '.' . rand(1, 100) . '@demo.com');
 
+            // Obtener propiedad_id de la unidad
+            $propiedadId = $unidad->propiedad_id;
+            
             $user = User::updateOrCreate(
                 ['email' => $email],
                 [
@@ -424,6 +442,14 @@ class DemoSeeder extends Seeder
                     'activo' => true,
                 ]
             );
+            
+            // Asignar propiedad_id al usuario (agregar si ya existe)
+            if (empty($user->propiedad_id)) {
+                $user->propiedad_id = (string) $propiedadId;
+                $user->save();
+            } else {
+                $user->agregarPropiedadId($propiedadId);
+            }
 
             $tipoRelacion = $tiposRelacion[rand(1, 3)]; // No propietario
 

@@ -266,7 +266,11 @@ class ResidenteController extends Controller
                         'documento_identidad' => $documento,
                         'telefono' => $telefono,
                         'activo' => true,
+                        'propiedad_id' => (string) $propiedad->id, // Asignar propiedad_id al crear
                     ]);
+                } else {
+                    // Si el usuario ya existe, agregar la propiedad_id si no está presente
+                    $user->agregarPropiedadId($propiedad->id);
                 }
 
                 // Asignar rol de residente si no lo tiene para esta propiedad
@@ -407,10 +411,15 @@ class ResidenteController extends Controller
                 ->with('error', 'No hay propiedad asignada.');
         }
 
+        // Verificar si el usuario ya existe
+        $usuarioExistente = User::where('email', $request->email)
+            ->orWhere('documento_identidad', $request->documento_identidad)
+            ->first();
+
         $request->validate([
             'nombre' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users,email',
-            'documento_identidad' => 'required|string|max:255',
+            'email' => 'required|email|max:255' . ($usuarioExistente ? '' : '|unique:users,email'),
+            'documento_identidad' => 'required|string|max:255' . ($usuarioExistente ? '' : '|unique:users,documento_identidad'),
             'telefono' => 'required|string|max:255',
             'unidad_id' => 'required|exists:unidades,id',
             'tipo_relacion' => 'required|in:propietario,arrendatario,residente_temporal,otro',
@@ -425,6 +434,7 @@ class ResidenteController extends Controller
             'email.email' => 'El email debe ser una dirección de correo válida.',
             'email.unique' => 'Este email ya está registrado por otro usuario.',
             'documento_identidad.required' => 'El campo documento de identidad es obligatorio.',
+            'documento_identidad.unique' => 'Este documento ya está registrado por otro usuario.',
             'telefono.required' => 'El campo teléfono es obligatorio.',
             'unidad_id.required' => 'El campo unidad es obligatorio.',
             'unidad_id.exists' => 'La unidad seleccionada no es válida.',
@@ -445,15 +455,26 @@ class ResidenteController extends Controller
         try {
             DB::beginTransaction();
 
-            // Crear usuario
-            $user = User::create([
-                'nombre' => $request->nombre,
-                'email' => $request->email,
-                'password' => Hash::make($request->telefono), // Password temporal
-                'documento_identidad' => $request->documento_identidad,
-                'telefono' => $request->telefono,
-                'activo' => true,
-            ]);
+            // Verificar si el usuario ya existe
+            $user = User::where('email', $request->email)
+                ->orWhere('documento_identidad', $request->documento_identidad)
+                ->first();
+
+            // Si no existe, crear usuario
+            if (!$user) {
+                $user = User::create([
+                    'nombre' => $request->nombre,
+                    'email' => $request->email,
+                    'password' => Hash::make($request->telefono), // Password temporal
+                    'documento_identidad' => $request->documento_identidad,
+                    'telefono' => $request->telefono,
+                    'activo' => true,
+                    'propiedad_id' => (string) $propiedad->id, // Asignar propiedad_id al crear
+                ]);
+            } else {
+                // Si el usuario ya existe, agregar la propiedad_id si no está presente
+                $user->agregarPropiedadId($propiedad->id);
+            }
 
             // Asignar rol de residente
             $rolResidente = Role::where('slug', 'residente')->first();

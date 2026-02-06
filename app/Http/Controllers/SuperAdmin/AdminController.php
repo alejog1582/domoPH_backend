@@ -128,6 +128,7 @@ class AdminController extends Controller
                 'documento_identidad' => $request->documento_identidad,
                 'tipo_documento' => $request->tipo_documento,
                 'activo' => true,
+                'propiedad_id' => (string) $request->propiedad_id, // Asignar propiedad_id al crear administrador
             ]);
 
             // Asignar rol de administrador

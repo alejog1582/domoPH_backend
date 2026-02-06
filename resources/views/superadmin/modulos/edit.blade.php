@@ -118,6 +118,22 @@
                 @enderror
             </div>
 
+            <div>
+                <label for="es_admin" class="block text-sm font-medium text-gray-700 mb-2">
+                    Usado por Admin <span class="text-red-500">*</span>
+                </label>
+                <select name="es_admin" id="es_admin" required
+                    class="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 @error('es_admin') border-red-500 @enderror">
+                    <option value="">Seleccione una opción</option>
+                    <option value="1" {{ old('es_admin', $modulo->es_admin) == '1' || old('es_admin', $modulo->es_admin) == 1 ? 'selected' : '' }}>Sí</option>
+                    <option value="0" {{ old('es_admin', $modulo->es_admin) == '0' || old('es_admin', $modulo->es_admin) == 0 ? 'selected' : '' }}>No</option>
+                </select>
+                <p class="mt-1 text-xs text-gray-500">Indica si el módulo es exclusivo para administradores</p>
+                @error('es_admin')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
             <div class="md:col-span-2">
                 <label for="configuracion_default" class="block text-sm font-medium text-gray-700 mb-2">
                     Configuración por Defecto (JSON)

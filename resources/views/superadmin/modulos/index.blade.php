@@ -43,7 +43,7 @@
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Icono</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ruta</th>
                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Configuración</th>
+                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usado por Admin</th>
                 <th scope="col" class="relative px-6 py-3"><span class="sr-only">Acciones</span></th>
             </tr>
         </thead>
@@ -80,8 +80,8 @@
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap">
                         <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            {{ $modulo->requiere_configuracion ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800' }}">
-                            {{ $modulo->requiere_configuracion ? 'Requiere' : 'No requiere' }}
+                            {{ $modulo->es_admin ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800' }}">
+                            {{ $modulo->es_admin ? 'Usado' : 'No usado' }}
                         </span>
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">

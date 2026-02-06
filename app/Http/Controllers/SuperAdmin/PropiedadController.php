@@ -12,6 +12,7 @@ use App\Models\Plan;
 use App\Models\User;
 use App\Models\AdministradorPropiedad;
 use App\Models\LogAuditoria;
+use App\Models\Permission;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -89,7 +90,7 @@ class PropiedadController extends Controller
     public function create()
     {
         $planes = Plan::activos()->ordenados()->get();
-        $modulos = Modulo::activos()->ordenados()->get();
+        $modulos = Modulo::activos()->where('es_admin', true)->ordenados()->get();
         
         return view('superadmin.propiedades.create', compact('planes', 'modulos'));
     }
@@ -160,6 +161,16 @@ class PropiedadController extends Controller
                     ];
                 }
                 $propiedad->modulos()->attach($modulosData);
+                
+                // Obtener los slugs de los módulos asignados
+                $modulosAsignados = Modulo::whereIn('id', $request->modulos)->pluck('slug')->toArray();
+                
+                // Obtener los permisos cuyo campo modulo coincida con los slugs de los módulos asignados
+                $permisos = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
+                
+                // Asignar permisos al rol de administrador (el usuario ya tiene el rol asignado)
+                // Los permisos se asignan al rol, pero el usuario los hereda a través del rol
+                $adminRole->permissions()->syncWithoutDetaching($permisos);
             }
 
             // Registrar auditoría
@@ -215,7 +226,7 @@ class PropiedadController extends Controller
     {
         $propiedad->load(['plan', 'modulos', 'administradores.user']);
         $planes = Plan::activos()->ordenados()->get();
-        $modulos = Modulo::activos()->ordenados()->get();
+        $modulos = Modulo::activos()->where('es_admin', true)->ordenados()->get();
         $administradorPrincipal = $propiedad->administradores->where('es_principal', true)->first();
         
         return view('superadmin.propiedades.edit', compact('propiedad', 'planes', 'modulos', 'administradorPrincipal'));
@@ -278,6 +289,25 @@ class PropiedadController extends Controller
                     ];
                 }
                 $propiedad->modulos()->sync($modulosData);
+                
+                // Obtener los slugs de los módulos asignados
+                $modulosAsignados = Modulo::whereIn('id', $request->modulos)->pluck('slug')->toArray();
+                
+                // Obtener los permisos cuyo campo modulo coincida con los slugs de los módulos asignados
+                $permisos = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
+                
+                // Obtener el administrador principal de la propiedad
+                $administradorPrincipal = $propiedad->administradores()->where('es_principal', true)->first();
+                
+                if ($administradorPrincipal && $administradorPrincipal->user) {
+                    // Obtener el rol de administrador
+                    $adminRole = Role::where('slug', 'administrador')->first();
+                    
+                    if ($adminRole) {
+                        // Asignar permisos al rol de administrador
+                        $adminRole->permissions()->syncWithoutDetaching($permisos);
+                    }
+                }
             }
 
             // Registrar auditoría

@@ -29,6 +29,7 @@ class StoreModuloRequest extends FormRequest
             'ruta' => 'nullable|string|max:255',
             'activo' => 'nullable|boolean',
             'requiere_configuracion' => 'nullable|boolean',
+            'es_admin' => 'required|boolean',
             'orden' => 'nullable|integer|min:0',
             'configuracion_default' => 'nullable|string|json',
         ];
@@ -52,6 +53,13 @@ class StoreModuloRequest extends FormRequest
                     'configuracion_default' => [],
                 ]);
             }
+        }
+
+        // Convertir es_admin a boolean
+        if ($this->has('es_admin')) {
+            $this->merge([
+                'es_admin' => filter_var($this->es_admin, FILTER_VALIDATE_BOOLEAN),
+            ]);
         }
     }
 }

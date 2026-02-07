@@ -431,7 +431,7 @@ class ReservaController extends Controller
             try {
                 $archivo = $request->file('soporte_pago');
                 $result = Cloudinary::uploadApi()->upload($archivo->getRealPath(), [
-                    'folder' => 'reservas/soportes_pago',
+                    'folder' => 'domoph/reservas/soportes_pago',
                     'resource_type' => 'auto',
                 ]);
                 

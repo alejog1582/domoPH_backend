@@ -266,7 +266,7 @@ class PqrsController extends Controller
             if ($request->hasFile('soporte')) {
                 $uploadedFile = $request->file('soporte');
                 $result = Cloudinary::uploadApi()->upload($uploadedFile->getRealPath(), [
-                    'folder' => 'pqrs',
+                    'folder' => 'domoph/pqrs',
                     'resource_type' => 'image',
                 ]);
                 $soporteUrl = $result['secure_url'];
@@ -404,7 +404,7 @@ class PqrsController extends Controller
             if ($request->hasFile('soporte')) {
                 $uploadedFile = $request->file('soporte');
                 $result = Cloudinary::uploadApi()->upload($uploadedFile->getRealPath(), [
-                    'folder' => 'pqrs',
+                    'folder' => 'domoph/pqrs',
                     'resource_type' => 'image',
                 ]);
                 $soporteUrl = $result['secure_url'];

@@ -201,7 +201,7 @@ class SorteoParqueaderoController extends Controller
                 $result = Cloudinary::uploadApi()->upload(
                     $request->file('tarjeta_propiedad')->getRealPath(),
                     [
-                        'folder' => 'sorteos_parqueadero/tarjetas_propiedad',
+                        'folder' => 'domoph/sorteos_parqueadero/tarjetas_propiedad',
                         'resource_type' => 'auto',
                     ]
                 );
@@ -213,7 +213,7 @@ class SorteoParqueaderoController extends Controller
                 $result = Cloudinary::uploadApi()->upload(
                     $request->file('soat')->getRealPath(),
                     [
-                        'folder' => 'sorteos_parqueadero/soat',
+                        'folder' => 'domoph/sorteos_parqueadero/soat',
                         'resource_type' => 'auto',
                     ]
                 );
@@ -225,7 +225,7 @@ class SorteoParqueaderoController extends Controller
                 $result = Cloudinary::uploadApi()->upload(
                     $request->file('tecnomecanica')->getRealPath(),
                     [
-                        'folder' => 'sorteos_parqueadero/tecnomecanica',
+                        'folder' => 'domoph/sorteos_parqueadero/tecnomecanica',
                         'resource_type' => 'auto',
                     ]
                 );

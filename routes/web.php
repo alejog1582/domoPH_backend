@@ -32,6 +32,8 @@ use App\Http\Controllers\Admin\ManualConvivenciaController;
 use App\Http\Controllers\Admin\DepositoController;
 use App\Http\Controllers\Admin\UsuarioAdminController;
 use App\Http\Controllers\Admin\EncuestaVotacionController;
+use App\Http\Controllers\Admin\LicitacionController;
+use App\Http\Controllers\Publico\LicitacionPublicaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -444,4 +446,30 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:encuestas.delete,votaciones.delete')->group(function () {
         Route::delete('encuestas-votaciones/{id}', [EncuestaVotacionController::class, 'destroy'])->name('encuestas-votaciones.destroy');
     });
+
+    // Gestión de Cartelera de Licitaciones
+    Route::middleware('permission:licitaciones.create')->group(function () {
+        Route::get('licitaciones/create', [LicitacionController::class, 'create'])->name('licitaciones.create');
+        Route::post('licitaciones', [LicitacionController::class, 'store'])->name('licitaciones.store');
+    });
+    Route::middleware('permission:licitaciones.edit')->group(function () {
+        Route::get('licitaciones/{id}/edit', [LicitacionController::class, 'edit'])->name('licitaciones.edit');
+        Route::put('licitaciones/{id}', [LicitacionController::class, 'update'])->name('licitaciones.update');
+    });
+    Route::middleware('permission:licitaciones.view')->group(function () {
+        Route::get('licitaciones', [LicitacionController::class, 'index'])->name('licitaciones.index');
+        Route::get('licitaciones/{id}', [LicitacionController::class, 'show'])->name('licitaciones.show');
+        Route::get('ofertas/{id}', [LicitacionController::class, 'getOferta'])->name('ofertas.show');
+    });
+    Route::middleware('permission:licitaciones.delete')->group(function () {
+        Route::delete('licitaciones/{id}', [LicitacionController::class, 'destroy'])->name('licitaciones.destroy');
+    });
+});
+
+// Rutas públicas para proveedores (sin autenticación)
+Route::prefix('licitaciones-publicas')->name('licitaciones-publicas.')->group(function () {
+    Route::get('propiedad/{propiedad_id}', [LicitacionPublicaController::class, 'index'])->name('index');
+    Route::get('licitacion/{id}', [LicitacionPublicaController::class, 'show'])->name('show');
+    Route::get('licitacion/{id}/ofertar', [LicitacionPublicaController::class, 'createOferta'])->name('create-oferta');
+    Route::post('licitacion/{id}/ofertar', [LicitacionPublicaController::class, 'storeOferta'])->name('store-oferta');
 });

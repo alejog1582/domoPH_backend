@@ -419,6 +419,18 @@ class ModuloSeeder extends Seeder
                 'configuracion_default' => [],
                 'es_admin' => true,
             ],
+            [
+                'nombre' => 'Cartelera de Licitaciones',
+                'slug' => 'cartelera-licitaciones',
+                'descripcion' => 'Gestión de licitaciones públicas y ofertas de proveedores.',
+                'icono' => 'file-text',
+                'ruta' => '/admin/cartelera-licitaciones',
+                'activo' => true,
+                'requiere_configuracion' => false,
+                'orden' => 34,
+                'configuracion_default' => [],
+                'es_admin' => true,
+            ],
         ];
 
         foreach ($modulos as $modulo) {

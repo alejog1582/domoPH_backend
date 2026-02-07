@@ -170,6 +170,18 @@ class PermissionSeeder extends Seeder
             ['nombre' => 'Editar votaciones', 'slug' => 'votaciones.edit', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Eliminar votaciones', 'slug' => 'votaciones.delete', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Ver resultados de votaciones', 'slug' => 'votaciones.resultados', 'modulo' => 'encuestas-votaciones'],
+            
+            // Cartelera de Licitaciones
+            ['nombre' => 'Ver licitaciones', 'slug' => 'licitaciones.view', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Crear licitaciones', 'slug' => 'licitaciones.create', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Editar licitaciones', 'slug' => 'licitaciones.edit', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Eliminar licitaciones', 'slug' => 'licitaciones.delete', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Publicar licitaciones', 'slug' => 'licitaciones.publicar', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Cerrar licitaciones', 'slug' => 'licitaciones.cerrar', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Ver ofertas', 'slug' => 'ofertas.view', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Revisar ofertas', 'slug' => 'ofertas.revisar', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Adjudicar ofertas', 'slug' => 'ofertas.adjudicar', 'modulo' => 'cartelera-licitaciones'],
+            ['nombre' => 'Eliminar ofertas', 'slug' => 'ofertas.delete', 'modulo' => 'cartelera-licitaciones'],
         ];
 
         // Permisos del Residente (Frontend)

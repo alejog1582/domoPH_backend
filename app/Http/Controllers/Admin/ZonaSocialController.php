@@ -159,7 +159,7 @@ class ZonaSocialController extends Controller
                     if ($imagen && $imagen->isValid()) {
                         try {
                             $result = Cloudinary::uploadApi()->upload($imagen->getRealPath(), [
-                                'folder' => 'damoph/zonas-sociales',
+                                'folder' => 'domoph/zonas-sociales',
                                 'public_id' => 'zona_social_' . $zonaSocial->id . '_' . time() . '_' . $orden,
                             ]);
                             
@@ -381,7 +381,7 @@ class ZonaSocialController extends Controller
                     if ($imagen && $imagen->isValid()) {
                         try {
                             $result = Cloudinary::uploadApi()->upload($imagen->getRealPath(), [
-                                'folder' => 'damoph/zonas-sociales',
+                                'folder' => 'domoph/zonas-sociales',
                                 'public_id' => 'zona_social_' . $zonaSocial->id . '_' . time() . '_' . $orden,
                             ]);
                             

@@ -72,7 +72,7 @@ class ManualConvivenciaController extends Controller
             if ($request->hasFile('manual_file')) {
                 $archivo = $request->file('manual_file');
                 $result = Cloudinary::uploadApi()->upload($archivo->getRealPath(), [
-                    'folder' => 'manuales_convivencia',
+                    'folder' => 'domoph/manuales_convivencia',
                     'resource_type' => 'auto',
                 ]);
                 $manual->manual_url = $result['secure_url'];

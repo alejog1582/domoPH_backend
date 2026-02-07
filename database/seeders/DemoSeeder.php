@@ -21,6 +21,7 @@ use App\Models\AdministradorPropiedad;
 use App\Models\Plan;
 use App\Models\Modulo;
 use App\Models\Permission;
+use App\Models\Licitacion;
 use Carbon\Carbon;
 
 class DemoSeeder extends Seeder
@@ -62,6 +63,9 @@ class DemoSeeder extends Seeder
 
         // 7. Crear 4 zonas comunes con horarios
         $this->crearZonasComunes($propiedad);
+
+        // 8. Crear 3 licitaciones demo
+        $this->crearLicitaciones($propiedad, $adminDemo);
 
         $this->command->info('✅ Datos DEMO creados exitosamente!');
         $this->command->info('📧 Email: demo@domoph.com');
@@ -1010,5 +1014,64 @@ class DemoSeeder extends Seeder
                 'descripcion' => $regla['descripcion'],
             ]);
         }
+    }
+
+    /**
+     * Crear 3 licitaciones demo
+     */
+    private function crearLicitaciones(Propiedad $propiedad, User $adminDemo): void
+    {
+        $this->command->info('📋 Creando licitaciones demo...');
+
+        $licitaciones = [
+            [
+                'titulo' => 'Licitación para Mantenimiento de Ascensores',
+                'descripcion' => 'Se requiere contratar servicios de mantenimiento preventivo y correctivo para los 4 ascensores del edificio. El servicio debe incluir revisión mensual, reparaciones menores y disponibilidad 24/7 para emergencias.',
+                'categoria' => 'mantenimiento',
+                'presupuesto_estimado' => 15000000.00,
+                'fecha_publicacion' => Carbon::now()->subDays(10),
+                'fecha_cierre' => Carbon::now()->addDays(20),
+                'estado' => 'publicada',
+                'visible_publicamente' => true,
+            ],
+            [
+                'titulo' => 'Licitación para Servicio de Seguridad',
+                'descripcion' => 'Se requiere contratar empresa de seguridad para vigilancia del conjunto residencial. El servicio debe incluir guardas de seguridad 24/7, sistema de control de acceso, rondas periódicas y monitoreo de cámaras.',
+                'categoria' => 'seguridad',
+                'presupuesto_estimado' => 25000000.00,
+                'fecha_publicacion' => Carbon::now()->subDays(5),
+                'fecha_cierre' => Carbon::now()->addDays(15),
+                'estado' => 'publicada',
+                'visible_publicamente' => true,
+            ],
+            [
+                'titulo' => 'Licitación para Obra Civil - Reparación de Fachada',
+                'descripcion' => 'Se requiere contratar empresa especializada para reparación y pintura de la fachada principal del edificio. El trabajo incluye reparación de grietas, impermeabilización y pintura con materiales de alta calidad.',
+                'categoria' => 'obra_civil',
+                'presupuesto_estimado' => 45000000.00,
+                'fecha_publicacion' => Carbon::now()->subDays(2),
+                'fecha_cierre' => Carbon::now()->addDays(30),
+                'estado' => 'publicada',
+                'visible_publicamente' => true,
+            ],
+        ];
+
+        foreach ($licitaciones as $licitacionData) {
+            $licitacion = Licitacion::updateOrCreate(
+                [
+                    'copropiedad_id' => $propiedad->id,
+                    'titulo' => $licitacionData['titulo'],
+                ],
+                array_merge($licitacionData, [
+                    'copropiedad_id' => $propiedad->id,
+                    'creado_por' => $adminDemo->id,
+                    'activo' => true,
+                ])
+            );
+
+            $this->command->info("   ✓ Licitación creada: {$licitacion->titulo}");
+        }
+
+        $this->command->info('   ✓ 3 licitaciones creadas');
     }
 }

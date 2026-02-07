@@ -183,7 +183,7 @@ class LlamadoAtencionController extends Controller
             if ($request->hasFile('soporte')) {
                 $archivo = $request->file('soporte');
                 $result = Cloudinary::uploadApi()->upload($archivo->getRealPath(), [
-                    'folder' => 'llamados_atencion',
+                    'folder' => 'domoph/llamados_atencion',
                     'resource_type' => 'image',
                 ]);
                 $soporteUrl = $result['secure_url'];
@@ -305,7 +305,7 @@ class LlamadoAtencionController extends Controller
             if ($request->hasFile('soporte')) {
                 $archivo = $request->file('soporte');
                 $result = Cloudinary::uploadApi()->upload($archivo->getRealPath(), [
-                    'folder' => 'llamados_atencion',
+                    'folder' => 'domoph/llamados_atencion',
                     'resource_type' => 'image',
                 ]);
                 $soporteUrl = $result['secure_url'];

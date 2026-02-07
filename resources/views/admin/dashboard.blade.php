@@ -5,7 +5,7 @@
 @section('content')
 @php
     $propiedad = \App\Helpers\AdminHelper::getPropiedadActiva();
-    $modulos = \App\Helpers\AdminHelper::getModulosActivos();
+    $modulos = \App\Helpers\AdminHelper::getModulosActivosConPermisos();
 @endphp
 
 <div class="mb-6">

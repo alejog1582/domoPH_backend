@@ -14,9 +14,13 @@ class AuthController extends Controller
      */
     public function showLoginForm()
     {
-        // Si ya está autenticado y es administrador, redirigir al dashboard
-        if (Auth::check() && Auth::user()->hasRole('administrador')) {
-            return redirect()->route('admin.dashboard');
+        // Si ya está autenticado y tiene acceso al panel admin, redirigir al dashboard
+        if (Auth::check()) {
+            $user = Auth::user();
+            // Verificar si tiene acceso: administrador o usuario con propiedad_id y roles
+            if ($user->hasRole('administrador') || ($user->propiedad_id && $user->roles()->count() > 0)) {
+                return redirect()->route('admin.dashboard');
+            }
         }
 
         return view('admin.auth.login');
@@ -39,14 +43,6 @@ class AuthController extends Controller
         if (Auth::attempt($credentials, $remember)) {
             $user = Auth::user();
 
-            // Verificar que el usuario tenga rol de administrador
-            if (!$user->hasRole('administrador')) {
-                Auth::logout();
-                return back()->withErrors([
-                    'email' => 'No tienes permisos para acceder al panel de administrador.',
-                ])->withInput($request->only('email'));
-            }
-
             // Verificar que el usuario esté activo
             if (!$user->activo) {
                 Auth::logout();
@@ -55,17 +51,46 @@ class AuthController extends Controller
                 ])->withInput($request->only('email'));
             }
 
-            // Obtener la primera propiedad del administrador (o la principal)
-            $propiedad = $user->administracionesPropiedad()
-                ->where('es_principal', true)
-                ->first();
+            // Verificar que el usuario tenga acceso al panel admin
+            // Puede ser: administrador, o usuario con propiedad_id y roles asignados
+            $tieneAcceso = false;
+            $propiedadId = null;
 
-            // Si no tiene principal, tomar la primera
-            if (!$propiedad) {
-                $propiedad = $user->administracionesPropiedad()->first();
+            // Verificar si es administrador tradicional
+            if ($user->hasRole('administrador')) {
+                $tieneAcceso = true;
+                // Obtener la primera propiedad del administrador (o la principal)
+                $adminProp = $user->administracionesPropiedad()
+                    ->where('es_principal', true)
+                    ->first();
+
+                // Si no tiene principal, tomar la primera
+                if (!$adminProp) {
+                    $adminProp = $user->administracionesPropiedad()->first();
+                }
+
+                if ($adminProp) {
+                    $propiedadId = $adminProp->propiedad_id;
+                }
+            } 
+            // Verificar si es usuario creado por admin (tiene propiedad_id y roles)
+            elseif ($user->propiedad_id && $user->roles()->count() > 0) {
+                $tieneAcceso = true;
+                // Obtener la primera propiedad_id del usuario
+                $propiedadesIds = $user->getPropiedadesIds();
+                if (!empty($propiedadesIds)) {
+                    $propiedadId = $propiedadesIds[0];
+                }
             }
 
-            if (!$propiedad) {
+            if (!$tieneAcceso) {
+                Auth::logout();
+                return back()->withErrors([
+                    'email' => 'No tienes permisos para acceder al panel de administrador.',
+                ])->withInput($request->only('email'));
+            }
+
+            if (!$propiedadId) {
                 Auth::logout();
                 return back()->withErrors([
                     'email' => 'No tienes propiedades asignadas.',
@@ -73,14 +98,14 @@ class AuthController extends Controller
             }
 
             // Guardar la propiedad activa en la sesión
-            $request->session()->put('propiedad_activa_id', $propiedad->propiedad_id);
+            $request->session()->put('propiedad_activa_id', $propiedadId);
 
             $request->session()->regenerate();
 
             // Registrar auditoría
             LogAuditoria::create([
                 'user_id' => $user->id,
-                'propiedad_id' => $propiedad->propiedad_id,
+                'propiedad_id' => $propiedadId,
                 'accion' => 'login',
                 'modelo' => 'User',
                 'descripcion' => "Login exitoso: {$user->email}",

@@ -142,7 +142,8 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
 */
 
 // Rutas protegidas del administrador
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:administrador'])->group(function () {
+// Permite acceso a usuarios con rol administrador o usuarios con propiedad_id y roles asignados
+Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware\CheckAdminAccess::class])->group(function () {
     
     // Dashboard
     Route::get('dashboard', function () {

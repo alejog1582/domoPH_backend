@@ -14,7 +14,7 @@ class AdminHelper
      */
     public static function getPropiedadActiva()
     {
-        if (!Auth::check() || !Auth::user()->hasRole('administrador')) {
+        if (!Auth::check()) {
             return null;
         }
 
@@ -23,23 +23,52 @@ class AdminHelper
 
         if ($propiedadId) {
             $propiedad = \App\Models\Propiedad::find($propiedadId);
-            if ($propiedad && $user->administracionesPropiedad()->where('propiedad_id', $propiedadId)->exists()) {
-                return $propiedad;
+            
+            if ($propiedad) {
+                // Verificar acceso según el tipo de usuario
+                // Si es administrador tradicional, verificar administracionesPropiedad
+                if ($user->hasRole('administrador')) {
+                    if ($user->administracionesPropiedad()->where('propiedad_id', $propiedadId)->exists()) {
+                        return $propiedad;
+                    }
+                } 
+                // Si es usuario creado por admin, verificar propiedad_id
+                elseif ($user->propiedad_id) {
+                    $propiedadesIds = $user->getPropiedadesIds();
+                    if (in_array($propiedadId, $propiedadesIds)) {
+                        return $propiedad;
+                    }
+                }
             }
         }
 
-        // Si no hay propiedad en sesión, obtener la principal o la primera
-        $adminProp = $user->administracionesPropiedad()
-            ->where('es_principal', true)
-            ->first();
+        // Si no hay propiedad en sesión, obtener la primera disponible
+        // Para administradores tradicionales
+        if ($user->hasRole('administrador')) {
+            $adminProp = $user->administracionesPropiedad()
+                ->where('es_principal', true)
+                ->first();
 
-        if (!$adminProp) {
-            $adminProp = $user->administracionesPropiedad()->first();
+            if (!$adminProp) {
+                $adminProp = $user->administracionesPropiedad()->first();
+            }
+
+            if ($adminProp) {
+                Session::put('propiedad_activa_id', $adminProp->propiedad_id);
+                return $adminProp->propiedad;
+            }
         }
-
-        if ($adminProp) {
-            Session::put('propiedad_activa_id', $adminProp->propiedad_id);
-            return $adminProp->propiedad;
+        // Para usuarios creados por admin
+        elseif ($user->propiedad_id) {
+            $propiedadesIds = $user->getPropiedadesIds();
+            if (!empty($propiedadesIds)) {
+                $propiedadId = $propiedadesIds[0];
+                $propiedad = \App\Models\Propiedad::find($propiedadId);
+                if ($propiedad) {
+                    Session::put('propiedad_activa_id', $propiedadId);
+                    return $propiedad;
+                }
+            }
         }
 
         return null;
@@ -63,6 +92,61 @@ class AdminHelper
             ->where('modulos.activo', true)
             ->ordenados()
             ->get();
+    }
+
+    /**
+     * Obtener los módulos activos de la propiedad activa que el usuario tiene permisos para ver
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public static function getModulosActivosConPermisos()
+    {
+        if (!Auth::check()) {
+            return collect([]);
+        }
+
+        $propiedad = self::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return collect([]);
+        }
+
+        $user = Auth::user();
+
+        // Obtener todos los módulos activos de la propiedad
+        $modulosPropiedad = $propiedad->modulos()
+            ->wherePivot('activo', true)
+            ->where('modulos.activo', true)
+            ->ordenados()
+            ->get();
+
+        // Si es superadministrador, devolver todos los módulos
+        if ($user->hasRole('superadministrador')) {
+            return $modulosPropiedad;
+        }
+
+        // Obtener los slugs de los módulos para los cuales el usuario tiene permisos
+        $modulosConPermisos = collect([]);
+
+        foreach ($modulosPropiedad as $modulo) {
+            // Verificar si el usuario tiene algún permiso relacionado con este módulo
+            // Buscar permisos cuyo campo 'modulo' coincida con el slug del módulo
+            $tienePermiso = $user->roles()
+                ->where(function($query) use ($propiedad) {
+                    $query->where('role_user.propiedad_id', $propiedad->id)
+                          ->orWhereNull('role_user.propiedad_id');
+                })
+                ->whereHas('permissions', function ($query) use ($modulo) {
+                    $query->where('modulo', $modulo->slug);
+                })
+                ->exists();
+
+            if ($tienePermiso) {
+                $modulosConPermisos->push($modulo);
+            }
+        }
+
+        return $modulosConPermisos;
     }
 
     /**
@@ -106,8 +190,12 @@ class AdminHelper
 
         // Si hay propiedad activa, verificar permisos del rol específico de esa propiedad
         if ($propiedad) {
+            // Verificar si el usuario tiene el permiso en algún rol asociado a esta propiedad
             return $user->roles()
-                ->where('role_user.propiedad_id', $propiedad->id)
+                ->where(function($query) use ($propiedad) {
+                    $query->where('role_user.propiedad_id', $propiedad->id)
+                          ->orWhereNull('role_user.propiedad_id'); // También roles sin propiedad específica
+                })
                 ->whereHas('permissions', function ($query) use ($permissionSlug) {
                     $query->where('slug', $permissionSlug);
                 })

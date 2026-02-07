@@ -64,6 +64,11 @@ Route::prefix('residente')->group(function () {
         // Rutas de Sorteo de Parqueaderos
         Route::get('/sorteo-parqueadero', [App\Http\Controllers\Api\SorteoParqueaderoController::class, 'getSorteoActivo']);
         Route::post('/sorteo-parqueadero/inscribirse', [App\Http\Controllers\Api\SorteoParqueaderoController::class, 'inscribirse']);
+
+        // Rutas de Encuestas y Votaciones
+        Route::post('/encuestas/{id}/responder', [App\Http\Controllers\Api\EncuestaVotacionResidenteController::class, 'responderEncuesta']);
+        Route::post('/votaciones/{id}/votar', [App\Http\Controllers\Api\EncuestaVotacionResidenteController::class, 'votar']);
+        Route::get('/votaciones/{id}/resultados', [App\Http\Controllers\Api\EncuestaVotacionResidenteController::class, 'verResultados']);
     });
 });
 

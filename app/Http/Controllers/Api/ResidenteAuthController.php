@@ -16,6 +16,10 @@ use App\Models\SorteoParqueadero;
 use App\Models\Parqueadero;
 use App\Models\Deposito;
 use App\Models\ManualConvivencia;
+use App\Models\Encuesta;
+use App\Models\Votacion;
+use App\Models\EncuestaRespuesta;
+use App\Models\Voto;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
@@ -364,6 +368,60 @@ class ResidenteAuthController extends Controller
             ];
         }
 
+        // Obtener encuestas activas
+        $encuestasActivas = Encuesta::where('copropiedad_id', $propiedadData['id'])
+            ->where('estado', 'activa')
+            ->where('activo', true)
+            ->whereDate('fecha_inicio', '<=', Carbon::now())
+            ->whereDate('fecha_fin', '>=', Carbon::now())
+            ->get()
+            ->map(function ($encuesta) use ($residente) {
+                // Verificar si el residente ya respondió
+                $yaRespondio = EncuestaRespuesta::where('encuesta_id', $encuesta->id)
+                    ->where('residente_id', $residente->id)
+                    ->exists();
+
+                return [
+                    'id' => $encuesta->id,
+                    'titulo' => $encuesta->titulo,
+                    'descripcion' => $encuesta->descripcion,
+                    'tipo_respuesta' => $encuesta->tipo_respuesta,
+                    'fecha_inicio' => $encuesta->fecha_inicio->format('Y-m-d'),
+                    'fecha_fin' => $encuesta->fecha_fin->format('Y-m-d'),
+                    'ya_respondio' => $yaRespondio,
+                ];
+            });
+
+        // Obtener votaciones activas
+        $votacionesActivas = Votacion::where('copropiedad_id', $propiedadData['id'])
+            ->where('estado', 'activa')
+            ->where('activo', true)
+            ->whereDate('fecha_inicio', '<=', Carbon::now())
+            ->whereDate('fecha_fin', '>=', Carbon::now())
+            ->with('opciones')
+            ->get()
+            ->map(function ($votacion) use ($residente) {
+                // Verificar si el residente ya votó
+                $yaVoto = Voto::where('votacion_id', $votacion->id)
+                    ->where('residente_id', $residente->id)
+                    ->exists();
+
+                return [
+                    'id' => $votacion->id,
+                    'titulo' => $votacion->titulo,
+                    'descripcion' => $votacion->descripcion,
+                    'fecha_inicio' => $votacion->fecha_inicio->format('Y-m-d'),
+                    'fecha_fin' => $votacion->fecha_fin->format('Y-m-d'),
+                    'opciones' => $votacion->opciones->map(function ($opcion) {
+                        return [
+                            'id' => $opcion->id,
+                            'texto_opcion' => $opcion->texto_opcion,
+                        ];
+                    }),
+                    'ya_voto' => $yaVoto,
+                ];
+            });
+
         // Respuesta exitosa
         return response()->json([
             'success' => true,
@@ -384,6 +442,8 @@ class ResidenteAuthController extends Controller
                 'parqueadero' => $parqueaderoData,
                 'deposito' => $depositoData,
                 'manual_convivencia' => $manualConvivenciaData,
+                'encuestas_activas' => $encuestasActivas->count() > 0 ? $encuestasActivas : null,
+                'votaciones_activas' => $votacionesActivas->count() > 0 ? $votacionesActivas : null,
                 'token' => $token,
                 'token_type' => 'Bearer',
             ]
@@ -668,6 +728,60 @@ class ResidenteAuthController extends Controller
             ];
         }
 
+        // Obtener encuestas activas
+        $encuestasActivas = Encuesta::where('copropiedad_id', $propiedadData['id'])
+            ->where('estado', 'activa')
+            ->where('activo', true)
+            ->whereDate('fecha_inicio', '<=', Carbon::now())
+            ->whereDate('fecha_fin', '>=', Carbon::now())
+            ->get()
+            ->map(function ($encuesta) use ($residente) {
+                // Verificar si el residente ya respondió
+                $yaRespondio = EncuestaRespuesta::where('encuesta_id', $encuesta->id)
+                    ->where('residente_id', $residente->id)
+                    ->exists();
+
+                return [
+                    'id' => $encuesta->id,
+                    'titulo' => $encuesta->titulo,
+                    'descripcion' => $encuesta->descripcion,
+                    'tipo_respuesta' => $encuesta->tipo_respuesta,
+                    'fecha_inicio' => $encuesta->fecha_inicio->format('Y-m-d'),
+                    'fecha_fin' => $encuesta->fecha_fin->format('Y-m-d'),
+                    'ya_respondio' => $yaRespondio,
+                ];
+            });
+
+        // Obtener votaciones activas
+        $votacionesActivas = Votacion::where('copropiedad_id', $propiedadData['id'])
+            ->where('estado', 'activa')
+            ->where('activo', true)
+            ->whereDate('fecha_inicio', '<=', Carbon::now())
+            ->whereDate('fecha_fin', '>=', Carbon::now())
+            ->with('opciones')
+            ->get()
+            ->map(function ($votacion) use ($residente) {
+                // Verificar si el residente ya votó
+                $yaVoto = Voto::where('votacion_id', $votacion->id)
+                    ->where('residente_id', $residente->id)
+                    ->exists();
+
+                return [
+                    'id' => $votacion->id,
+                    'titulo' => $votacion->titulo,
+                    'descripcion' => $votacion->descripcion,
+                    'fecha_inicio' => $votacion->fecha_inicio->format('Y-m-d'),
+                    'fecha_fin' => $votacion->fecha_fin->format('Y-m-d'),
+                    'opciones' => $votacion->opciones->map(function ($opcion) {
+                        return [
+                            'id' => $opcion->id,
+                            'texto_opcion' => $opcion->texto_opcion,
+                        ];
+                    }),
+                    'ya_voto' => $yaVoto,
+                ];
+            });
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -686,6 +800,8 @@ class ResidenteAuthController extends Controller
                 'parqueadero' => $parqueaderoData,
                 'deposito' => $depositoData,
                 'manual_convivencia' => $manualConvivenciaData,
+                'encuestas_activas' => $encuestasActivas->count() > 0 ? $encuestasActivas : null,
+                'votaciones_activas' => $votacionesActivas->count() > 0 ? $votacionesActivas : null,
             ]
         ], 200);
     }

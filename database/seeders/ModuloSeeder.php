@@ -407,6 +407,18 @@ class ModuloSeeder extends Seeder
                 'configuracion_default' => [],
                 'es_admin' => true,
             ],
+            [
+                'nombre' => 'Encuestas y Votaciones',
+                'slug' => 'encuestas-votaciones',
+                'descripcion' => 'Gestión de encuestas y votaciones para la copropiedad.',
+                'icono' => 'clipboard-list',
+                'ruta' => '/admin/encuestas-votaciones',
+                'activo' => true,
+                'requiere_configuracion' => false,
+                'orden' => 33,
+                'configuracion_default' => [],
+                'es_admin' => true,
+            ],
         ];
 
         foreach ($modulos as $modulo) {

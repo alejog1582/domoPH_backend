@@ -31,6 +31,7 @@ class Modulo extends Model
         'orden',
         'configuracion_default',
         'es_admin',
+        'es_consejo',
     ];
 
     /**
@@ -44,6 +45,7 @@ class Modulo extends Model
             'activo' => 'boolean',
             'requiere_configuracion' => 'boolean',
             'es_admin' => 'boolean',
+            'es_consejo' => 'boolean',
             'configuracion_default' => 'array',
         ];
     }

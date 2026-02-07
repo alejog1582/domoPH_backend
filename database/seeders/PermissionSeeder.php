@@ -182,6 +182,50 @@ class PermissionSeeder extends Seeder
             ['nombre' => 'Revisar ofertas', 'slug' => 'ofertas.revisar', 'modulo' => 'cartelera-licitaciones'],
             ['nombre' => 'Adjudicar ofertas', 'slug' => 'ofertas.adjudicar', 'modulo' => 'cartelera-licitaciones'],
             ['nombre' => 'Eliminar ofertas', 'slug' => 'ofertas.delete', 'modulo' => 'cartelera-licitaciones'],
+            
+            // Consejo de Administración - Integrantes
+            ['nombre' => 'Ver integrantes del consejo', 'slug' => 'consejo-integrantes.view', 'modulo' => 'consejo-integrantes'],
+            ['nombre' => 'Crear integrantes del consejo', 'slug' => 'consejo-integrantes.create', 'modulo' => 'consejo-integrantes'],
+            ['nombre' => 'Editar integrantes del consejo', 'slug' => 'consejo-integrantes.edit', 'modulo' => 'consejo-integrantes'],
+            ['nombre' => 'Eliminar integrantes del consejo', 'slug' => 'consejo-integrantes.delete', 'modulo' => 'consejo-integrantes'],
+            
+            // Consejo de Administración - Reuniones
+            ['nombre' => 'Ver reuniones del consejo', 'slug' => 'consejo-reuniones.view', 'modulo' => 'consejo-reuniones'],
+            ['nombre' => 'Crear reuniones del consejo', 'slug' => 'consejo-reuniones.create', 'modulo' => 'consejo-reuniones'],
+            ['nombre' => 'Editar reuniones del consejo', 'slug' => 'consejo-reuniones.edit', 'modulo' => 'consejo-reuniones'],
+            ['nombre' => 'Eliminar reuniones del consejo', 'slug' => 'consejo-reuniones.delete', 'modulo' => 'consejo-reuniones'],
+            ['nombre' => 'Gestionar agenda de reuniones', 'slug' => 'consejo-reuniones.agenda', 'modulo' => 'consejo-reuniones'],
+            ['nombre' => 'Gestionar asistencias', 'slug' => 'consejo-reuniones.asistencias', 'modulo' => 'consejo-reuniones'],
+            
+            // Consejo de Administración - Actas
+            ['nombre' => 'Ver actas del consejo', 'slug' => 'consejo-actas.view', 'modulo' => 'consejo-actas'],
+            ['nombre' => 'Crear actas del consejo', 'slug' => 'consejo-actas.create', 'modulo' => 'consejo-actas'],
+            ['nombre' => 'Editar actas del consejo', 'slug' => 'consejo-actas.edit', 'modulo' => 'consejo-actas'],
+            ['nombre' => 'Eliminar actas del consejo', 'slug' => 'consejo-actas.delete', 'modulo' => 'consejo-actas'],
+            ['nombre' => 'Firmar actas', 'slug' => 'consejo-actas.firmar', 'modulo' => 'consejo-actas'],
+            ['nombre' => 'Gestionar archivos de actas', 'slug' => 'consejo-actas.archivos', 'modulo' => 'consejo-actas'],
+            
+            // Consejo de Administración - Decisiones
+            ['nombre' => 'Ver decisiones del consejo', 'slug' => 'consejo-decisiones.view', 'modulo' => 'consejo-decisiones'],
+            ['nombre' => 'Crear decisiones del consejo', 'slug' => 'consejo-decisiones.create', 'modulo' => 'consejo-decisiones'],
+            ['nombre' => 'Editar decisiones del consejo', 'slug' => 'consejo-decisiones.edit', 'modulo' => 'consejo-decisiones'],
+            ['nombre' => 'Eliminar decisiones del consejo', 'slug' => 'consejo-decisiones.delete', 'modulo' => 'consejo-decisiones'],
+            
+            // Consejo de Administración - Tareas
+            ['nombre' => 'Ver tareas del consejo', 'slug' => 'consejo-tareas.view', 'modulo' => 'consejo-tareas'],
+            ['nombre' => 'Crear tareas del consejo', 'slug' => 'consejo-tareas.create', 'modulo' => 'consejo-tareas'],
+            ['nombre' => 'Editar tareas del consejo', 'slug' => 'consejo-tareas.edit', 'modulo' => 'consejo-tareas'],
+            ['nombre' => 'Eliminar tareas del consejo', 'slug' => 'consejo-tareas.delete', 'modulo' => 'consejo-tareas'],
+            ['nombre' => 'Gestionar seguimiento de tareas', 'slug' => 'consejo-tareas.seguimiento', 'modulo' => 'consejo-tareas'],
+            ['nombre' => 'Gestionar archivos de tareas', 'slug' => 'consejo-tareas.archivos', 'modulo' => 'consejo-tareas'],
+            
+            // Consejo de Administración - Comunicaciones
+            ['nombre' => 'Ver comunicaciones del consejo', 'slug' => 'consejo-comunicaciones.view', 'modulo' => 'consejo-comunicaciones'],
+            ['nombre' => 'Crear comunicaciones del consejo', 'slug' => 'consejo-comunicaciones.create', 'modulo' => 'consejo-comunicaciones'],
+            ['nombre' => 'Editar comunicaciones del consejo', 'slug' => 'consejo-comunicaciones.edit', 'modulo' => 'consejo-comunicaciones'],
+            ['nombre' => 'Eliminar comunicaciones del consejo', 'slug' => 'consejo-comunicaciones.delete', 'modulo' => 'consejo-comunicaciones'],
+            ['nombre' => 'Publicar comunicaciones', 'slug' => 'consejo-comunicaciones.publicar', 'modulo' => 'consejo-comunicaciones'],
+            ['nombre' => 'Gestionar archivos de comunicaciones', 'slug' => 'consejo-comunicaciones.archivos', 'modulo' => 'consejo-comunicaciones'],
         ];
 
         // Permisos del Residente (Frontend)

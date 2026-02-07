@@ -20,6 +20,11 @@
     $hasConvivenciaPerms = \App\Helpers\AdminHelper::hasAnyPermission([
         'llamados-atencion.view', 'pqrs.view'
     ]);
+    
+    $hasConsejoPerms = \App\Helpers\AdminHelper::hasAnyPermission([
+        'consejo-integrantes.view', 'consejo-reuniones.view', 'consejo-actas.view',
+        'consejo-decisiones.view', 'consejo-tareas.view', 'consejo-comunicaciones.view'
+    ]);
 @endphp
 
 <!-- Logo -->
@@ -358,6 +363,85 @@
             <i class="fas fa-file-contract mr-3"></i>
             <span>Cartelera de Licitaciones</span>
         </a>
+    </div>
+    @endif
+
+    <!-- Menú Consejo de Administración con submenú -->
+    @if($hasConsejoPerms)
+    <div class="mb-1">
+        <button 
+            type="button"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.consejo-*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            onclick="toggleSubmenu('consejo-menu')"
+        >
+            <div class="flex items-center">
+                <i class="fas fa-users-cog mr-3"></i>
+                <span>Consejo de Administración</span>
+            </div>
+            <i class="fas fa-chevron-down text-xs transition-transform duration-200" id="consejo-menu-icon"></i>
+        </button>
+        
+        <div id="consejo-menu" class="hidden pl-4 mt-1 space-y-1">
+            @if(\App\Helpers\AdminHelper::hasPermission('consejo-integrantes.view'))
+            <a 
+                href="{{ route('admin.consejo-integrantes.index') }}" 
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-integrantes.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-user-friends mr-2"></i>
+                Consejo – Integrantes
+            </a>
+            @endif
+            
+            @if(\App\Helpers\AdminHelper::hasPermission('consejo-reuniones.view'))
+            <a 
+                href="{{ route('admin.consejo-reuniones.index') }}" 
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-reuniones.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-calendar-alt mr-2"></i>
+                Consejo – Reuniones
+            </a>
+            @endif
+            
+            @if(\App\Helpers\AdminHelper::hasPermission('consejo-actas.view'))
+            <a 
+                href="{{ route('admin.consejo-actas.index') }}" 
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-actas.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-file-signature mr-2"></i>
+                Actas de Reuniones
+            </a>
+            @endif
+            
+            @if(\App\Helpers\AdminHelper::hasPermission('consejo-decisiones.view'))
+            <a 
+                href="{{ route('admin.consejo-decisiones.index') }}" 
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-decisiones.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-check-circle mr-2"></i>
+                Decisiones del Consejo
+            </a>
+            @endif
+            
+            @if(\App\Helpers\AdminHelper::hasPermission('consejo-tareas.view'))
+            <a 
+                href="{{ route('admin.consejo-tareas.index') }}" 
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-tareas.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-tasks mr-2"></i>
+                Tareas y Seguimiento
+            </a>
+            @endif
+            
+            @if(\App\Helpers\AdminHelper::hasPermission('consejo-comunicaciones.view'))
+            <a 
+                href="{{ route('admin.consejo-comunicaciones.index') }}" 
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-comunicaciones.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-envelope mr-2"></i>
+                Comunicaciones del Consejo
+            </a>
+            @endif
+        </div>
     </div>
     @endif
     

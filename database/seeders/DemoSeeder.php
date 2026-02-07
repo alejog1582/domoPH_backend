@@ -67,6 +67,9 @@ class DemoSeeder extends Seeder
         // 8. Crear 3 licitaciones demo
         $this->crearLicitaciones($propiedad, $adminDemo);
 
+        // 9. Crear integrantes del Consejo de Administración
+        $this->crearIntegrantesConsejo($propiedad, $residentes);
+
         $this->command->info('✅ Datos DEMO creados exitosamente!');
         $this->command->info('📧 Email: demo@domoph.com');
         $this->command->info('🔑 Password: 12345678');
@@ -1073,5 +1076,180 @@ class DemoSeeder extends Seeder
         }
 
         $this->command->info('   ✓ 3 licitaciones creadas');
+    }
+
+    /**
+     * Crear integrantes del Consejo de Administración
+     */
+    private function crearIntegrantesConsejo(Propiedad $propiedad, array $residentes): void
+    {
+        $this->command->info('👥 Creando integrantes del Consejo de Administración...');
+
+        // Obtener todos los permisos relacionados al consejo
+        $modulosConsejo = Modulo::where('es_consejo', true)
+            ->where('activo', true)
+            ->pluck('slug')
+            ->toArray();
+
+        $permisosConsejo = Permission::whereIn('modulo', $modulosConsejo)
+            ->pluck('id')
+            ->toArray();
+
+        $this->command->info('   📋 Permisos del consejo encontrados: ' . count($permisosConsejo));
+
+        // Seleccionar algunos residentes para ser integrantes del consejo
+        $integrantesData = [
+            [
+                'user_id' => $residentes[0]->user_id ?? null,
+                'nombre' => $residentes[0]->nombre ?? 'Carlos Mendoza',
+                'email' => $residentes[0]->email ?? 'carlos.mendoza@example.com',
+                'telefono' => '3001234567',
+                'unidad_apartamento' => '101',
+                'cargo' => 'presidente',
+                'es_presidente' => true, // Primer integrante es el presidente
+                'tiene_voz' => true,
+                'tiene_voto' => true,
+                'puede_convocar' => true,
+                'puede_firmar_actas' => true,
+            ],
+            [
+                'user_id' => $residentes[1]->user_id ?? null,
+                'nombre' => $residentes[1]->nombre ?? 'María González',
+                'email' => $residentes[1]->email ?? 'maria.gonzalez@example.com',
+                'telefono' => '3002345678',
+                'unidad_apartamento' => '102',
+                'cargo' => 'vicepresidente',
+                'es_presidente' => false,
+                'tiene_voz' => true,
+                'tiene_voto' => true,
+                'puede_convocar' => true,
+                'puede_firmar_actas' => true,
+            ],
+            [
+                'user_id' => $residentes[2]->user_id ?? null,
+                'nombre' => $residentes[2]->nombre ?? 'Roberto Silva',
+                'email' => $residentes[2]->email ?? 'roberto.silva@example.com',
+                'telefono' => '3003456789',
+                'unidad_apartamento' => '103',
+                'cargo' => 'secretario',
+                'es_presidente' => false,
+                'tiene_voz' => true,
+                'tiene_voto' => true,
+                'puede_convocar' => false,
+                'puede_firmar_actas' => true,
+            ],
+            [
+                'user_id' => $residentes[3]->user_id ?? null,
+                'nombre' => $residentes[3]->nombre ?? 'Ana Martínez',
+                'email' => $residentes[3]->email ?? 'ana.martinez@example.com',
+                'telefono' => '3004567890',
+                'unidad_apartamento' => '104',
+                'cargo' => 'vocal',
+                'es_presidente' => false,
+                'tiene_voz' => true,
+                'tiene_voto' => true,
+                'puede_convocar' => false,
+                'puede_firmar_actas' => false,
+            ],
+            [
+                'user_id' => $residentes[4]->user_id ?? null,
+                'nombre' => $residentes[4]->nombre ?? 'Luis Rodríguez',
+                'email' => $residentes[4]->email ?? 'luis.rodriguez@example.com',
+                'telefono' => '3005678901',
+                'unidad_apartamento' => '105',
+                'cargo' => 'vocal',
+                'es_presidente' => false,
+                'tiene_voz' => true,
+                'tiene_voto' => true,
+                'puede_convocar' => false,
+                'puede_firmar_actas' => false,
+            ],
+        ];
+
+        $fechaInicio = Carbon::now()->subMonths(6);
+        $fechaFin = Carbon::now()->addMonths(6);
+
+        foreach ($integrantesData as $integranteData) {
+            // Crear o obtener usuario
+            $user = null;
+            if ($integranteData['user_id']) {
+                $user = User::find($integranteData['user_id']);
+            }
+
+            // Si no existe usuario, crear uno nuevo
+            if (!$user) {
+                $user = User::updateOrCreate(
+                    ['email' => $integranteData['email']],
+                    [
+                        'nombre' => $integranteData['nombre'],
+                        'email' => $integranteData['email'],
+                        'password' => Hash::make('12345678'), // Password por defecto
+                        'telefono' => $integranteData['telefono'],
+                        'documento_identidad' => '100000000' . rand(1, 9),
+                        'tipo_documento' => 'cedula',
+                        'activo' => true,
+                        'perfil' => 'consejo_administracion',
+                        'propiedad_id' => (string) $propiedad->id,
+                    ]
+                );
+                $this->command->info("   ✓ Usuario creado: {$user->email}");
+            }
+
+            // Crear rol específico para el integrante
+            $nombreRol = "Consejo {$integranteData['nombre']}";
+            $slugRol = 'consejo_' . \Illuminate\Support\Str::slug($integranteData['nombre'], '_');
+
+            $rolIntegrante = Role::updateOrCreate(
+                ['slug' => $slugRol],
+                [
+                    'nombre' => $nombreRol,
+                    'descripcion' => "Rol específico para el integrante del consejo {$integranteData['nombre']}",
+                    'activo' => true,
+                ]
+            );
+
+            // Asignar permisos del consejo al rol
+            $rolIntegrante->permissions()->sync($permisosConsejo);
+
+            // Asociar usuario con el rol en role_user
+            DB::table('role_user')->updateOrInsert(
+                [
+                    'user_id' => $user->id,
+                    'role_id' => $rolIntegrante->id,
+                    'propiedad_id' => $propiedad->id,
+                ],
+                [
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            // Crear registro en consejo_integrantes
+            DB::table('consejo_integrantes')->insert([
+                'copropiedad_id' => $propiedad->id,
+                'user_id' => $user->id,
+                'nombre' => $integranteData['nombre'],
+                'email' => $integranteData['email'],
+                'telefono' => $integranteData['telefono'],
+                'unidad_apartamento' => $integranteData['unidad_apartamento'],
+                'cargo' => $integranteData['cargo'],
+                'es_presidente' => $integranteData['es_presidente'] ?? false,
+                'tiene_voz' => $integranteData['tiene_voz'],
+                'tiene_voto' => $integranteData['tiene_voto'],
+                'puede_convocar' => $integranteData['puede_convocar'],
+                'puede_firmar_actas' => $integranteData['puede_firmar_actas'],
+                'fecha_inicio_periodo' => $fechaInicio,
+                'fecha_fin_periodo' => $fechaFin,
+                'estado' => 'activo',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $this->command->info("   ✓ Integrante creado: {$integranteData['nombre']} ({$integranteData['cargo']})");
+            $this->command->info("   ✓ Rol '{$nombreRol}' creado y asignado");
+            $this->command->info("   ✓ " . count($permisosConsejo) . " permisos del consejo asignados");
+        }
+
+        $this->command->info('   ✓ 5 integrantes del consejo creados con sus roles y permisos');
     }
 }

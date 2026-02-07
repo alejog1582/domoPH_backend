@@ -358,4 +358,58 @@ class LicitacionController extends Controller
             }),
         ]);
     }
+
+    /**
+     * Adjudicar una oferta (marcar como ganadora y cerrar la licitación).
+     */
+    public function adjudicar(Request $request, $id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $validated = $request->validate([
+            'oferta_id' => 'required|exists:ofertas_licitacion,id',
+        ]);
+
+        $oferta = OfertaLicitacion::findOrFail($validated['oferta_id']);
+        
+        // Verificar que la oferta pertenece a una licitación de la propiedad
+        $licitacion = Licitacion::where('copropiedad_id', $propiedad->id)
+            ->findOrFail($oferta->licitacion_id);
+
+        // Verificar que la licitación no esté ya cerrada o adjudicada
+        if (in_array($licitacion->estado, ['cerrada', 'adjudicada'])) {
+            return redirect()->back()
+                ->with('error', 'Esta licitación ya está cerrada o adjudicada.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Marcar la oferta como ganadora
+            $oferta->update([
+                'es_ganadora' => true,
+                'estado' => 'seleccionada',
+            ]);
+
+            // Cerrar la licitación y ocultarla públicamente
+            $licitacion->update([
+                'estado' => 'cerrada',
+                'visible_publicamente' => false,
+            ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.licitaciones.show', $licitacion->id)
+                ->with('success', 'Oferta adjudicada exitosamente. La licitación ha sido cerrada y ocultada públicamente.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al adjudicar oferta: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al adjudicar la oferta. Por favor, intente nuevamente.');
+        }
+    }
 }

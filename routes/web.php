@@ -461,6 +461,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:licitaciones.edit')->group(function () {
         Route::get('licitaciones/{id}/edit', [LicitacionController::class, 'edit'])->name('licitaciones.edit');
         Route::put('licitaciones/{id}', [LicitacionController::class, 'update'])->name('licitaciones.update');
+        Route::post('licitaciones/{id}/adjudicar', [LicitacionController::class, 'adjudicar'])->name('licitaciones.adjudicar');
     });
     Route::middleware('permission:licitaciones.view')->group(function () {
         Route::get('licitaciones', [LicitacionController::class, 'index'])->name('licitaciones.index');
@@ -478,7 +479,6 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     // Consejo - Integrantes
     Route::middleware('permission:consejo-integrantes.view')->group(function () {
         Route::get('consejo-integrantes', [ConsejoIntegranteController::class, 'index'])->name('consejo-integrantes.index');
-        Route::get('consejo-integrantes/{id}', [ConsejoIntegranteController::class, 'show'])->name('consejo-integrantes.show');
     });
     Route::middleware('permission:consejo-integrantes.create')->group(function () {
         Route::get('consejo-integrantes/create', [ConsejoIntegranteController::class, 'create'])->name('consejo-integrantes.create');
@@ -488,11 +488,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
         Route::get('consejo-integrantes/{id}/edit', [ConsejoIntegranteController::class, 'edit'])->name('consejo-integrantes.edit');
         Route::put('consejo-integrantes/{id}', [ConsejoIntegranteController::class, 'update'])->name('consejo-integrantes.update');
     });
+    Route::middleware('permission:consejo-integrantes.view')->group(function () {
+        Route::get('consejo-integrantes/{id}', [ConsejoIntegranteController::class, 'show'])->name('consejo-integrantes.show');
+    });
     
     // Consejo - Reuniones
     Route::middleware('permission:consejo-reuniones.view')->group(function () {
         Route::get('consejo-reuniones', [ConsejoReunionController::class, 'index'])->name('consejo-reuniones.index');
-        Route::get('consejo-reuniones/{id}', [ConsejoReunionController::class, 'show'])->name('consejo-reuniones.show');
     });
     Route::middleware('permission:consejo-reuniones.create')->group(function () {
         Route::get('consejo-reuniones/create', [ConsejoReunionController::class, 'create'])->name('consejo-reuniones.create');
@@ -502,11 +504,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
         Route::get('consejo-reuniones/{id}/edit', [ConsejoReunionController::class, 'edit'])->name('consejo-reuniones.edit');
         Route::put('consejo-reuniones/{id}', [ConsejoReunionController::class, 'update'])->name('consejo-reuniones.update');
     });
+    Route::middleware('permission:consejo-reuniones.view')->group(function () {
+        Route::get('consejo-reuniones/{id}', [ConsejoReunionController::class, 'show'])->name('consejo-reuniones.show');
+    });
     
     // Actas de Reuniones
     Route::middleware('permission:consejo-actas.view')->group(function () {
         Route::get('consejo-actas', [ConsejoActaController::class, 'index'])->name('consejo-actas.index');
-        Route::get('consejo-actas/{id}', [ConsejoActaController::class, 'show'])->name('consejo-actas.show');
     });
     Route::middleware('permission:consejo-actas.create')->group(function () {
         Route::get('consejo-actas/create', [ConsejoActaController::class, 'create'])->name('consejo-actas.create');
@@ -522,11 +526,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:consejo-actas.firmar')->group(function () {
         Route::post('consejo-actas/{id}/firmar', [ConsejoActaController::class, 'firmar'])->name('consejo-actas.firmar');
     });
+    Route::middleware('permission:consejo-actas.view')->group(function () {
+        Route::get('consejo-actas/{id}', [ConsejoActaController::class, 'show'])->name('consejo-actas.show');
+    });
     
     // Decisiones del Consejo
     Route::middleware('permission:consejo-decisiones.view')->group(function () {
         Route::get('consejo-decisiones', [ConsejoDecisionController::class, 'index'])->name('consejo-decisiones.index');
-        Route::get('consejo-decisiones/{id}', [ConsejoDecisionController::class, 'show'])->name('consejo-decisiones.show');
     });
     Route::middleware('permission:consejo-decisiones.create')->group(function () {
         Route::get('consejo-decisiones/create', [ConsejoDecisionController::class, 'create'])->name('consejo-decisiones.create');
@@ -539,12 +545,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:consejo-decisiones.delete')->group(function () {
         Route::delete('consejo-decisiones/{id}', [ConsejoDecisionController::class, 'destroy'])->name('consejo-decisiones.destroy');
     });
+    Route::middleware('permission:consejo-decisiones.view')->group(function () {
+        Route::get('consejo-decisiones/{id}', [ConsejoDecisionController::class, 'show'])->name('consejo-decisiones.show');
+    });
     
     // Tareas y Seguimiento
     Route::middleware('permission:consejo-tareas.view')->group(function () {
         Route::get('consejo-tareas', [ConsejoTareaController::class, 'index'])->name('consejo-tareas.index');
-        Route::get('consejo-tareas/{id}', [ConsejoTareaController::class, 'show'])->name('consejo-tareas.show');
-        Route::get('consejo-tareas/{id}/gestionar', [ConsejoTareaController::class, 'gestionar'])->name('consejo-tareas.gestionar');
     });
     Route::middleware('permission:consejo-tareas.create')->group(function () {
         Route::get('consejo-tareas/create', [ConsejoTareaController::class, 'create'])->name('consejo-tareas.create');
@@ -561,11 +568,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
         Route::post('consejo-tareas/{id}/seguimiento', [ConsejoTareaController::class, 'agregarSeguimiento'])->name('consejo-tareas.seguimiento');
         Route::post('consejo-tareas/{id}/archivos', [ConsejoTareaController::class, 'subirArchivo'])->name('consejo-tareas.archivos');
     });
+    Route::middleware('permission:consejo-tareas.view')->group(function () {
+        Route::get('consejo-tareas/{id}/gestionar', [ConsejoTareaController::class, 'gestionar'])->name('consejo-tareas.gestionar');
+        Route::get('consejo-tareas/{id}', [ConsejoTareaController::class, 'show'])->name('consejo-tareas.show');
+    });
     
     // Comunicaciones del Consejo
     Route::middleware('permission:consejo-comunicaciones.view')->group(function () {
         Route::get('consejo-comunicaciones', [ConsejoComunicacionController::class, 'index'])->name('consejo-comunicaciones.index');
-        Route::get('consejo-comunicaciones/{id}', [ConsejoComunicacionController::class, 'show'])->name('consejo-comunicaciones.show');
     });
     Route::middleware('permission:consejo-comunicaciones.create')->group(function () {
         Route::get('consejo-comunicaciones/create', [ConsejoComunicacionController::class, 'create'])->name('consejo-comunicaciones.create');
@@ -580,6 +590,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     });
     Route::middleware('permission:consejo-comunicaciones.publicar')->group(function () {
         Route::post('consejo-comunicaciones/{id}/publicar', [ConsejoComunicacionController::class, 'publicar'])->name('consejo-comunicaciones.publicar');
+    });
+    Route::middleware('permission:consejo-comunicaciones.view')->group(function () {
+        Route::get('consejo-comunicaciones/{id}', [ConsejoComunicacionController::class, 'show'])->name('consejo-comunicaciones.show');
     });
 });
 

@@ -1186,7 +1186,7 @@ class DemoSeeder extends Seeder
                         'password' => Hash::make('12345678'), // Password por defecto
                         'telefono' => $integranteData['telefono'],
                         'documento_identidad' => '100000000' . rand(1, 9),
-                        'tipo_documento' => 'cedula',
+                        'tipo_documento' => 'CC', // CC = Cédula de Ciudadanía
                         'activo' => true,
                         'perfil' => 'consejo_administracion',
                         'propiedad_id' => (string) $propiedad->id,

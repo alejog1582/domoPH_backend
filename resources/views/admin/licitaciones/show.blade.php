@@ -147,9 +147,20 @@
                         {{ $oferta->fecha_postulacion->format('d/m/Y') }}
                     </td>
                     <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                        <button onclick="verOferta({{ $oferta->id }})" class="text-blue-600 hover:text-blue-900 mr-3">
-                            <i class="fas fa-eye"></i> Ver
-                        </button>
+                        <div class="flex items-center space-x-2">
+                            <button onclick="verOferta({{ $oferta->id }})" class="text-blue-600 hover:text-blue-900" title="Ver detalle">
+                                <i class="fas fa-eye"></i> Ver
+                            </button>
+                            @if(\App\Helpers\AdminHelper::hasPermission('licitaciones.edit') && !in_array($licitacion->estado, ['cerrada', 'adjudicada']) && !$oferta->es_ganadora)
+                            <form action="{{ route('admin.licitaciones.adjudicar', $licitacion->id) }}" method="POST" class="inline" onsubmit="return confirm('¿Está seguro de adjudicar esta oferta? Esto cerrará la licitación y la ocultará públicamente.');">
+                                @csrf
+                                <input type="hidden" name="oferta_id" value="{{ $oferta->id }}">
+                                <button type="submit" class="text-green-600 hover:text-green-900" title="Adjudicar oferta">
+                                    <i class="fas fa-check-circle"></i> Adjudicar
+                                </button>
+                            </form>
+                            @endif
+                        </div>
                     </td>
                 </tr>
                 @endforeach

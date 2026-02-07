@@ -65,13 +65,20 @@ class ConsejoIntegranteController extends Controller
                 ->with('error', 'No hay propiedad asignada.');
         }
 
-        // Obtener módulos con es_consejo = true
-        $modulos = Modulo::activos()
-            ->where('es_consejo', true)
-            ->ordenados()
-            ->get();
+        try {
+            // Obtener módulos con es_consejo = true
+            $modulos = Modulo::where('activo', true)
+                ->where('es_consejo', true)
+                ->orderBy('orden')
+                ->get();
 
-        return view('admin.consejo-integrantes.create', compact('modulos', 'propiedad'));
+            return view('admin.consejo-integrantes.create', compact('modulos', 'propiedad'));
+        } catch (\Exception $e) {
+            \Log::error('Error en create de integrante: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
+            return redirect()->route('admin.consejo-integrantes.index')
+                ->with('error', 'Error al cargar el formulario: ' . $e->getMessage());
+        }
     }
 
     /**
@@ -92,19 +99,26 @@ class ConsejoIntegranteController extends Controller
             'telefono' => 'nullable|string|max:20',
             'unidad_apartamento' => 'nullable|string|max:50',
             'cargo' => 'required|string|max:100',
-            'es_presidente' => 'boolean',
-            'tiene_voz' => 'boolean',
-            'tiene_voto' => 'boolean',
-            'puede_convocar' => 'boolean',
-            'puede_firmar_actas' => 'boolean',
+            'es_presidente' => 'nullable|boolean',
+            'tiene_voz' => 'nullable|boolean',
+            'tiene_voto' => 'nullable|boolean',
+            'puede_convocar' => 'nullable|boolean',
+            'puede_firmar_actas' => 'nullable|boolean',
             'fecha_inicio_periodo' => 'required|date',
             'fecha_fin_periodo' => 'nullable|date|after:fecha_inicio_periodo',
             'modulos' => 'required|array|min:1',
             'modulos.*' => 'exists:modulos,id',
         ]);
 
+        // Normalizar valores booleanos (checkboxes no marcados no se envían)
+        $validated['es_presidente'] = $request->has('es_presidente') ? (bool)$request->es_presidente : false;
+        $validated['tiene_voz'] = $request->has('tiene_voz') ? (bool)$request->tiene_voz : true;
+        $validated['tiene_voto'] = $request->has('tiene_voto') ? (bool)$request->tiene_voto : true;
+        $validated['puede_convocar'] = $request->has('puede_convocar') ? (bool)$request->puede_convocar : false;
+        $validated['puede_firmar_actas'] = $request->has('puede_firmar_actas') ? (bool)$request->puede_firmar_actas : false;
+
         // Validar que solo puede haber un presidente activo
-        if ($validated['es_presidente'] ?? false) {
+        if ($validated['es_presidente']) {
             $presidenteExistente = DB::table('consejo_integrantes')
                 ->where('copropiedad_id', $propiedad->id)
                 ->where('es_presidente', true)
@@ -127,7 +141,7 @@ class ConsejoIntegranteController extends Controller
                 'password' => Hash::make('12345678'), // Password por defecto
                 'telefono' => $validated['telefono'] ?? null,
                 'documento_identidad' => '100000000' . rand(1, 9),
-                'tipo_documento' => 'cedula',
+                'tipo_documento' => 'CC', // CC = Cédula de Ciudadanía
                 'activo' => true,
                 'perfil' => 'consejo_administracion',
                 'propiedad_id' => (string) $propiedad->id,
@@ -177,11 +191,11 @@ class ConsejoIntegranteController extends Controller
                 'telefono' => $validated['telefono'] ?? null,
                 'unidad_apartamento' => $validated['unidad_apartamento'] ?? null,
                 'cargo' => $validated['cargo'],
-                'es_presidente' => $validated['es_presidente'] ?? false,
-                'tiene_voz' => $validated['tiene_voz'] ?? true,
-                'tiene_voto' => $validated['tiene_voto'] ?? true,
-                'puede_convocar' => $validated['puede_convocar'] ?? false,
-                'puede_firmar_actas' => $validated['puede_firmar_actas'] ?? false,
+                'es_presidente' => $validated['es_presidente'],
+                'tiene_voz' => $validated['tiene_voz'],
+                'tiene_voto' => $validated['tiene_voto'],
+                'puede_convocar' => $validated['puede_convocar'],
+                'puede_firmar_actas' => $validated['puede_firmar_actas'],
                 'fecha_inicio_periodo' => $validated['fecha_inicio_periodo'],
                 'fecha_fin_periodo' => $validated['fecha_fin_periodo'] ?? null,
                 'estado' => 'activo',
@@ -196,9 +210,10 @@ class ConsejoIntegranteController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error al crear integrante del consejo: ' . $e->getMessage());
+            \Log::error('Stack trace: ' . $e->getTraceAsString());
             return redirect()->back()
                 ->withInput()
-                ->with('error', 'Error al crear el integrante del consejo.');
+                ->with('error', 'Error al crear el integrante del consejo: ' . $e->getMessage());
         }
     }
 
@@ -263,15 +278,23 @@ class ConsejoIntegranteController extends Controller
         if ($integrante->user_id) {
             $user = User::find($integrante->user_id);
             if ($user) {
-                $roles = $user->roles()->pluck('id')->toArray();
-                $permisos = Permission::whereHas('roles', function($q) use ($roles) {
-                    $q->whereIn('roles.id', $roles);
-                })->pluck('modulo')->unique()->toArray();
+                // Obtener solo el rol que contiene "consejo" en el slug
+                $rolConsejo = $user->roles()
+                    ->where('slug', 'like', 'consejo_%')
+                    ->first();
                 
-                $modulosAsignados = Modulo::whereIn('slug', $permisos)
-                    ->where('es_consejo', true)
-                    ->pluck('id')
-                    ->toArray();
+                if ($rolConsejo) {
+                    // Obtener permisos del rol del consejo
+                    $permisos = Permission::whereHas('roles', function($q) use ($rolConsejo) {
+                        $q->where('roles.id', $rolConsejo->id);
+                    })->pluck('modulo')->unique()->toArray();
+                    
+                    // Obtener módulos del consejo asignados
+                    $modulosAsignados = Modulo::whereIn('slug', $permisos)
+                        ->where('es_consejo', true)
+                        ->pluck('id')
+                        ->toArray();
+                }
             }
         }
 

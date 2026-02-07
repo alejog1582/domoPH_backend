@@ -94,10 +94,14 @@ class ConsejoActaController extends Controller
         $validated = $request->validate([
             'reunion_id' => 'required|exists:consejo_reuniones,id',
             'fecha_acta' => 'required|date',
-            'quorum' => 'boolean',
+            'quorum' => 'nullable|boolean',
             'contenido' => 'required|string',
             'archivos' => 'nullable|array',
             'archivos.*' => 'file|max:10240', // 10MB max
+            'decisiones' => 'nullable|array',
+            'decisiones.*.descripcion' => 'required_with:decisiones|string',
+            'decisiones.*.responsable' => 'nullable|string|max:255',
+            'decisiones.*.fecha_compromiso' => 'nullable|date',
         ]);
 
         DB::beginTransaction();
@@ -112,13 +116,16 @@ class ConsejoActaController extends Controller
                 throw new \Exception('Reunión no encontrada.');
             }
 
+            // Procesar quorum (convertir a boolean)
+            $quorum = isset($validated['quorum']) && $validated['quorum'] == '1' ? true : false;
+
             // Crear acta
             $actaId = DB::table('consejo_actas')->insertGetId([
                 'copropiedad_id' => $propiedad->id,
                 'reunion_id' => $validated['reunion_id'],
                 'tipo_reunion' => $reunion->tipo_reunion,
                 'fecha_acta' => $validated['fecha_acta'],
-                'quorum' => $validated['quorum'] ?? false,
+                'quorum' => $quorum,
                 'contenido' => $validated['contenido'],
                 'estado' => 'borrador',
                 'visible_residentes' => false,
@@ -126,6 +133,23 @@ class ConsejoActaController extends Controller
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+
+            // Crear decisiones
+            if (!empty($validated['decisiones'])) {
+                foreach ($validated['decisiones'] as $decision) {
+                    if (!empty($decision['descripcion'])) {
+                        DB::table('consejo_decisiones')->insert([
+                            'acta_id' => $actaId,
+                            'descripcion' => $decision['descripcion'],
+                            'responsable' => $decision['responsable'] ?? null,
+                            'fecha_compromiso' => $decision['fecha_compromiso'] ?? null,
+                            'estado' => 'pendiente',
+                            'created_at' => now(),
+                            'updated_at' => now(),
+                        ]);
+                    }
+                }
+            }
 
             // Subir archivos a Cloudinary
             if ($request->hasFile('archivos')) {
@@ -530,6 +554,76 @@ class ConsejoActaController extends Controller
             \Log::error('Error al firmar acta: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Error al firmar el acta.');
+        }
+    }
+
+    /**
+     * Eliminar todas las firmas de un acta (solo administrador o presidente).
+     */
+    public function eliminarFirmas(Request $request, $id)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $acta = DB::table('consejo_actas')
+            ->where('id', $id)
+            ->where('copropiedad_id', $propiedad->id)
+            ->first();
+
+        if (!$acta) {
+            return redirect()->route('admin.consejo-actas.index')
+                ->with('error', 'Acta no encontrada.');
+        }
+
+        // Verificar si es administrador de la propiedad
+        $esAdministrador = DB::table('administradores_propiedad')
+            ->where('user_id', auth()->id())
+            ->where('propiedad_id', $propiedad->id)
+            ->whereNull('deleted_at')
+            ->exists();
+
+        // Verificar si es presidente del consejo
+        $integrante = DB::table('consejo_integrantes')
+            ->where('user_id', auth()->id())
+            ->where('copropiedad_id', $propiedad->id)
+            ->where('estado', 'activo')
+            ->first();
+
+        $esPresidente = $integrante && $integrante->es_presidente == true;
+
+        if (!$esAdministrador && !$esPresidente) {
+            return redirect()->route('admin.consejo-actas.show', $id)
+                ->with('error', 'No tiene permisos para eliminar las firmas del acta. Solo el administrador o el presidente pueden hacerlo.');
+        }
+
+        DB::beginTransaction();
+        try {
+            // Eliminar todas las firmas
+            DB::table('consejo_acta_firmas')
+                ->where('acta_id', $id)
+                ->delete();
+
+            // Cambiar estado del acta a borrador
+            DB::table('consejo_actas')
+                ->where('id', $id)
+                ->update([
+                    'estado' => 'borrador',
+                    'updated_at' => now(),
+                ]);
+
+            DB::commit();
+
+            return redirect()->route('admin.consejo-actas.show', $id)
+                ->with('success', 'Firmas eliminadas exitosamente. El acta ahora está en estado borrador y se pueden agregar decisiones y tareas.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            \Log::error('Error al eliminar firmas del acta: ' . $e->getMessage());
+            return redirect()->back()
+                ->with('error', 'Error al eliminar las firmas del acta.');
         }
     }
 }

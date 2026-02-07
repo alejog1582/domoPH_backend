@@ -526,6 +526,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:consejo-actas.firmar')->group(function () {
         Route::post('consejo-actas/{id}/firmar', [ConsejoActaController::class, 'firmar'])->name('consejo-actas.firmar');
     });
+    Route::middleware('permission:consejo-actas.edit')->group(function () {
+        Route::post('consejo-actas/{id}/eliminar-firmas', [ConsejoActaController::class, 'eliminarFirmas'])->name('consejo-actas.eliminar-firmas');
+    });
     Route::middleware('permission:consejo-actas.view')->group(function () {
         Route::get('consejo-actas/{id}', [ConsejoActaController::class, 'show'])->name('consejo-actas.show');
     });
@@ -556,6 +559,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:consejo-tareas.create')->group(function () {
         Route::get('consejo-tareas/create', [ConsejoTareaController::class, 'create'])->name('consejo-tareas.create');
         Route::post('consejo-tareas', [ConsejoTareaController::class, 'store'])->name('consejo-tareas.store');
+        Route::get('consejo-tareas/get-decisiones', [ConsejoTareaController::class, 'getDecisiones'])->name('consejo-tareas.get-decisiones');
     });
     Route::middleware('permission:consejo-tareas.edit')->group(function () {
         Route::get('consejo-tareas/{id}/edit', [ConsejoTareaController::class, 'edit'])->name('consejo-tareas.edit');

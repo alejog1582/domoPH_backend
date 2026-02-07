@@ -613,4 +613,40 @@ class ConsejoTareaController extends Controller
                 ->with('error', 'Error al eliminar la tarea.');
         }
     }
+
+    /**
+     * Obtener decisiones de un acta (AJAX).
+     */
+    public function getDecisiones(Request $request)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            return response()->json(['decisiones' => []], 400);
+        }
+
+        $actaId = $request->get('acta_id');
+        
+        if (!$actaId) {
+            return response()->json(['decisiones' => []], 400);
+        }
+
+        // Verificar que el acta pertenece a la propiedad
+        $acta = DB::table('consejo_actas')
+            ->where('id', $actaId)
+            ->where('copropiedad_id', $propiedad->id)
+            ->first();
+
+        if (!$acta) {
+            return response()->json(['decisiones' => []], 404);
+        }
+
+        // Obtener decisiones del acta
+        $decisiones = DB::table('consejo_decisiones')
+            ->where('acta_id', $actaId)
+            ->select('id', 'descripcion')
+            ->get();
+
+        return response()->json(['decisiones' => $decisiones]);
+    }
 }

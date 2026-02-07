@@ -122,6 +122,11 @@ class ConsejoComunicacionController extends Controller
                 }
             }
 
+            // Si visible_para es residentes, propietarios o todos, sincronizar con comunicados
+            if (in_array($validated['visible_para'], ['residentes', 'propietarios', 'todos'])) {
+                $this->sincronizarConComunicados($comunicacionId, $propiedad->id, $validated);
+            }
+
             DB::commit();
 
             return redirect()->route('admin.consejo-comunicaciones.index')
@@ -304,6 +309,23 @@ class ConsejoComunicacionController extends Controller
                 }
             }
 
+            // Obtener comunicación actualizada para sincronizar
+            $comunicacionActualizada = DB::table('consejo_comunicaciones')
+                ->where('id', $id)
+                ->first();
+
+            // Si visible_para es residentes, propietarios o todos, sincronizar con comunicados
+            if (in_array($validated['visible_para'], ['residentes', 'propietarios', 'todos'])) {
+                $this->sincronizarConComunicados($id, $propiedad->id, [
+                    'titulo' => $validated['titulo'],
+                    'contenido' => $validated['contenido'],
+                    'tipo' => $validated['tipo'],
+                ]);
+            } else {
+                // Si cambió a "consejo", eliminar de comunicados si existe
+                $this->eliminarDeComunicados($id, $propiedad->id);
+            }
+
             DB::commit();
 
             return redirect()->route('admin.consejo-comunicaciones.index')
@@ -420,35 +442,12 @@ class ConsejoComunicacionController extends Controller
                     'updated_at' => now(),
                 ]);
 
-            // Si visible_para es residentes, propietarios o todos, duplicar en comunicados
+            // Si visible_para es residentes, propietarios o todos, sincronizar con comunicados
             if (in_array($comunicacion->visible_para, ['residentes', 'propietarios', 'todos'])) {
-                // Obtener archivos
-                $archivos = DB::table('consejo_comunicacion_archivos')
-                    ->where('comunicacion_id', $id)
-                    ->get();
-
-                $imagenPortada = null;
-                if ($archivos->isNotEmpty()) {
-                    // Buscar primera imagen
-                    foreach ($archivos as $archivo) {
-                        if (str_starts_with($archivo->tipo_archivo, 'image/')) {
-                            $imagenPortada = $archivo->ruta_archivo;
-                            break;
-                        }
-                    }
-                }
-
-                // Crear en tabla comunicados
-                Comunicado::create([
-                    'copropiedad_id' => $propiedad->id,
+                $this->sincronizarConComunicados($id, $propiedad->id, [
                     'titulo' => $comunicacion->titulo,
                     'contenido' => $comunicacion->contenido,
-                    'tipo' => 'general',
-                    'imagen_portada' => $imagenPortada,
-                    'fecha_publicacion' => now(),
-                    'fecha_expiracion' => null,
-                    'destacado' => $comunicacion->tipo === 'urgente',
-                    'activo' => true,
+                    'tipo' => $comunicacion->tipo,
                 ]);
             }
 
@@ -461,6 +460,94 @@ class ConsejoComunicacionController extends Controller
             \Log::error('Error al publicar comunicación: ' . $e->getMessage());
             return redirect()->back()
                 ->with('error', 'Error al publicar la comunicación.');
+        }
+    }
+
+    /**
+     * Sincronizar comunicación del consejo con la tabla comunicados.
+     */
+    private function sincronizarConComunicados($comunicacionId, $copropiedadId, $datos)
+    {
+        try {
+            // Obtener archivos de la comunicación
+            $archivos = DB::table('consejo_comunicacion_archivos')
+                ->where('comunicacion_id', $comunicacionId)
+                ->get();
+
+            $imagenPortada = null;
+            if ($archivos->isNotEmpty()) {
+                // Buscar primera imagen
+                foreach ($archivos as $archivo) {
+                    if (str_starts_with($archivo->tipo_archivo, 'image/')) {
+                        $imagenPortada = $archivo->ruta_archivo;
+                        break;
+                    }
+                }
+            }
+
+            // Buscar comunicado existente por título y copropiedad
+            // Usamos el título como identificador principal
+            $comunicadoExistente = Comunicado::where('copropiedad_id', $copropiedadId)
+                ->where('titulo', $datos['titulo'])
+                ->where('tipo', 'general')
+                ->first();
+
+            if ($comunicadoExistente) {
+                // Actualizar comunicado existente
+                $comunicadoExistente->update([
+                    'titulo' => $datos['titulo'],
+                    'contenido' => $datos['contenido'],
+                    'imagen_portada' => $imagenPortada ?? $comunicadoExistente->imagen_portada,
+                    'destacado' => $datos['tipo'] === 'urgente',
+                    'fecha_publicacion' => now(),
+                    'updated_at' => now(),
+                ]);
+            } else {
+                // Crear nuevo comunicado
+                Comunicado::create([
+                    'copropiedad_id' => $copropiedadId,
+                    'titulo' => $datos['titulo'],
+                    'contenido' => $datos['contenido'],
+                    'tipo' => 'general',
+                    'imagen_portada' => $imagenPortada,
+                    'fecha_publicacion' => now(),
+                    'fecha_expiracion' => null,
+                    'destacado' => $datos['tipo'] === 'urgente',
+                    'activo' => true,
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error al sincronizar comunicación con comunicados: ' . $e->getMessage());
+            // No lanzar excepción para no interrumpir el flujo principal
+        }
+    }
+
+    /**
+     * Eliminar comunicación de la tabla comunicados si existe.
+     */
+    private function eliminarDeComunicados($comunicacionId, $copropiedadId)
+    {
+        try {
+            // Obtener la comunicación del consejo para obtener el título y contenido
+            $comunicacion = DB::table('consejo_comunicaciones')
+                ->where('id', $comunicacionId)
+                ->where('copropiedad_id', $copropiedadId)
+                ->first();
+
+            if ($comunicacion) {
+                // Buscar comunicado asociado por título y tipo
+                $comunicado = Comunicado::where('copropiedad_id', $copropiedadId)
+                    ->where('titulo', $comunicacion->titulo)
+                    ->where('tipo', 'general')
+                    ->first();
+
+                if ($comunicado) {
+                    $comunicado->delete();
+                }
+            }
+        } catch (\Exception $e) {
+            \Log::error('Error al eliminar comunicación de comunicados: ' . $e->getMessage());
+            // No lanzar excepción para no interrumpir el flujo principal
         }
     }
 }

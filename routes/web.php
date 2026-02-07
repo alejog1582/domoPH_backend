@@ -40,6 +40,7 @@ use App\Http\Controllers\Admin\ConsejoActaController;
 use App\Http\Controllers\Admin\ConsejoDecisionController;
 use App\Http\Controllers\Admin\ConsejoTareaController;
 use App\Http\Controllers\Admin\ConsejoComunicacionController;
+use App\Http\Controllers\Admin\AsambleaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -597,6 +598,28 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     });
     Route::middleware('permission:consejo-comunicaciones.view')->group(function () {
         Route::get('consejo-comunicaciones/{id}', [ConsejoComunicacionController::class, 'show'])->name('consejo-comunicaciones.show');
+    });
+    
+    // Asambleas
+    Route::middleware('permission:asambleas.view')->group(function () {
+        Route::get('asambleas', [AsambleaController::class, 'index'])->name('asambleas.index');
+    });
+    Route::middleware('permission:asambleas.create')->group(function () {
+        Route::get('asambleas/create', [AsambleaController::class, 'create'])->name('asambleas.create');
+        Route::post('asambleas', [AsambleaController::class, 'store'])->name('asambleas.store');
+    });
+    Route::middleware('permission:asambleas.edit')->group(function () {
+        Route::get('asambleas/{id}/edit', [AsambleaController::class, 'edit'])->name('asambleas.edit');
+        Route::put('asambleas/{id}', [AsambleaController::class, 'update'])->name('asambleas.update');
+    });
+    Route::middleware('permission:asambleas.delete')->group(function () {
+        Route::delete('asambleas/{id}', [AsambleaController::class, 'destroy'])->name('asambleas.destroy');
+    });
+    Route::middleware('permission:asambleas.votaciones')->group(function () {
+        Route::post('asambleas/{id}/votaciones', [AsambleaController::class, 'storeVotacion'])->name('asambleas.store-votacion');
+    });
+    Route::middleware('permission:asambleas.view')->group(function () {
+        Route::get('asambleas/{id}', [AsambleaController::class, 'show'])->name('asambleas.show');
     });
 });
 

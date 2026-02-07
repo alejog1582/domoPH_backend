@@ -25,6 +25,10 @@
         'consejo-integrantes.view', 'consejo-reuniones.view', 'consejo-actas.view',
         'consejo-decisiones.view', 'consejo-tareas.view', 'consejo-comunicaciones.view'
     ]);
+    
+    $hasAsambleasPerms = \App\Helpers\AdminHelper::hasAnyPermission([
+        'asambleas.view'
+    ]);
 @endphp
 
 <!-- Logo -->
@@ -442,6 +446,18 @@
             </a>
             @endif
         </div>
+    </div>
+    @endif
+    
+    @if($hasAsambleasPerms)
+    <div class="mb-1">
+        <a 
+            href="{{ route('admin.asambleas.index') }}" 
+            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.asambleas.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+        >
+            <i class="fas fa-users mr-3"></i>
+            <span>Asambleas</span>
+        </a>
     </div>
     @endif
     

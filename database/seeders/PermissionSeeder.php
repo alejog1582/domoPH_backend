@@ -226,6 +226,15 @@ class PermissionSeeder extends Seeder
             ['nombre' => 'Eliminar comunicaciones del consejo', 'slug' => 'consejo-comunicaciones.delete', 'modulo' => 'consejo-comunicaciones'],
             ['nombre' => 'Publicar comunicaciones', 'slug' => 'consejo-comunicaciones.publicar', 'modulo' => 'consejo-comunicaciones'],
             ['nombre' => 'Gestionar archivos de comunicaciones', 'slug' => 'consejo-comunicaciones.archivos', 'modulo' => 'consejo-comunicaciones'],
+            
+            // Asambleas
+            ['nombre' => 'Ver asambleas', 'slug' => 'asambleas.view', 'modulo' => 'asambleas'],
+            ['nombre' => 'Crear asambleas', 'slug' => 'asambleas.create', 'modulo' => 'asambleas'],
+            ['nombre' => 'Editar asambleas', 'slug' => 'asambleas.edit', 'modulo' => 'asambleas'],
+            ['nombre' => 'Eliminar asambleas', 'slug' => 'asambleas.delete', 'modulo' => 'asambleas'],
+            ['nombre' => 'Gestionar documentos de asambleas', 'slug' => 'asambleas.documentos', 'modulo' => 'asambleas'],
+            ['nombre' => 'Gestionar asistencias de asambleas', 'slug' => 'asambleas.asistencias', 'modulo' => 'asambleas'],
+            ['nombre' => 'Gestionar votaciones de asambleas', 'slug' => 'asambleas.votaciones', 'modulo' => 'asambleas'],
         ];
 
         // Permisos del Residente (Frontend)

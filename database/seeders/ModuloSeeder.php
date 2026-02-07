@@ -512,6 +512,21 @@ class ModuloSeeder extends Seeder
                 'es_admin' => true,
                 'es_consejo' => true,
             ],
+            // ========================
+            // ASAMBLEAS
+            // ========================
+            [
+                'nombre' => 'Asambleas',
+                'slug' => 'asambleas',
+                'descripcion' => 'Gestión de asambleas de copropietarios.',
+                'icono' => 'users',
+                'ruta' => '/admin/asambleas',
+                'activo' => true,
+                'requiere_configuracion' => false,
+                'orden' => 41,
+                'configuracion_default' => [],
+                'es_admin' => true,
+            ],
         ];
 
         foreach ($modulos as $modulo) {

@@ -159,6 +159,8 @@
                     <option value="residente" {{ old('perfil', $usuarioAdmin->perfil) == 'residente' ? 'selected' : '' }}>Residente</option>
                     <option value="porteria" {{ old('perfil', $usuarioAdmin->perfil) == 'porteria' ? 'selected' : '' }}>Portería</option>
                     <option value="proveedor" {{ old('perfil', $usuarioAdmin->perfil) == 'proveedor' ? 'selected' : '' }}>Proveedor</option>
+                    <option value="comite_convivencia" {{ old('perfil', $usuarioAdmin->perfil) == 'comite_convivencia' ? 'selected' : '' }}>Comité de Convivencia</option>
+                    <option value="consejo_administracion" {{ old('perfil', $usuarioAdmin->perfil) == 'consejo_administracion' ? 'selected' : '' }}>Consejo de Administración</option>
                 </select>
                 @error('perfil')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>

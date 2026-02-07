@@ -47,6 +47,8 @@
                         <option value="residente" {{ request('perfil') == 'residente' ? 'selected' : '' }}>Residente</option>
                         <option value="porteria" {{ request('perfil') == 'porteria' ? 'selected' : '' }}>Portería</option>
                         <option value="proveedor" {{ request('perfil') == 'proveedor' ? 'selected' : '' }}>Proveedor</option>
+                        <option value="comite_convivencia" {{ request('perfil') == 'comite_convivencia' ? 'selected' : '' }}>Comité de Convivencia</option>
+                        <option value="consejo_administracion" {{ request('perfil') == 'consejo_administracion' ? 'selected' : '' }}>Consejo de Administración</option>
                     </select>
                 </div>
 
@@ -115,6 +117,8 @@
                                         'residente' => 'Residente',
                                         'porteria' => 'Portería',
                                         'proveedor' => 'Proveedor',
+                                        'comite_convivencia' => 'Comité de Convivencia',
+                                        'consejo_administracion' => 'Consejo de Administración',
                                     ];
                                     $perfilLabel = $perfilLabels[$usuario->perfil] ?? ucfirst($usuario->perfil ?? 'Sin perfil');
                                     
@@ -123,6 +127,8 @@
                                         'residente' => 'bg-green-100 text-green-800',
                                         'porteria' => 'bg-yellow-100 text-yellow-800',
                                         'proveedor' => 'bg-purple-100 text-purple-800',
+                                        'comite_convivencia' => 'bg-indigo-100 text-indigo-800',
+                                        'consejo_administracion' => 'bg-teal-100 text-teal-800',
                                     ];
                                     $perfilColor = $perfilColors[$usuario->perfil] ?? 'bg-gray-100 text-gray-800';
                                 @endphp

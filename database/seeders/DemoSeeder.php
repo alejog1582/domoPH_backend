@@ -370,6 +370,20 @@ class DemoSeeder extends Seeder
     }
 
     /**
+     * Eliminar tildes y caracteres especiales de un string
+     */
+    private function eliminarTildes($string)
+    {
+        $tildes = [
+            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u',
+            'Á' => 'A', 'É' => 'E', 'Í' => 'I', 'Ó' => 'O', 'Ú' => 'U',
+            'ñ' => 'n', 'Ñ' => 'N',
+            'ü' => 'u', 'Ü' => 'U'
+        ];
+        return strtr($string, $tildes);
+    }
+
+    /**
      * Crear residentes (20 propietarios + adicionales)
      */
     private function crearResidentes(array $unidades): array
@@ -392,7 +406,7 @@ class DemoSeeder extends Seeder
         foreach ($unidades as $index => $unidad) {
             $nombre = $nombres[$index % count($nombres)];
             $apellido = $apellidos[$index % count($apellidos)];
-            $email = strtolower($nombre . '.' . $apellido . '@demo.com');
+            $email = strtolower($this->eliminarTildes($nombre . '.' . $apellido . '@demo.com'));
             $telefono = '3' . rand(100000000, 999999999);
 
             // Obtener propiedad_id de la unidad
@@ -427,6 +441,27 @@ class DemoSeeder extends Seeder
                 $user->save();
             }
 
+            // Asociar usuario al rol de residente
+            $rolResidente = Role::where('slug', 'residente')->first();
+            if ($rolResidente) {
+                // Verificar si ya tiene el rol asignado
+                $tieneRol = DB::table('role_user')
+                    ->where('user_id', $user->id)
+                    ->where('role_id', $rolResidente->id)
+                    ->where('propiedad_id', $propiedadId)
+                    ->exists();
+                
+                if (!$tieneRol) {
+                    DB::table('role_user')->insert([
+                        'user_id' => $user->id,
+                        'role_id' => $rolResidente->id,
+                        'propiedad_id' => $propiedadId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
             // Crear residente propietario
             $residente = Residente::updateOrCreate(
                 [
@@ -450,7 +485,7 @@ class DemoSeeder extends Seeder
             $unidad = $unidades[rand(0, 19)];
             $nombre = $nombres[rand(0, count($nombres) - 1)];
             $apellido = $apellidos[rand(0, count($apellidos) - 1)];
-            $email = strtolower($nombre . '.' . $apellido . '.' . rand(1, 100) . '@demo.com');
+            $email = strtolower($this->eliminarTildes($nombre . '.' . $apellido . '.' . rand(1, 100) . '@demo.com'));
 
             // Obtener propiedad_id de la unidad
             $propiedadId = $unidad->propiedad_id;
@@ -481,6 +516,27 @@ class DemoSeeder extends Seeder
             if ($user->perfil !== 'residente') {
                 $user->perfil = 'residente';
                 $user->save();
+            }
+
+            // Asociar usuario al rol de residente
+            $rolResidente = Role::where('slug', 'residente')->first();
+            if ($rolResidente) {
+                // Verificar si ya tiene el rol asignado
+                $tieneRol = DB::table('role_user')
+                    ->where('user_id', $user->id)
+                    ->where('role_id', $rolResidente->id)
+                    ->where('propiedad_id', $propiedadId)
+                    ->exists();
+                
+                if (!$tieneRol) {
+                    DB::table('role_user')->insert([
+                        'user_id' => $user->id,
+                        'role_id' => $rolResidente->id,
+                        'propiedad_id' => $propiedadId,
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]);
+                }
             }
 
             $tipoRelacion = $tiposRelacion[rand(1, 3)]; // No propietario

@@ -31,6 +31,7 @@ use App\Http\Controllers\Admin\ParqueaderoController;
 use App\Http\Controllers\Admin\ManualConvivenciaController;
 use App\Http\Controllers\Admin\DepositoController;
 use App\Http\Controllers\Admin\UsuarioAdminController;
+use App\Http\Controllers\Admin\EncuestaVotacionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -421,5 +422,26 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     });
     Route::middleware('permission:usuarios-admin.delete')->group(function () {
         Route::delete('usuarios-admin/{usuarioAdmin}', [UsuarioAdminController::class, 'destroy'])->name('usuarios-admin.destroy');
+    });
+    
+    // Gestión de Encuestas y Votaciones
+    Route::middleware('permission:encuestas.view,votaciones.view')->group(function () {
+        Route::get('encuestas-votaciones', [EncuestaVotacionController::class, 'index'])->name('encuestas-votaciones.index');
+    });
+    Route::middleware('permission:encuestas.create,votaciones.create')->group(function () {
+        Route::get('encuestas-votaciones/create', [EncuestaVotacionController::class, 'create'])->name('encuestas-votaciones.create');
+        Route::post('encuestas-votaciones', [EncuestaVotacionController::class, 'store'])->name('encuestas-votaciones.store');
+    });
+    Route::middleware('permission:encuestas.edit,votaciones.edit')->group(function () {
+        Route::get('encuestas-votaciones/{id}/edit', [EncuestaVotacionController::class, 'edit'])->name('encuestas-votaciones.edit');
+        Route::put('encuestas-votaciones/{id}', [EncuestaVotacionController::class, 'update'])->name('encuestas-votaciones.update');
+    });
+    Route::middleware('permission:encuestas.respuestas,votaciones.resultados')->group(function () {
+        Route::get('encuestas-votaciones/{id}', [EncuestaVotacionController::class, 'show'])->name('encuestas-votaciones.show');
+        Route::get('encuestas/{id}/respuestas', [EncuestaVotacionController::class, 'show'])->name('encuestas.respuestas');
+        Route::get('votaciones/{id}/resultados', [EncuestaVotacionController::class, 'show'])->name('votaciones.resultados');
+    });
+    Route::middleware('permission:encuestas.delete,votaciones.delete')->group(function () {
+        Route::delete('encuestas-votaciones/{id}', [EncuestaVotacionController::class, 'destroy'])->name('encuestas-votaciones.destroy');
     });
 });

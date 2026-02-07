@@ -164,10 +164,12 @@ class PermissionSeeder extends Seeder
             ['nombre' => 'Crear encuestas', 'slug' => 'encuestas.create', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Editar encuestas', 'slug' => 'encuestas.edit', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Eliminar encuestas', 'slug' => 'encuestas.delete', 'modulo' => 'encuestas-votaciones'],
+            ['nombre' => 'Ver respuestas de encuestas', 'slug' => 'encuestas.respuestas', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Ver votaciones', 'slug' => 'votaciones.view', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Crear votaciones', 'slug' => 'votaciones.create', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Editar votaciones', 'slug' => 'votaciones.edit', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Eliminar votaciones', 'slug' => 'votaciones.delete', 'modulo' => 'encuestas-votaciones'],
+            ['nombre' => 'Ver resultados de votaciones', 'slug' => 'votaciones.resultados', 'modulo' => 'encuestas-votaciones'],
         ];
 
         // Permisos del Residente (Frontend)

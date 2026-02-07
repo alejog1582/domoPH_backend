@@ -275,24 +275,41 @@ class DemoSeeder extends Seeder
             ]
         );
 
-        // Si hay módulos asignados, obtener sus permisos
+        // Obtener todos los módulos con es_admin = true
+        $modulosAdmin = Modulo::where('es_admin', true)
+            ->where('activo', true)
+            ->pluck('slug')
+            ->toArray();
+
+        $this->command->info('   📋 Módulos con es_admin=true encontrados: ' . count($modulosAdmin));
+
+        // Obtener todos los permisos asociados a los módulos con es_admin = true
+        $permisosAdmin = Permission::whereIn('modulo', $modulosAdmin)
+            ->pluck('id')
+            ->toArray();
+
+        // Si hay módulos asignados del plan, también obtener sus permisos
+        $permisosPlan = [];
         if (!empty($modulosIds)) {
-            // Obtener los slugs de los módulos asignados
+            // Obtener los slugs de los módulos asignados del plan
             $modulosAsignados = Modulo::whereIn('id', $modulosIds)->pluck('slug')->toArray();
             
             // Obtener los permisos cuyo campo modulo coincida con los slugs de los módulos asignados
-            $permisos = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
-            
-            // Asignar permisos al rol específico de la propiedad
-            $rolPropiedad->permissions()->sync($permisos);
-            
-            $this->command->info("   ✓ Rol '{$nombreRol}' creado/actualizado");
-            $this->command->info('   ✓ ' . count($permisos) . ' permisos asignados al rol');
-        } else {
-            // Si no hay módulos, eliminar todos los permisos del rol
-            $rolPropiedad->permissions()->sync([]);
-            $this->command->info("   ✓ Rol '{$nombreRol}' creado/actualizado (sin permisos)");
+            $permisosPlan = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
         }
+
+        // Combinar ambos conjuntos de permisos (sin duplicados)
+        $todosLosPermisos = array_unique(array_merge($permisosAdmin, $permisosPlan));
+        
+        // Asignar todos los permisos al rol específico de la propiedad
+        $rolPropiedad->permissions()->sync($todosLosPermisos);
+        
+        $this->command->info("   ✓ Rol '{$nombreRol}' creado/actualizado");
+        $this->command->info('   ✓ ' . count($permisosAdmin) . ' permisos de módulos admin asignados');
+        if (!empty($permisosPlan)) {
+            $this->command->info('   ✓ ' . count($permisosPlan) . ' permisos adicionales del plan asignados');
+        }
+        $this->command->info('   ✓ Total: ' . count($todosLosPermisos) . ' permisos asignados al rol');
 
         // Eliminar roles anteriores del usuario para esta propiedad
         DB::table('role_user')

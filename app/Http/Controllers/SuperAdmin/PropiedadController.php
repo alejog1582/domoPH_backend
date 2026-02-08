@@ -125,6 +125,17 @@ class PropiedadController extends Controller
             // Crear la propiedad
             $propiedad = Propiedad::create($datosPropiedad);
 
+            // Crear configuración activar_tienda
+            DB::table('configuraciones_propiedad')->insert([
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'activar_tienda',
+                'valor' => 'true',
+                'tipo' => 'boolean',
+                'descripcion' => 'Indica si la tienda está activa para esta propiedad',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
             // Crear usuario administrador
             $adminUser = User::create([
                 'nombre' => $request->admin_nombre,

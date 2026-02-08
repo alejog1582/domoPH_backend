@@ -188,8 +188,24 @@ class DemoSeeder extends Seeder
             ]
         );
 
+        // Crear configuración activar_tienda
+        DB::table('configuraciones_propiedad')->updateOrInsert(
+            [
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'activar_tienda',
+            ],
+            [
+                'valor' => 'true',
+                'tipo' => 'boolean',
+                'descripcion' => 'Indica si la tienda está activa para esta propiedad',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
         $this->command->info('   ✓ Propiedad demo creada');
         $this->command->info('   ✓ Administrador asociado a la propiedad');
+        $this->command->info('   ✓ Configuración activar_tienda creada');
         return $propiedad;
     }
 

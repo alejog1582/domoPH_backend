@@ -572,12 +572,12 @@ class AsambleaController extends Controller
                 ->with('error', 'Asamblea no encontrada.');
         }
 
-        $votacion = DB::table('asamblea_votaciones')
+        $votacionData = DB::table('asamblea_votaciones')
             ->where('id', $votacion)
             ->where('asamblea_id', $asamblea)
             ->first();
 
-        if (!$votacion) {
+        if (!$votacionData) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,
@@ -588,7 +588,7 @@ class AsambleaController extends Controller
                 ->with('error', 'Votación no encontrada.');
         }
 
-        if ($votacion->estado === 'cerrada') {
+        if ($votacionData->estado === 'cerrada') {
             if ($request->expectsJson()) {
                 return response()->json([
                     'success' => false,

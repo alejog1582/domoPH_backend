@@ -105,6 +105,23 @@
             </div>
 
             <div>
+                <label for="estado" class="block text-sm font-medium text-gray-700 mb-1">
+                    Estado <span class="text-red-500">*</span>
+                </label>
+                <select name="estado" id="estado" required
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('estado') border-red-500 @enderror">
+                    <option value="">Seleccione un estado</option>
+                    <option value="programada" {{ old('estado', $asamblea->estado) == 'programada' ? 'selected' : '' }}>Programada</option>
+                    <option value="en_curso" {{ old('estado', $asamblea->estado) == 'en_curso' ? 'selected' : '' }}>En Curso</option>
+                    <option value="finalizada" {{ old('estado', $asamblea->estado) == 'finalizada' ? 'selected' : '' }}>Finalizada</option>
+                    <option value="cancelada" {{ old('estado', $asamblea->estado) == 'cancelada' ? 'selected' : '' }}>Cancelada</option>
+                </select>
+                @error('estado')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
                 <label for="quorum_minimo" class="block text-sm font-medium text-gray-700 mb-1">
                     Quorum Mínimo (%) <span class="text-red-500">*</span>
                 </label>
@@ -113,6 +130,19 @@
                     min="0" max="100" step="0.01" required
                     class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('quorum_minimo') border-red-500 @enderror">
                 @error('quorum_minimo')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <div>
+                <label for="quorum_actual" class="block text-sm font-medium text-gray-700 mb-1">
+                    Quorum Actual (%)
+                </label>
+                <input type="number" name="quorum_actual" id="quorum_actual" 
+                    value="{{ old('quorum_actual', $asamblea->quorum_actual) }}" 
+                    min="0" max="100" step="0.01"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('quorum_actual') border-red-500 @enderror">
+                @error('quorum_actual')
                     <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
                 @enderror
             </div>

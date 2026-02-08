@@ -227,9 +227,17 @@
                     <p class="text-sm text-gray-600 mt-1">{{ $votacion->descripcion }}</p>
                     @endif
                 </div>
-                <div>
+                <div class="flex items-center gap-2">
                     @if($votacion->estado == 'abierta')
                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">Abierta</span>
+                        @if(\App\Helpers\AdminHelper::hasPermission('asambleas.votaciones'))
+                        <form action="{{ route('admin.asambleas.cerrar-votacion', ['asamblea' => $asamblea->id, 'votacion' => $votacion->id]) }}" method="POST" class="inline" onsubmit="return confirm('¿Estás seguro de que deseas cerrar esta votación? Esta acción no se puede deshacer.');">
+                            @csrf
+                            <button type="submit" class="px-3 py-1 text-xs bg-red-600 text-white rounded-md hover:bg-red-700">
+                                <i class="fas fa-lock mr-1"></i>Cerrar Votación
+                            </button>
+                        </form>
+                        @endif
                     @else
                         <span class="px-2 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">Cerrada</span>
                     @endif

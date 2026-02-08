@@ -69,6 +69,11 @@ Route::prefix('residente')->group(function () {
         Route::post('/encuestas/{id}/responder', [App\Http\Controllers\Api\EncuestaVotacionResidenteController::class, 'responderEncuesta']);
         Route::post('/votaciones/{id}/votar', [App\Http\Controllers\Api\EncuestaVotacionResidenteController::class, 'votar']);
         Route::get('/votaciones/{id}/resultados', [App\Http\Controllers\Api\EncuestaVotacionResidenteController::class, 'verResultados']);
+        
+        // Rutas de Asambleas
+        Route::get('/asambleas/{id}', [App\Http\Controllers\Api\AsambleaResidenteController::class, 'show']);
+        Route::post('/asambleas/{asambleaId}/votaciones/{votacionId}/votar', [App\Http\Controllers\Api\AsambleaResidenteController::class, 'votar']);
+        Route::get('/asambleas/{asambleaId}/votaciones/{votacionId}/resultados', [App\Http\Controllers\Api\AsambleaResidenteController::class, 'verResultados']);
     });
 });
 

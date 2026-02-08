@@ -617,6 +617,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     });
     Route::middleware('permission:asambleas.votaciones')->group(function () {
         Route::post('asambleas/{id}/votaciones', [AsambleaController::class, 'storeVotacion'])->name('asambleas.store-votacion');
+        Route::post('asambleas/{asamblea}/votaciones/{votacion}/cerrar', [AsambleaController::class, 'cerrarVotacion'])->name('asambleas.cerrar-votacion');
     });
     Route::middleware('permission:asambleas.view')->group(function () {
         Route::get('asambleas/{id}', [AsambleaController::class, 'show'])->name('asambleas.show');

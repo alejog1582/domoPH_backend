@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Residente;
 use App\Models\Cartera;
@@ -422,6 +423,69 @@ class ResidenteAuthController extends Controller
                 ];
             });
 
+        // Obtener asambleas en estado programada o en_curso
+        $asambleas = DB::table('asambleas')
+            ->where('copropiedad_id', $propiedadData['id'])
+            ->whereIn('estado', ['programada', 'en_curso'])
+            ->where('activo', true)
+            ->orderBy('fecha_inicio', 'desc')
+            ->get()
+            ->map(function ($asamblea) use ($residente) {
+                // Obtener votaciones abiertas de esta asamblea
+                $votaciones = DB::table('asamblea_votaciones')
+                    ->where('asamblea_id', $asamblea->id)
+                    ->where('estado', 'abierta')
+                    ->orderBy('fecha_inicio', 'desc')
+                    ->get()
+                    ->map(function ($votacion) use ($residente) {
+                        // Obtener opciones de la votación
+                        $opciones = DB::table('asamblea_votacion_opciones')
+                            ->where('votacion_id', $votacion->id)
+                            ->orderBy('orden', 'asc')
+                            ->get()
+                            ->map(function ($opcion) {
+                                return [
+                                    'id' => $opcion->id,
+                                    'opcion' => $opcion->opcion,
+                                    'orden' => $opcion->orden,
+                                ];
+                            });
+
+                        // Verificar si el residente ya votó
+                        $yaVoto = DB::table('asamblea_votos')
+                            ->where('votacion_id', $votacion->id)
+                            ->where('residente_id', $residente->id)
+                            ->exists();
+
+                        return [
+                            'id' => $votacion->id,
+                            'titulo' => $votacion->titulo,
+                            'descripcion' => $votacion->descripcion,
+                            'tipo' => $votacion->tipo,
+                            'estado' => $votacion->estado,
+                            'fecha_inicio' => $votacion->fecha_inicio ? Carbon::parse($votacion->fecha_inicio)->format('Y-m-d H:i:s') : null,
+                            'fecha_fin' => $votacion->fecha_fin ? Carbon::parse($votacion->fecha_fin)->format('Y-m-d H:i:s') : null,
+                            'opciones' => $opciones,
+                            'ya_voto' => $yaVoto,
+                        ];
+                    });
+
+                return [
+                    'id' => $asamblea->id,
+                    'titulo' => $asamblea->titulo,
+                    'descripcion' => $asamblea->descripcion,
+                    'tipo' => $asamblea->tipo,
+                    'modalidad' => $asamblea->modalidad,
+                    'estado' => $asamblea->estado,
+                    'fecha_inicio' => $asamblea->fecha_inicio ? Carbon::parse($asamblea->fecha_inicio)->format('Y-m-d H:i:s') : null,
+                    'fecha_fin' => $asamblea->fecha_fin ? Carbon::parse($asamblea->fecha_fin)->format('Y-m-d H:i:s') : null,
+                    'quorum_minimo' => $asamblea->quorum_minimo,
+                    'quorum_actual' => $asamblea->quorum_actual,
+                    'url_transmision' => $asamblea->url_transmision,
+                    'votaciones' => $votaciones,
+                ];
+            });
+
         // Respuesta exitosa
         return response()->json([
             'success' => true,
@@ -444,6 +508,7 @@ class ResidenteAuthController extends Controller
                 'manual_convivencia' => $manualConvivenciaData,
                 'encuestas_activas' => $encuestasActivas->count() > 0 ? $encuestasActivas : null,
                 'votaciones_activas' => $votacionesActivas->count() > 0 ? $votacionesActivas : null,
+                'asambleas' => $asambleas->count() > 0 ? $asambleas : null,
                 'token' => $token,
                 'token_type' => 'Bearer',
             ]
@@ -782,6 +847,69 @@ class ResidenteAuthController extends Controller
                 ];
             });
 
+        // Obtener asambleas en estado programada o en_curso
+        $asambleas = \DB::table('asambleas')
+            ->where('copropiedad_id', $propiedadData['id'])
+            ->whereIn('estado', ['programada', 'en_curso'])
+            ->where('activo', true)
+            ->orderBy('fecha_inicio', 'desc')
+            ->get()
+            ->map(function ($asamblea) use ($residente) {
+                // Obtener votaciones abiertas de esta asamblea
+                $votaciones = \DB::table('asamblea_votaciones')
+                    ->where('asamblea_id', $asamblea->id)
+                    ->where('estado', 'abierta')
+                    ->orderBy('fecha_inicio', 'desc')
+                    ->get()
+                    ->map(function ($votacion) use ($residente) {
+                        // Obtener opciones de la votación
+                        $opciones = \DB::table('asamblea_votacion_opciones')
+                            ->where('votacion_id', $votacion->id)
+                            ->orderBy('orden', 'asc')
+                            ->get()
+                            ->map(function ($opcion) {
+                                return [
+                                    'id' => $opcion->id,
+                                    'opcion' => $opcion->opcion,
+                                    'orden' => $opcion->orden,
+                                ];
+                            });
+
+                        // Verificar si el residente ya votó
+                        $yaVoto = \DB::table('asamblea_votos')
+                            ->where('votacion_id', $votacion->id)
+                            ->where('residente_id', $residente->id)
+                            ->exists();
+
+                        return [
+                            'id' => $votacion->id,
+                            'titulo' => $votacion->titulo,
+                            'descripcion' => $votacion->descripcion,
+                            'tipo' => $votacion->tipo,
+                            'estado' => $votacion->estado,
+                            'fecha_inicio' => $votacion->fecha_inicio ? \Carbon\Carbon::parse($votacion->fecha_inicio)->format('Y-m-d H:i:s') : null,
+                            'fecha_fin' => $votacion->fecha_fin ? \Carbon\Carbon::parse($votacion->fecha_fin)->format('Y-m-d H:i:s') : null,
+                            'opciones' => $opciones,
+                            'ya_voto' => $yaVoto,
+                        ];
+                    });
+
+                return [
+                    'id' => $asamblea->id,
+                    'titulo' => $asamblea->titulo,
+                    'descripcion' => $asamblea->descripcion,
+                    'tipo' => $asamblea->tipo,
+                    'modalidad' => $asamblea->modalidad,
+                    'estado' => $asamblea->estado,
+                    'fecha_inicio' => $asamblea->fecha_inicio ? \Carbon\Carbon::parse($asamblea->fecha_inicio)->format('Y-m-d H:i:s') : null,
+                    'fecha_fin' => $asamblea->fecha_fin ? \Carbon\Carbon::parse($asamblea->fecha_fin)->format('Y-m-d H:i:s') : null,
+                    'quorum_minimo' => $asamblea->quorum_minimo,
+                    'quorum_actual' => $asamblea->quorum_actual,
+                    'url_transmision' => $asamblea->url_transmision,
+                    'votaciones' => $votaciones,
+                ];
+            });
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -802,6 +930,7 @@ class ResidenteAuthController extends Controller
                 'manual_convivencia' => $manualConvivenciaData,
                 'encuestas_activas' => $encuestasActivas->count() > 0 ? $encuestasActivas : null,
                 'votaciones_activas' => $votacionesActivas->count() > 0 ? $votacionesActivas : null,
+                'asambleas' => $asambleas->count() > 0 ? $asambleas : null,
             ]
         ], 200);
     }

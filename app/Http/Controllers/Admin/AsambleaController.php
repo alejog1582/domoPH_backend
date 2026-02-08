@@ -267,12 +267,6 @@ class AsambleaController extends Controller
                 ->with('error', 'Asamblea no encontrada.');
         }
 
-        // Solo se pueden editar asambleas programadas
-        if ($asamblea->estado !== 'programada') {
-            return redirect()->route('admin.asambleas.index')
-                ->with('error', 'Solo se pueden editar asambleas en estado programada.');
-        }
-
         // Obtener documentos existentes
         $documentos = DB::table('asamblea_documentos')
             ->where('asamblea_id', $id)
@@ -304,12 +298,6 @@ class AsambleaController extends Controller
                 ->with('error', 'Asamblea no encontrada.');
         }
 
-        // Solo se pueden editar asambleas programadas
-        if ($asamblea->estado !== 'programada') {
-            return redirect()->route('admin.asambleas.index')
-                ->with('error', 'Solo se pueden editar asambleas en estado programada.');
-        }
-
         $validated = $request->validate([
             'titulo' => 'required|string|max:255',
             'descripcion' => 'nullable|string',
@@ -317,7 +305,9 @@ class AsambleaController extends Controller
             'modalidad' => 'required|in:presencial,virtual,mixta',
             'fecha_inicio' => 'required|date',
             'fecha_fin' => 'required|date|after:fecha_inicio',
+            'estado' => 'required|in:programada,en_curso,finalizada,cancelada',
             'quorum_minimo' => 'required|numeric|min:0|max:100',
+            'quorum_actual' => 'nullable|numeric|min:0|max:100',
             'url_transmision' => 'nullable|url|max:500',
             'proveedor_transmision' => 'nullable|in:daily,livekit,agora,twilio',
             'token_transmision' => 'nullable|string',
@@ -343,7 +333,9 @@ class AsambleaController extends Controller
                     'modalidad' => $validated['modalidad'],
                     'fecha_inicio' => $validated['fecha_inicio'],
                     'fecha_fin' => $validated['fecha_fin'],
+                    'estado' => $validated['estado'],
                     'quorum_minimo' => $validated['quorum_minimo'],
+                    'quorum_actual' => $validated['quorum_actual'] ?? null,
                     'url_transmision' => $validated['url_transmision'] ?? null,
                     'proveedor_transmision' => $validated['proveedor_transmision'] ?? null,
                     'token_transmision' => $validated['token_transmision'] ?? null,
@@ -543,6 +535,97 @@ class AsambleaController extends Controller
             return redirect()->back()
                 ->withInput()
                 ->with('error', 'Error al crear la votación.');
+        }
+    }
+
+    /**
+     * Cerrar una votación de asamblea
+     */
+    public function cerrarVotacion(Request $request, $asamblea, $votacion)
+    {
+        $propiedad = AdminHelper::getPropiedadActiva();
+        
+        if (!$propiedad) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'No hay propiedad asignada.'
+                ], 400);
+            }
+            return redirect()->route('admin.dashboard')
+                ->with('error', 'No hay propiedad asignada.');
+        }
+
+        $asambleaData = DB::table('asambleas')
+            ->where('id', $asamblea)
+            ->where('copropiedad_id', $propiedad->id)
+            ->first();
+
+        if (!$asambleaData) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Asamblea no encontrada.'
+                ], 404);
+            }
+            return redirect()->route('admin.asambleas.index')
+                ->with('error', 'Asamblea no encontrada.');
+        }
+
+        $votacion = DB::table('asamblea_votaciones')
+            ->where('id', $votacion)
+            ->where('asamblea_id', $asamblea)
+            ->first();
+
+        if (!$votacion) {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Votación no encontrada.'
+                ], 404);
+            }
+            return redirect()->route('admin.asambleas.show', $asamblea)
+                ->with('error', 'Votación no encontrada.');
+        }
+
+        if ($votacion->estado === 'cerrada') {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'La votación ya está cerrada.'
+                ], 400);
+            }
+            return redirect()->route('admin.asambleas.show', $asamblea)
+                ->with('error', 'La votación ya está cerrada.');
+        }
+
+        try {
+            DB::table('asamblea_votaciones')
+                ->where('id', $votacion)
+                ->update([
+                    'estado' => 'cerrada',
+                    'fecha_fin' => now(),
+                    'updated_at' => now(),
+                ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Votación cerrada exitosamente.'
+                ], 200);
+            }
+            return redirect()->route('admin.asambleas.show', $asamblea)
+                ->with('success', 'Votación cerrada exitosamente.');
+        } catch (\Exception $e) {
+            \Log::error('Error al cerrar votación: ' . $e->getMessage());
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Error al cerrar la votación.'
+                ], 500);
+            }
+            return redirect()->route('admin.asambleas.show', $asamblea)
+                ->with('error', 'Error al cerrar la votación.');
         }
     }
 }

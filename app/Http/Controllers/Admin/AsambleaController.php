@@ -200,11 +200,12 @@ class AsambleaController extends Controller
         // Obtener asistencias
         $asistencias = DB::table('asamblea_asistencias')
             ->leftJoin('residentes', 'asamblea_asistencias.residente_id', '=', 'residentes.id')
+            ->leftJoin('users as residente_user', 'residentes.user_id', '=', 'residente_user.id')
             ->leftJoin('users', 'asamblea_asistencias.user_id', '=', 'users.id')
             ->where('asamblea_asistencias.asamblea_id', $id)
             ->select(
                 'asamblea_asistencias.*',
-                'residentes.nombre as residente_nombre',
+                'residente_user.nombre as residente_nombre',
                 'users.nombre as user_nombre'
             )
             ->orderBy('asamblea_asistencias.created_at', 'desc')

@@ -74,6 +74,15 @@ Route::prefix('residente')->group(function () {
         Route::get('/asambleas/{id}', [App\Http\Controllers\Api\AsambleaResidenteController::class, 'show']);
         Route::post('/asambleas/{asambleaId}/votaciones/{votacionId}/votar', [App\Http\Controllers\Api\AsambleaResidenteController::class, 'votar']);
         Route::get('/asambleas/{asambleaId}/votaciones/{votacionId}/resultados', [App\Http\Controllers\Api\AsambleaResidenteController::class, 'verResultados']);
+        
+        // Rutas de Ecommerce
+        // IMPORTANTE: Las rutas específicas deben ir ANTES de las rutas con parámetros
+        Route::get('/ecommerce', [App\Http\Controllers\Api\EcommerceController::class, 'index']);
+        Route::get('/ecommerce/categorias', [App\Http\Controllers\Api\EcommerceController::class, 'categorias']);
+        Route::get('/ecommerce/mis-publicaciones', [App\Http\Controllers\Api\EcommerceController::class, 'misPublicaciones']);
+        Route::get('/ecommerce/{id}', [App\Http\Controllers\Api\EcommerceController::class, 'show']);
+        Route::post('/ecommerce', [App\Http\Controllers\Api\EcommerceController::class, 'store']);
+        Route::put('/ecommerce/{id}', [App\Http\Controllers\Api\EcommerceController::class, 'update']);
     });
 });
 

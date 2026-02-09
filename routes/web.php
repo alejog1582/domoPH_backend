@@ -41,6 +41,8 @@ use App\Http\Controllers\Admin\ConsejoDecisionController;
 use App\Http\Controllers\Admin\ConsejoTareaController;
 use App\Http\Controllers\Admin\ConsejoComunicacionController;
 use App\Http\Controllers\Admin\AsambleaController;
+use App\Http\Controllers\Admin\EcommerceCategoriaController;
+use App\Http\Controllers\Admin\EcommerceController;
 
 /*
 |--------------------------------------------------------------------------
@@ -621,6 +623,57 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     });
     Route::middleware('permission:asambleas.view')->group(function () {
         Route::get('asambleas/{id}', [AsambleaController::class, 'show'])->name('asambleas.show');
+    });
+    
+    // ========================
+    // ECOMMERCE / CLASIFICADOS
+    // ========================
+    
+    // Gestión de Categorías Ecommerce
+    Route::middleware('permission:ecommerce-categorias.view')->group(function () {
+        Route::get('ecommerce-categorias', [EcommerceCategoriaController::class, 'index'])->name('ecommerce-categorias.index');
+    });
+    Route::middleware('permission:ecommerce-categorias.create')->group(function () {
+        Route::get('ecommerce-categorias/create', [EcommerceCategoriaController::class, 'create'])->name('ecommerce-categorias.create');
+        Route::post('ecommerce-categorias', [EcommerceCategoriaController::class, 'store'])->name('ecommerce-categorias.store');
+    });
+    Route::middleware('permission:ecommerce-categorias.edit')->group(function () {
+        Route::get('ecommerce-categorias/{id}/edit', [EcommerceCategoriaController::class, 'edit'])->name('ecommerce-categorias.edit');
+        Route::put('ecommerce-categorias/{id}', [EcommerceCategoriaController::class, 'update'])->name('ecommerce-categorias.update');
+    });
+    Route::middleware('permission:ecommerce-categorias.delete')->group(function () {
+        Route::delete('ecommerce-categorias/{id}', [EcommerceCategoriaController::class, 'destroy'])->name('ecommerce-categorias.destroy');
+    });
+    Route::middleware('permission:ecommerce-categorias.view')->group(function () {
+        Route::get('ecommerce-categorias/{id}', [EcommerceCategoriaController::class, 'show'])->name('ecommerce-categorias.show');
+    });
+    
+    // Gestión de Publicaciones Ecommerce (Productos)
+    Route::middleware('permission:ecommerce.view')->group(function () {
+        Route::get('ecommerce', [EcommerceController::class, 'index'])->name('ecommerce.index');
+    });
+    Route::middleware('permission:ecommerce.create')->group(function () {
+        Route::get('ecommerce/create', [EcommerceController::class, 'create'])->name('ecommerce.create');
+        Route::post('ecommerce', [EcommerceController::class, 'store'])->name('ecommerce.store');
+    });
+    Route::middleware('permission:ecommerce.edit')->group(function () {
+        Route::get('ecommerce/{id}/edit', [EcommerceController::class, 'edit'])->name('ecommerce.edit');
+        Route::put('ecommerce/{id}', [EcommerceController::class, 'update'])->name('ecommerce.update');
+    });
+    Route::middleware('permission:ecommerce.delete')->group(function () {
+        Route::delete('ecommerce/{id}', [EcommerceController::class, 'destroy'])->name('ecommerce.destroy');
+    });
+    Route::middleware('permission:ecommerce.view')->group(function () {
+        Route::get('ecommerce/{id}', [EcommerceController::class, 'show'])->name('ecommerce.show');
+    });
+    Route::middleware('permission:ecommerce.aprobar')->group(function () {
+        Route::post('ecommerce/{id}/aprobar', [EcommerceController::class, 'aprobar'])->name('ecommerce.aprobar');
+    });
+    Route::middleware('permission:ecommerce.pausar')->group(function () {
+        Route::post('ecommerce/{id}/pausar', [EcommerceController::class, 'pausar'])->name('ecommerce.pausar');
+    });
+    Route::middleware('permission:ecommerce.finalizar')->group(function () {
+        Route::post('ecommerce/{id}/finalizar', [EcommerceController::class, 'finalizar'])->name('ecommerce.finalizar');
     });
 });
 

@@ -486,6 +486,99 @@ class ResidenteAuthController extends Controller
                 ];
             });
 
+        // Verificar si la propiedad tiene ecommerce activado
+        $activarTienda = DB::table('configuraciones_propiedad')
+            ->where('propiedad_id', $propiedadData['id'])
+            ->where('clave', 'activar_tienda')
+            ->where('valor', 'true')
+            ->exists();
+
+        $ecommerceData = null;
+        if ($activarTienda) {
+            // Obtener publicaciones publicadas con sus imágenes y contactos
+            $publicaciones = DB::table('ecommerce_publicaciones')
+                ->where('copropiedad_id', $propiedadData['id'])
+                ->where('estado', 'publicado')
+                ->where('activo', true)
+                ->orderBy('fecha_publicacion', 'desc')
+                ->get()
+                ->map(function ($publicacion) {
+                    // Obtener imágenes
+                    $imagenes = DB::table('ecommerce_publicacion_imagenes')
+                        ->where('publicacion_id', $publicacion->id)
+                        ->orderBy('orden', 'asc')
+                        ->get()
+                        ->map(function ($imagen) {
+                            return [
+                                'id' => $imagen->id,
+                                'ruta_imagen' => $imagen->ruta_imagen,
+                                'orden' => $imagen->orden,
+                            ];
+                        });
+
+                    // Obtener contactos
+                    $contactos = DB::table('ecommerce_publicacion_contactos')
+                        ->where('publicacion_id', $publicacion->id)
+                        ->get()
+                        ->map(function ($contacto) {
+                            return [
+                                'id' => $contacto->id,
+                                'nombre_contacto' => $contacto->nombre_contacto,
+                                'telefono' => $contacto->telefono,
+                                'whatsapp' => (bool) $contacto->whatsapp,
+                                'email' => $contacto->email,
+                                'observaciones' => $contacto->observaciones,
+                            ];
+                        });
+
+                    // Obtener información del residente
+                    $residentePublicacion = DB::table('residentes')
+                        ->join('users', 'residentes.user_id', '=', 'users.id')
+                        ->where('residentes.id', $publicacion->residente_id)
+                        ->select('users.nombre as residente_nombre', 'users.avatar as residente_avatar')
+                        ->first();
+
+                    // Obtener categoría
+                    $categoria = DB::table('ecommerce_categorias')
+                        ->where('id', $publicacion->categoria_id)
+                        ->first();
+
+                    return [
+                        'id' => $publicacion->id,
+                        'titulo' => $publicacion->titulo,
+                        'descripcion' => $publicacion->descripcion,
+                        'tipo_publicacion' => $publicacion->tipo_publicacion,
+                        'categoria' => $categoria ? [
+                            'id' => $categoria->id,
+                            'nombre' => $categoria->nombre,
+                            'slug' => $categoria->slug,
+                            'icono' => $categoria->icono,
+                        ] : null,
+                        'precio' => $publicacion->precio ? (float) $publicacion->precio : null,
+                        'moneda' => $publicacion->moneda,
+                        'es_negociable' => (bool) $publicacion->es_negociable,
+                        'estado' => $publicacion->estado,
+                        'fecha_publicacion' => Carbon::parse($publicacion->fecha_publicacion)->format('Y-m-d H:i:s'),
+                        'residente' => $residentePublicacion ? [
+                            'nombre' => $residentePublicacion->residente_nombre,
+                            'avatar' => $residentePublicacion->residente_avatar,
+                        ] : null,
+                        'imagenes' => $imagenes,
+                        'contactos' => $contactos,
+                    ];
+                });
+
+            $ecommerceData = [
+                'activado' => true,
+                'publicaciones' => $publicaciones,
+            ];
+        } else {
+            $ecommerceData = [
+                'activado' => false,
+                'publicaciones' => [],
+            ];
+        }
+
         // Respuesta exitosa
         return response()->json([
             'success' => true,
@@ -509,6 +602,7 @@ class ResidenteAuthController extends Controller
                 'encuestas_activas' => $encuestasActivas->count() > 0 ? $encuestasActivas : null,
                 'votaciones_activas' => $votacionesActivas->count() > 0 ? $votacionesActivas : null,
                 'asambleas' => $asambleas->count() > 0 ? $asambleas : null,
+                'ecommerce' => $ecommerceData,
                 'token' => $token,
                 'token_type' => 'Bearer',
             ]
@@ -910,6 +1004,99 @@ class ResidenteAuthController extends Controller
                 ];
             });
 
+        // Verificar si la propiedad tiene ecommerce activado
+        $activarTienda = DB::table('configuraciones_propiedad')
+            ->where('propiedad_id', $propiedadData['id'])
+            ->where('clave', 'activar_tienda')
+            ->where('valor', 'true')
+            ->exists();
+
+        $ecommerceData = null;
+        if ($activarTienda) {
+            // Obtener publicaciones publicadas con sus imágenes y contactos
+            $publicaciones = DB::table('ecommerce_publicaciones')
+                ->where('copropiedad_id', $propiedadData['id'])
+                ->where('estado', 'publicado')
+                ->where('activo', true)
+                ->orderBy('fecha_publicacion', 'desc')
+                ->get()
+                ->map(function ($publicacion) {
+                    // Obtener imágenes
+                    $imagenes = DB::table('ecommerce_publicacion_imagenes')
+                        ->where('publicacion_id', $publicacion->id)
+                        ->orderBy('orden', 'asc')
+                        ->get()
+                        ->map(function ($imagen) {
+                            return [
+                                'id' => $imagen->id,
+                                'ruta_imagen' => $imagen->ruta_imagen,
+                                'orden' => $imagen->orden,
+                            ];
+                        });
+
+                    // Obtener contactos
+                    $contactos = DB::table('ecommerce_publicacion_contactos')
+                        ->where('publicacion_id', $publicacion->id)
+                        ->get()
+                        ->map(function ($contacto) {
+                            return [
+                                'id' => $contacto->id,
+                                'nombre_contacto' => $contacto->nombre_contacto,
+                                'telefono' => $contacto->telefono,
+                                'whatsapp' => (bool) $contacto->whatsapp,
+                                'email' => $contacto->email,
+                                'observaciones' => $contacto->observaciones,
+                            ];
+                        });
+
+                    // Obtener información del residente
+                    $residentePublicacion = DB::table('residentes')
+                        ->join('users', 'residentes.user_id', '=', 'users.id')
+                        ->where('residentes.id', $publicacion->residente_id)
+                        ->select('users.nombre as residente_nombre', 'users.avatar as residente_avatar')
+                        ->first();
+
+                    // Obtener categoría
+                    $categoria = DB::table('ecommerce_categorias')
+                        ->where('id', $publicacion->categoria_id)
+                        ->first();
+
+                    return [
+                        'id' => $publicacion->id,
+                        'titulo' => $publicacion->titulo,
+                        'descripcion' => $publicacion->descripcion,
+                        'tipo_publicacion' => $publicacion->tipo_publicacion,
+                        'categoria' => $categoria ? [
+                            'id' => $categoria->id,
+                            'nombre' => $categoria->nombre,
+                            'slug' => $categoria->slug,
+                            'icono' => $categoria->icono,
+                        ] : null,
+                        'precio' => $publicacion->precio ? (float) $publicacion->precio : null,
+                        'moneda' => $publicacion->moneda,
+                        'es_negociable' => (bool) $publicacion->es_negociable,
+                        'estado' => $publicacion->estado,
+                        'fecha_publicacion' => Carbon::parse($publicacion->fecha_publicacion)->format('Y-m-d H:i:s'),
+                        'residente' => $residentePublicacion ? [
+                            'nombre' => $residentePublicacion->residente_nombre,
+                            'avatar' => $residentePublicacion->residente_avatar,
+                        ] : null,
+                        'imagenes' => $imagenes,
+                        'contactos' => $contactos,
+                    ];
+                });
+
+            $ecommerceData = [
+                'activado' => true,
+                'publicaciones' => $publicaciones,
+            ];
+        } else {
+            $ecommerceData = [
+                'activado' => false,
+                'publicaciones' => [],
+            ];
+        }
+
         return response()->json([
             'success' => true,
             'data' => [
@@ -931,6 +1118,7 @@ class ResidenteAuthController extends Controller
                 'encuestas_activas' => $encuestasActivas->count() > 0 ? $encuestasActivas : null,
                 'votaciones_activas' => $votacionesActivas->count() > 0 ? $votacionesActivas : null,
                 'asambleas' => $asambleas->count() > 0 ? $asambleas : null,
+                'ecommerce' => $ecommerceData,
             ]
         ], 200);
     }

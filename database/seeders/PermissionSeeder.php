@@ -235,6 +235,21 @@ class PermissionSeeder extends Seeder
             ['nombre' => 'Gestionar documentos de asambleas', 'slug' => 'asambleas.documentos', 'modulo' => 'asambleas'],
             ['nombre' => 'Gestionar asistencias de asambleas', 'slug' => 'asambleas.asistencias', 'modulo' => 'asambleas'],
             ['nombre' => 'Gestionar votaciones de asambleas', 'slug' => 'asambleas.votaciones', 'modulo' => 'asambleas'],
+            
+            // Ecommerce / Clasificados
+            ['nombre' => 'Ver publicaciones ecommerce', 'slug' => 'ecommerce.view', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Crear publicaciones ecommerce', 'slug' => 'ecommerce.create', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Editar publicaciones ecommerce', 'slug' => 'ecommerce.edit', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Eliminar publicaciones ecommerce', 'slug' => 'ecommerce.delete', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Aprobar publicaciones ecommerce', 'slug' => 'ecommerce.aprobar', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Pausar publicaciones ecommerce', 'slug' => 'ecommerce.pausar', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Finalizar publicaciones ecommerce', 'slug' => 'ecommerce.finalizar', 'modulo' => 'ecommerce'],
+            
+            // Categorías Ecommerce
+            ['nombre' => 'Ver categorías ecommerce', 'slug' => 'ecommerce-categorias.view', 'modulo' => 'ecommerce-categorias'],
+            ['nombre' => 'Crear categorías ecommerce', 'slug' => 'ecommerce-categorias.create', 'modulo' => 'ecommerce-categorias'],
+            ['nombre' => 'Editar categorías ecommerce', 'slug' => 'ecommerce-categorias.edit', 'modulo' => 'ecommerce-categorias'],
+            ['nombre' => 'Eliminar categorías ecommerce', 'slug' => 'ecommerce-categorias.delete', 'modulo' => 'ecommerce-categorias'],
         ];
 
         // Permisos del Residente (Frontend)
@@ -248,6 +263,10 @@ class PermissionSeeder extends Seeder
             ['nombre' => 'Responder encuestas', 'slug' => 'encuestas.responder', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Ver votaciones', 'slug' => 'votaciones.view', 'modulo' => 'encuestas-votaciones'],
             ['nombre' => 'Votar', 'slug' => 'votaciones.votar', 'modulo' => 'encuestas-votaciones'],
+            ['nombre' => 'Ver ecommerce', 'slug' => 'ecommerce.view', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Crear publicaciones ecommerce', 'slug' => 'ecommerce.create', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Editar mis publicaciones ecommerce', 'slug' => 'ecommerce.edit-propia', 'modulo' => 'ecommerce'],
+            ['nombre' => 'Eliminar mis publicaciones ecommerce', 'slug' => 'ecommerce.delete-propia', 'modulo' => 'ecommerce'],
         ];
 
         // Crear todos los permisos

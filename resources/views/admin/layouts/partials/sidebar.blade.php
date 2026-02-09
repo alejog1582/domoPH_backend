@@ -29,6 +29,10 @@
     $hasAsambleasPerms = \App\Helpers\AdminHelper::hasAnyPermission([
         'asambleas.view'
     ]);
+    
+    $hasEcommercePerms = \App\Helpers\AdminHelper::hasAnyPermission([
+        'ecommerce.view', 'ecommerce-categorias.view'
+    ]);
 @endphp
 
 <!-- Logo -->
@@ -458,6 +462,44 @@
             <i class="fas fa-users mr-3"></i>
             <span>Asambleas</span>
         </a>
+    </div>
+    @endif
+    
+    @if($hasEcommercePerms)
+    <div class="mb-1">
+        <button 
+            type="button" 
+            onclick="toggleSubmenu('ecommerce-menu')"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.ecommerce.*') || request()->routeIs('admin.ecommerce-categorias.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+        >
+            <div class="flex items-center">
+                <i class="fas fa-shopping-bag mr-3"></i>
+                <span>Ecommerce</span>
+            </div>
+            <i id="ecommerce-menu-icon" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+        </button>
+        
+        <!-- Submenú de Ecommerce -->
+        <div id="ecommerce-menu" class="hidden pl-4 mt-1 space-y-1">
+            @if(\App\Helpers\AdminHelper::hasPermission('ecommerce-categorias.view'))
+            <a 
+                href="{{ route('admin.ecommerce-categorias.index') }}" 
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.ecommerce-categorias.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-tags mr-3 text-xs"></i>
+                Categorías
+            </a>
+            @endif
+            @if(\App\Helpers\AdminHelper::hasPermission('ecommerce.view'))
+            <a 
+                href="{{ route('admin.ecommerce.index') }}" 
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.ecommerce.*') && !request()->routeIs('admin.ecommerce-categorias.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-box mr-3 text-xs"></i>
+                Productos
+            </a>
+            @endif
+        </div>
     </div>
     @endif
     

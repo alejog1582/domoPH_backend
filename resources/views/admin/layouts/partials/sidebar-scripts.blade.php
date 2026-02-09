@@ -68,5 +68,17 @@
                 }
             }
         @endif
+
+        @if(request()->routeIs('admin.ecommerce.*') || request()->routeIs('admin.ecommerce-categorias.*'))
+            const ecommerceMenu = document.getElementById('ecommerce-menu');
+            const ecommerceIcon = document.getElementById('ecommerce-menu-icon');
+            if (ecommerceMenu) {
+                ecommerceMenu.classList.remove('hidden');
+                if (ecommerceIcon) {
+                    ecommerceIcon.classList.remove('fa-chevron-down');
+                    ecommerceIcon.classList.add('fa-chevron-up');
+                }
+            }
+        @endif
     });
 </script>

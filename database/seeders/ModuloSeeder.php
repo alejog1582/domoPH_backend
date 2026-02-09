@@ -527,6 +527,35 @@ class ModuloSeeder extends Seeder
                 'configuracion_default' => [],
                 'es_admin' => true,
             ],
+            // ========================
+            // ECOMMERCE / CLASIFICADOS
+            // ========================
+            [
+                'nombre' => 'Ecommerce / Clasificados',
+                'slug' => 'ecommerce',
+                'descripcion' => 'Gestión de publicaciones del ecommerce interno y clasificados entre residentes.',
+                'icono' => 'shopping-bag',
+                'ruta' => '/admin/ecommerce',
+                'activo' => true,
+                'requiere_configuracion' => true,
+                'orden' => 42,
+                'configuracion_default' => [
+                    'requiere_aprobacion' => false,
+                ],
+                'es_admin' => true,
+            ],
+            [
+                'nombre' => 'Categorías Ecommerce',
+                'slug' => 'ecommerce-categorias',
+                'descripcion' => 'Gestión de categorías para las publicaciones del ecommerce.',
+                'icono' => 'tag',
+                'ruta' => '/admin/ecommerce/categorias',
+                'activo' => true,
+                'requiere_configuracion' => false,
+                'orden' => 43,
+                'configuracion_default' => [],
+                'es_admin' => true,
+            ],
         ];
 
         foreach ($modulos as $modulo) {

@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             ModuloSeeder::class,
             SuperAdminSeeder::class,
             DemoSeeder::class,
+            EcommerceSeeder::class,
             CarteraSeeder::class,
             ComunicadoSeeder::class,
         ]);

@@ -136,6 +136,17 @@ class PropiedadController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Crear configuración ecommerce_requiere_aprobacion
+            DB::table('configuraciones_propiedad')->insert([
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'ecommerce_requiere_aprobacion',
+                'valor' => 'false',
+                'tipo' => 'boolean',
+                'descripcion' => 'Indica si las publicaciones del ecommerce requieren aprobación del administrador',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
             // Crear usuario administrador
             $adminUser = User::create([
                 'nombre' => $request->admin_nombre,

@@ -203,9 +203,25 @@ class DemoSeeder extends Seeder
             ]
         );
 
+        // Crear configuración ecommerce_requiere_aprobacion
+        DB::table('configuraciones_propiedad')->updateOrInsert(
+            [
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'ecommerce_requiere_aprobacion',
+            ],
+            [
+                'valor' => 'false',
+                'tipo' => 'boolean',
+                'descripcion' => 'Indica si las publicaciones del ecommerce requieren aprobación del administrador',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
         $this->command->info('   ✓ Propiedad demo creada');
         $this->command->info('   ✓ Administrador asociado a la propiedad');
         $this->command->info('   ✓ Configuración activar_tienda creada');
+        $this->command->info('   ✓ Configuración ecommerce_requiere_aprobacion creada');
         return $propiedad;
     }
 
@@ -321,8 +337,13 @@ class DemoSeeder extends Seeder
             $permisosPlan = Permission::whereIn('modulo', $modulosAsignados)->pluck('id')->toArray();
         }
 
-        // Combinar ambos conjuntos de permisos (sin duplicados)
-        $todosLosPermisos = array_unique(array_merge($permisosAdmin, $permisosPlan));
+        // Obtener permisos de ecommerce explícitamente
+        $permisosEcommerce = Permission::whereIn('modulo', ['ecommerce', 'ecommerce-categorias'])
+            ->pluck('id')
+            ->toArray();
+        
+        // Combinar todos los conjuntos de permisos (sin duplicados)
+        $todosLosPermisos = array_unique(array_merge($permisosAdmin, $permisosPlan, $permisosEcommerce));
         
         // Asignar todos los permisos al rol específico de la propiedad
         $rolPropiedad->permissions()->sync($todosLosPermisos);
@@ -331,6 +352,9 @@ class DemoSeeder extends Seeder
         $this->command->info('   ✓ ' . count($permisosAdmin) . ' permisos de módulos admin asignados');
         if (!empty($permisosPlan)) {
             $this->command->info('   ✓ ' . count($permisosPlan) . ' permisos adicionales del plan asignados');
+        }
+        if (!empty($permisosEcommerce)) {
+            $this->command->info('   ✓ ' . count($permisosEcommerce) . ' permisos de ecommerce asignados');
         }
         $this->command->info('   ✓ Total: ' . count($todosLosPermisos) . ' permisos asignados al rol');
 

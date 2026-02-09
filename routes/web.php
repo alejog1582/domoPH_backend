@@ -43,6 +43,7 @@ use App\Http\Controllers\Admin\ConsejoComunicacionController;
 use App\Http\Controllers\Admin\AsambleaController;
 use App\Http\Controllers\Admin\EcommerceCategoriaController;
 use App\Http\Controllers\Admin\EcommerceController;
+use App\Http\Controllers\Admin\ConfiguracionesPropiedadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -674,6 +675,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     });
     Route::middleware('permission:ecommerce.finalizar')->group(function () {
         Route::post('ecommerce/{id}/finalizar', [EcommerceController::class, 'finalizar'])->name('ecommerce.finalizar');
+    });
+    
+    // ========================
+    // CONFIGURACIONES PROPIEDAD
+    // ========================
+    Route::middleware('permission:configuraciones-propiedad.view')->group(function () {
+        Route::get('configuraciones-propiedad', [ConfiguracionesPropiedadController::class, 'index'])->name('configuraciones-propiedad.index');
+    });
+    Route::middleware('permission:configuraciones-propiedad.edit')->group(function () {
+        Route::put('configuraciones-propiedad/{id}', [ConfiguracionesPropiedadController::class, 'update'])->name('configuraciones-propiedad.update');
+        Route::post('configuraciones-propiedad/update-multiple', [ConfiguracionesPropiedadController::class, 'updateMultiple'])->name('configuraciones-propiedad.update-multiple');
     });
 });
 

@@ -556,6 +556,21 @@ class ModuloSeeder extends Seeder
                 'configuracion_default' => [],
                 'es_admin' => true,
             ],
+            // ========================
+            // CONFIGURACIONES
+            // ========================
+            [
+                'nombre' => 'Configuraciones Propiedad',
+                'slug' => 'configuraciones-propiedad',
+                'descripcion' => 'Gestión de configuraciones específicas de la propiedad.',
+                'icono' => 'settings',
+                'ruta' => '/admin/configuraciones-propiedad',
+                'activo' => true,
+                'requiere_configuracion' => false,
+                'orden' => 44,
+                'configuracion_default' => [],
+                'es_admin' => true,
+            ],
         ];
 
         foreach ($modulos as $modulo) {

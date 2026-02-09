@@ -250,6 +250,10 @@ class PermissionSeeder extends Seeder
             ['nombre' => 'Crear categorías ecommerce', 'slug' => 'ecommerce-categorias.create', 'modulo' => 'ecommerce-categorias'],
             ['nombre' => 'Editar categorías ecommerce', 'slug' => 'ecommerce-categorias.edit', 'modulo' => 'ecommerce-categorias'],
             ['nombre' => 'Eliminar categorías ecommerce', 'slug' => 'ecommerce-categorias.delete', 'modulo' => 'ecommerce-categorias'],
+            
+            // Configuraciones Propiedad
+            ['nombre' => 'Ver configuraciones propiedad', 'slug' => 'configuraciones-propiedad.view', 'modulo' => 'configuraciones-propiedad'],
+            ['nombre' => 'Editar configuraciones propiedad', 'slug' => 'configuraciones-propiedad.edit', 'modulo' => 'configuraciones-propiedad'],
         ];
 
         // Permisos del Residente (Frontend)

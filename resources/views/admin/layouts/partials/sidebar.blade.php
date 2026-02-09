@@ -503,6 +503,38 @@
     </div>
     @endif
     
+    @php
+        $hasConfiguracionesPerms = \App\Helpers\AdminHelper::hasPermission('configuraciones-propiedad.view') || \App\Helpers\AdminHelper::hasPermission('configuraciones-propiedad.edit');
+    @endphp
+    @if($hasConfiguracionesPerms)
+    <div class="px-2 py-1">
+        <button 
+            type="button" 
+            onclick="toggleSubmenu('configuraciones-menu')"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.configuraciones-propiedad.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+        >
+            <div class="flex items-center">
+                <i class="fas fa-cog mr-3"></i>
+                <span>Configuraciones</span>
+            </div>
+            <i id="configuraciones-menu-icon" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+        </button>
+        
+        <!-- Submenú de Configuraciones -->
+        <div id="configuraciones-menu" class="hidden pl-4 mt-1 space-y-1">
+            @if(\App\Helpers\AdminHelper::hasPermission('configuraciones-propiedad.view'))
+            <a 
+                href="{{ route('admin.configuraciones-propiedad.index') }}" 
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.configuraciones-propiedad.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            >
+                <i class="fas fa-sliders-h mr-3 text-xs"></i>
+                Configuraciones Propiedad
+            </a>
+            @endif
+        </div>
+    </div>
+    @endif
+    
     @if($modulos->isEmpty())
         <div class="px-2 py-4 text-sm text-gray-500">
             <i class="fas fa-info-circle mr-2"></i>

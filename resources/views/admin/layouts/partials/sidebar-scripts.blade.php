@@ -80,5 +80,17 @@
                 }
             }
         @endif
+
+        @if(request()->routeIs('admin.configuraciones-propiedad.*'))
+            const configuracionesMenu = document.getElementById('configuraciones-menu');
+            const configuracionesIcon = document.getElementById('configuraciones-menu-icon');
+            if (configuracionesMenu) {
+                configuracionesMenu.classList.remove('hidden');
+                if (configuracionesIcon) {
+                    configuracionesIcon.classList.remove('fa-chevron-down');
+                    configuracionesIcon.classList.add('fa-chevron-up');
+                }
+            }
+        @endif
     });
 </script>

@@ -80,6 +80,11 @@
                         <i class="fas fa-history mr-3"></i>
                         Auditoría
                     </a>
+                    
+                    <a href="{{ route('superadmin.solicitudes-comerciales.index') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('superadmin.solicitudes-comerciales.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+                        <i class="fas fa-handshake mr-3"></i>
+                        Solicitudes Comerciales
+                    </a>
                 </nav>
             </aside>
 

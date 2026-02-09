@@ -17,6 +17,9 @@ Route::middleware('auth:sanctum')->get('/user', function (\Illuminate\Http\Reque
     return $request->user();
 });
 
+// Rutas públicas de solicitudes comerciales (sin autenticación)
+Route::post('/solicitudes-comerciales', [App\Http\Controllers\Api\SolicitudComercialController::class, 'store']);
+
 // Rutas de autenticación para residentes
 Route::prefix('residente')->group(function () {
     Route::post('/login', [App\Http\Controllers\Api\ResidenteAuthController::class, 'login']);

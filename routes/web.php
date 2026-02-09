@@ -44,6 +44,7 @@ use App\Http\Controllers\Admin\AsambleaController;
 use App\Http\Controllers\Admin\EcommerceCategoriaController;
 use App\Http\Controllers\Admin\EcommerceController;
 use App\Http\Controllers\Admin\ConfiguracionesPropiedadController;
+use App\Http\Controllers\SuperAdmin\SolicitudComercialController;
 
 /*
 |--------------------------------------------------------------------------
@@ -143,6 +144,12 @@ Route::prefix('superadmin')->name('superadmin.')->middleware(['auth', 'role:supe
     
     // Auditoría
     Route::get('auditoria', [AuditoriaController::class, 'index'])->name('auditoria.index');
+    
+    // Gestión de Solicitudes Comerciales (solo lectura y gestión, no creación, edición ni eliminación)
+    Route::get('solicitudes-comerciales', [SolicitudComercialController::class, 'index'])->name('solicitudes-comerciales.index');
+    Route::get('solicitudes-comerciales/{solicitud}', [SolicitudComercialController::class, 'show'])->name('solicitudes-comerciales.show');
+    Route::post('solicitudes-comerciales/{solicitud}/seguimientos', [SolicitudComercialController::class, 'agregarSeguimiento'])->name('solicitudes-comerciales.seguimientos');
+    Route::delete('solicitudes-comerciales/{solicitud}/archivos/{archivo}', [SolicitudComercialController::class, 'eliminarArchivo'])->name('solicitudes-comerciales.archivos.destroy');
 });
 
 /*

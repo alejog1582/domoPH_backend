@@ -166,6 +166,7 @@ class ResidenteAuthController extends Controller
             'direccion' => $residente->unidad->propiedad->direccion,
             'telefono' => $residente->unidad->propiedad->telefono,
             'email' => $residente->unidad->propiedad->email,
+            'logo' => $residente->unidad->propiedad->logo,
         ];
 
         // Obtener todas las unidades del residente (por si tiene múltiples)
@@ -690,6 +691,7 @@ class ResidenteAuthController extends Controller
             'direccion' => $residente->unidad->propiedad->direccion,
             'telefono' => $residente->unidad->propiedad->telefono,
             'email' => $residente->unidad->propiedad->email,
+            'logo' => $residente->unidad->propiedad->logo,
         ];
 
         // Obtener todas las unidades del residente

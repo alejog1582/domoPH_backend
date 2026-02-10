@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\MascotaRegistrada;
 use App\Models\Mascota;
 use App\Models\Unidad;
 use App\Models\Residente;
@@ -10,6 +11,7 @@ use App\Helpers\AdminHelper;
 use App\Services\PlantillaMascotasService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
@@ -240,7 +242,23 @@ class MascotaController extends Controller
                 }
             }
 
-            Mascota::create($dataCreate);
+            $mascota = Mascota::create($dataCreate);
+
+            // Enviar correo al residente asignado
+            try {
+                $residente = $mascota->residente;
+                if ($residente && $residente->user) {
+                    $email = $residente->user->email;
+                    if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                        Mail::to($email)->send(new MascotaRegistrada($mascota));
+                    } else {
+                        \Log::warning("No se pudo enviar correo de mascota registrada: email inválido para residente {$residente->id}");
+                    }
+                }
+            } catch (\Exception $emailException) {
+                // Log del error pero no fallar la creación de la mascota
+                \Log::error('Error al enviar email de mascota registrada: ' . $emailException->getMessage());
+            }
 
             return redirect()->route('admin.mascotas.index')
                 ->with('success', 'Mascota creada correctamente.');
@@ -544,8 +562,22 @@ class MascotaController extends Controller
                     $mascota->update($dataMascota);
                     $actualizados++;
                 } else {
-                    Mascota::create($dataMascota);
+                    $mascota = Mascota::create($dataMascota);
                     $creados++;
+                    
+                    // Enviar correo al residente asignado solo si es una nueva mascota
+                    try {
+                        $residente = $mascota->residente;
+                        if ($residente && $residente->user) {
+                            $email = $residente->user->email;
+                            if ($email && filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                                Mail::to($email)->send(new MascotaRegistrada($mascota));
+                            }
+                        }
+                    } catch (\Exception $emailException) {
+                        // Log del error pero no fallar la importación
+                        \Log::error('Error al enviar email de mascota registrada durante importación: ' . $emailException->getMessage());
+                    }
                 }
             }
 

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BienvenidaAdministradorPropiedad;
 use App\Http\Requests\SuperAdmin\StorePropiedadRequest;
 use App\Http\Requests\SuperAdmin\UpdatePropiedadRequest;
 use App\Models\Propiedad;
@@ -17,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class PropiedadController extends Controller
@@ -147,11 +149,14 @@ class PropiedadController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Guardar la contraseña en texto plano antes de hashearla (para el correo)
+            $passwordPlano = $request->admin_password;
+
             // Crear usuario administrador
             $adminUser = User::create([
                 'nombre' => $request->admin_nombre,
                 'email' => $request->admin_email,
-                'password' => Hash::make($request->admin_password),
+                'password' => Hash::make($passwordPlano),
                 'telefono' => $request->admin_telefono,
                 'documento_identidad' => $request->admin_documento_identidad,
                 'tipo_documento' => $request->admin_tipo_documento,
@@ -205,6 +210,18 @@ class PropiedadController extends Controller
             ]);
 
             DB::commit();
+
+            // Enviar correo de bienvenida al administrador
+            try {
+                if ($adminUser->email && filter_var($adminUser->email, FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($adminUser->email)->send(new BienvenidaAdministradorPropiedad($propiedad, $adminUser, $passwordPlano));
+                } else {
+                    \Log::warning("No se pudo enviar correo de bienvenida: email inválido para administrador {$adminUser->id}");
+                }
+            } catch (\Exception $emailException) {
+                // Log del error pero no fallar la creación de la propiedad
+                \Log::error('Error al enviar email de bienvenida al administrador: ' . $emailException->getMessage());
+            }
 
             if ($request->expectsJson()) {
                 return response()->json([

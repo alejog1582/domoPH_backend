@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SeguimientoSolicitudComercial;
 use App\Models\SolicitudComercial;
 use App\Models\SolicitudSeguimiento;
 use App\Models\SolicitudArchivo;
@@ -10,6 +11,7 @@ use App\Models\User;
 use App\Models\LogAuditoria;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class SolicitudComercialController extends Controller
@@ -491,7 +493,19 @@ class SolicitudComercialController extends Controller
 
             DB::commit();
 
-            if ($request->expectsJson()) {
+            // Enviar correo al contacto de la solicitud
+            try {
+                if ($solicitud->email && filter_var($solicitud->email, FILTER_VALIDATE_EMAIL)) {
+                    Mail::to($solicitud->email)->send(new SeguimientoSolicitudComercial($seguimiento));
+                } else {
+                    \Log::warning("No se pudo enviar correo de seguimiento: email inválido para solicitud {$solicitud->id}");
+                }
+            } catch (\Exception $emailException) {
+                // Log del error pero no fallar la creación del seguimiento
+                \Log::error('Error al enviar email de seguimiento de solicitud comercial: ' . $emailException->getMessage());
+            }
+
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
                     'data' => $seguimiento->load('usuario'),
@@ -499,16 +513,16 @@ class SolicitudComercialController extends Controller
                 ]);
             }
 
-            return redirect()->route('superadmin.solicitudes-comerciales.index')
+            return redirect()->route('superadmin.solicitudes-comerciales.show', $solicitud->id)
                 ->with('success', 'Seguimiento agregado exitosamente.');
         } catch (\Exception $e) {
             DB::rollBack();
             \Log::error('Error al agregar seguimiento: ' . $e->getMessage());
 
-            if ($request->expectsJson()) {
+            if ($request->expectsJson() || $request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Error al agregar el seguimiento'
+                    'message' => 'Error al agregar el seguimiento: ' . $e->getMessage()
                 ], 500);
             }
 

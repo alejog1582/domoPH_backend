@@ -235,7 +235,7 @@
                 </button>
             </div>
             
-            <form id="formGestionar" method="POST" enctype="multipart/form-data">
+            <form id="formGestionar" method="POST" enctype="multipart/form-data" action="">
                 @csrf
                 <input type="hidden" id="solicitud_id" name="solicitud_id">
                 
@@ -326,15 +326,18 @@
 
 @push('scripts')
 <script>
+    let solicitudIdActual = null;
+    
     function abrirModalGestionar(solicitudId) {
+        solicitudIdActual = solicitudId;
         document.getElementById('solicitud_id').value = solicitudId;
-        document.getElementById('formGestionar').action = `/superadmin/solicitudes-comerciales/${solicitudId}/seguimientos`;
         document.getElementById('modalGestionar').classList.remove('hidden');
     }
     
     function cerrarModalGestionar() {
         document.getElementById('modalGestionar').classList.add('hidden');
         document.getElementById('formGestionar').reset();
+        solicitudIdActual = null;
     }
     
     // Cerrar modal al hacer clic fuera de él
@@ -342,6 +345,74 @@
         if (e.target === this) {
             cerrarModalGestionar();
         }
+    });
+    
+    // Manejar envío del formulario con AJAX
+    document.getElementById('formGestionar').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!solicitudIdActual) {
+            alert('Error: No se ha seleccionado una solicitud válida.');
+            return;
+        }
+        
+        const form = this;
+        const formData = new FormData(form);
+        const submitButton = form.querySelector('button[type="submit"]');
+        const originalButtonText = submitButton.innerHTML;
+        
+        // Deshabilitar botón y mostrar loading
+        submitButton.disabled = true;
+        submitButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Guardando...';
+        
+        // Obtener token CSRF
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content || 
+                         document.querySelector('input[name="_token"]')?.value;
+        
+        if (!csrfToken) {
+            alert('Error: Token de seguridad no encontrado. Por favor, recarga la página.');
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+            return;
+        }
+        
+        // Agregar token CSRF si no está presente
+        if (!formData.has('_token')) {
+            formData.append('_token', csrfToken);
+        }
+        
+        // Enviar petición AJAX
+        fetch(`/superadmin/solicitudes-comerciales/${solicitudIdActual}/seguimientos`, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfToken,
+                'X-Requested-With': 'XMLHttpRequest',
+                'Accept': 'application/json'
+            },
+            body: formData
+        })
+        .then(response => {
+            if (response.status === 419) {
+                throw new Error('La sesión ha expirado. Por favor, recarga la página e intenta nuevamente.');
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                // Mostrar mensaje de éxito
+                alert('Seguimiento guardado exitosamente.');
+                // Recargar la página para mostrar el nuevo seguimiento
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'Error al guardar el seguimiento.');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message || 'Error al guardar el seguimiento. Por favor, intenta nuevamente.');
+            submitButton.disabled = false;
+            submitButton.innerHTML = originalButtonText;
+        });
     });
 </script>
 @endpush

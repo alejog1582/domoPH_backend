@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Mail\BienvenidaResidente;
 use App\Models\Residente;
 use App\Models\Unidad;
 use App\Models\User;
@@ -12,6 +13,7 @@ use App\Services\PlantillaResidentesService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
 use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 
@@ -249,6 +251,9 @@ class ResidenteController extends Controller
                     $user = User::where('documento_identidad', $documento)->first();
                 }
 
+                // Guardar la contraseña en texto plano antes de hashearla (para el correo)
+                $passwordPlano = $telefono;
+
                 // Si no existe, crear usuario
                 if (!$user) {
                     $nombre = isset($columnIndexes['nombre']) && isset($row[$columnIndexes['nombre']]) 
@@ -262,7 +267,7 @@ class ResidenteController extends Controller
                     $user = User::create([
                         'nombre' => $nombre,
                         'email' => $email ?: 'usuario_' . time() . '@temp.com',
-                        'password' => Hash::make($telefono), // Password temporal
+                        'password' => Hash::make($passwordPlano), // Password temporal
                         'documento_identidad' => $documento,
                         'telefono' => $telefono,
                         'activo' => true,
@@ -272,6 +277,8 @@ class ResidenteController extends Controller
                 } else {
                     // Si el usuario ya existe, agregar la propiedad_id si no está presente
                     $user->agregarPropiedadId($propiedad->id);
+                    // Si el usuario ya existe, usar su teléfono actual como contraseña
+                    $passwordPlano = $user->telefono;
                 }
 
                 // Asignar rol de residente si no lo tiene para esta propiedad
@@ -357,8 +364,23 @@ class ResidenteController extends Controller
                     $residente->update($dataResidente);
                     $actualizados++;
                 } else {
-                    Residente::create($dataResidente);
+                    $residente = Residente::create($dataResidente);
                     $creados++;
+                    
+                    // Enviar correo de bienvenida solo si es un nuevo residente y tiene email válido
+                    try {
+                        $emailUsuario = $user->email;
+                        // Validar que el email no sea temporal y sea válido
+                        if ($emailUsuario && 
+                            filter_var($emailUsuario, FILTER_VALIDATE_EMAIL) && 
+                            !str_starts_with($emailUsuario, 'usuario_') && 
+                            !str_ends_with($emailUsuario, '@temp.com')) {
+                            Mail::to($emailUsuario)->send(new BienvenidaResidente($residente, $passwordPlano));
+                        }
+                    } catch (\Exception $emailException) {
+                        // Log del error pero no fallar la importación
+                        \Log::error('Error al enviar email de bienvenida al residente durante importación: ' . $emailException->getMessage());
+                    }
                 }
             }
 
@@ -461,18 +483,23 @@ class ResidenteController extends Controller
                 ->orWhere('documento_identidad', $request->documento_identidad)
                 ->first();
 
+            // Guardar la contraseña en texto plano antes de hashearla (para el correo)
+            $passwordPlano = $request->telefono;
+            $usuarioNuevo = false;
+
             // Si no existe, crear usuario
             if (!$user) {
                 $user = User::create([
                     'nombre' => $request->nombre,
                     'email' => $request->email,
-                    'password' => Hash::make($request->telefono), // Password temporal
+                    'password' => Hash::make($passwordPlano), // Password temporal
                     'documento_identidad' => $request->documento_identidad,
                     'telefono' => $request->telefono,
                     'activo' => true,
                     'propiedad_id' => (string) $propiedad->id, // Asignar propiedad_id al crear
                     'perfil' => 'residente', // Asignar perfil de residente
                 ]);
+                $usuarioNuevo = true;
             } else {
                 // Si el usuario ya existe, agregar la propiedad_id si no está presente
                 $user->agregarPropiedadId($propiedad->id);
@@ -481,27 +508,66 @@ class ResidenteController extends Controller
                     $user->perfil = 'residente';
                     $user->save();
                 }
+                // Si el usuario ya existe, usar su teléfono actual como contraseña
+                $passwordPlano = $user->telefono;
             }
 
             // Asignar rol de residente
             $rolResidente = Role::where('slug', 'residente')->first();
             if ($rolResidente) {
-                $user->roles()->attach($rolResidente->id, [
-                    'propiedad_id' => $propiedad->id
-                ]);
+                $tieneRol = $user->roles()
+                    ->where('roles.id', $rolResidente->id)
+                    ->wherePivot('propiedad_id', $propiedad->id)
+                    ->exists();
+                
+                if (!$tieneRol) {
+                    $user->roles()->attach($rolResidente->id, [
+                        'propiedad_id' => $propiedad->id
+                    ]);
+                }
             }
 
-            // Crear residente
-            $residente = Residente::create([
-                'user_id' => $user->id,
-                'unidad_id' => $request->unidad_id,
-                'tipo_relacion' => $request->tipo_relacion,
-                'fecha_inicio' => $request->fecha_inicio,
-                'fecha_fin' => $request->fecha_fin,
-                'es_principal' => $request->has('es_principal'),
-                'recibe_notificaciones' => $request->has('recibe_notificaciones'),
-                'observaciones' => $request->observaciones,
-            ]);
+            // Verificar si ya existe un residente para este usuario y unidad
+            $residenteExistente = Residente::where('user_id', $user->id)
+                ->where('unidad_id', $request->unidad_id)
+                ->first();
+
+            // Crear residente solo si no existe
+            if (!$residenteExistente) {
+                $residente = Residente::create([
+                    'user_id' => $user->id,
+                    'unidad_id' => $request->unidad_id,
+                    'tipo_relacion' => $request->tipo_relacion,
+                    'fecha_inicio' => $request->fecha_inicio,
+                    'fecha_fin' => $request->fecha_fin,
+                    'es_principal' => $request->has('es_principal'),
+                    'recibe_notificaciones' => $request->has('recibe_notificaciones'),
+                    'observaciones' => $request->observaciones,
+                ]);
+
+                // Enviar correo de bienvenida solo si es un nuevo residente
+                try {
+                    if ($user->email && filter_var($user->email, FILTER_VALIDATE_EMAIL)) {
+                        Mail::to($user->email)->send(new BienvenidaResidente($residente, $passwordPlano));
+                    } else {
+                        \Log::warning("No se pudo enviar correo de bienvenida: email inválido para residente {$residente->id}");
+                    }
+                } catch (\Exception $emailException) {
+                    // Log del error pero no fallar la creación del residente
+                    \Log::error('Error al enviar email de bienvenida al residente: ' . $emailException->getMessage());
+                }
+            } else {
+                // Si ya existe, actualizar
+                $residente = $residenteExistente;
+                $residente->update([
+                    'tipo_relacion' => $request->tipo_relacion,
+                    'fecha_inicio' => $request->fecha_inicio,
+                    'fecha_fin' => $request->fecha_fin,
+                    'es_principal' => $request->has('es_principal'),
+                    'recibe_notificaciones' => $request->has('recibe_notificaciones'),
+                    'observaciones' => $request->observaciones,
+                ]);
+            }
 
             DB::commit();
 

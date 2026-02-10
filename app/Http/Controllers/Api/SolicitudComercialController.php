@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\NuevaSolicitudComercial;
 use App\Models\SolicitudComercial;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 
 class SolicitudComercialController extends Controller
@@ -50,6 +52,19 @@ class SolicitudComercialController extends Controller
                 'prioridad' => 'media',
                 'activo' => true,
             ]);
+
+            // Enviar email al SuperAdmin
+            try {
+                $emailSuperAdmin = env('EMAIL_SUPERADMIN');
+                if ($emailSuperAdmin) {
+                    Mail::to($emailSuperAdmin)->send(new NuevaSolicitudComercial($solicitud));
+                } else {
+                    \Log::warning('EMAIL_SUPERADMIN no está configurado en el archivo .env');
+                }
+            } catch (\Exception $emailException) {
+                // Log del error pero no fallar la creación de la solicitud
+                \Log::error('Error al enviar email de notificación de solicitud comercial: ' . $emailException->getMessage());
+            }
 
             return response()->json([
                 'success' => true,

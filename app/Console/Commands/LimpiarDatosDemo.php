@@ -66,7 +66,7 @@ class LimpiarDatosDemo extends Command
         try {
             // 1. Identificar usuarios base del seeder (emails @demo.com)
             $this->info('🔍 Identificando usuarios base del seeder...');
-            $usuariosBaseIds = User::where('email', 'like', '%@demo.com')
+            $usuariosBaseIds = User::where('email', 'like', '%@domoph.pro')
                 ->orWhere('email', 'demo@domoph.com')
                 ->pluck('id')
                 ->toArray();

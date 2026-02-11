@@ -453,7 +453,7 @@ class DemoSeeder extends Seeder
         foreach ($unidades as $index => $unidad) {
             $nombre = $nombres[$index % count($nombres)];
             $apellido = $apellidos[$index % count($apellidos)];
-            $email = strtolower($this->eliminarTildes($nombre . '.' . $apellido . '@demo.com'));
+            $email = strtolower($this->eliminarTildes($nombre . '.' . $apellido . '@domoph.pro'));
             if ($apellido == 'Zamudio') {
                 $telefono = '3165243492';
             }else{
@@ -536,7 +536,7 @@ class DemoSeeder extends Seeder
             $unidad = $unidades[rand(0, 19)];
             $nombre = $nombres[rand(0, count($nombres) - 1)];
             $apellido = $apellidos[rand(0, count($apellidos) - 1)];
-            $email = strtolower($this->eliminarTildes($nombre . '.' . $apellido . '.' . rand(1, 100) . '@demo.com'));
+            $email = strtolower($this->eliminarTildes($nombre . '.' . $apellido . '.' . rand(1, 100) . '@domoph.pro'));
 
             // Obtener propiedad_id de la unidad
             $propiedadId = $unidad->propiedad_id;

@@ -439,12 +439,12 @@ class DemoSeeder extends Seeder
 
         $residentes = [];
         $nombres = [
-            'Carlos', 'María', 'Juan', 'Ana', 'Luis', 'Laura', 'Pedro', 'Sofia',
+            'Carlos', 'María', 'Juan', 'Diana', 'Luis', 'Laura', 'Pedro', 'Sofia',
             'Diego', 'Camila', 'Andrés', 'Valentina', 'Jorge', 'Isabella', 'Ricardo', 'Daniela',
             'Fernando', 'Natalia', 'Gustavo', 'Andrea', 'Roberto', 'Paula', 'Miguel', 'Carolina'
         ];
         $apellidos = [
-            'García', 'Rodríguez', 'López', 'Martínez', 'González', 'Pérez', 'Sánchez', 'Ramírez',
+            'García', 'Rodríguez', 'López', 'Zamudio', 'González', 'Pérez', 'Sánchez', 'Ramírez',
             'Torres', 'Flores', 'Rivera', 'Gómez', 'Díaz', 'Cruz', 'Morales', 'Ortiz'
         ];
         $tiposRelacion = ['propietario', 'arrendatario', 'residente_temporal', 'otro'];
@@ -454,7 +454,11 @@ class DemoSeeder extends Seeder
             $nombre = $nombres[$index % count($nombres)];
             $apellido = $apellidos[$index % count($apellidos)];
             $email = strtolower($this->eliminarTildes($nombre . '.' . $apellido . '@demo.com'));
-            $telefono = '3' . rand(100000000, 999999999);
+            if ($apellido == 'Zamudio') {
+                $telefono = '3165243492';
+            }else{
+                $telefono = '3' . rand(100000000, 999999999);
+            }
 
             // Obtener propiedad_id de la unidad
             $propiedadId = $unidad->propiedad_id;

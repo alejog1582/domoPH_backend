@@ -12,6 +12,7 @@ use App\Models\CuentaCobroDetalle;
 use App\Models\Recaudo;
 use App\Models\RecaudoDetalle;
 use App\Models\User;
+use App\Models\Residente;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -287,7 +288,37 @@ class CarteraSeeder extends Seeder
 
         // Seleccionar 5 unidades que quedarán en mora
         $unidadesIds = array_keys($cuentasPorUnidad);
+
+        // Identificar la unidad de la residente Diana Zamudio (creada en DemoSeeder)
+        $unidadDianaId = null;
+        $userDiana = User::where('email', 'diana.zamudio@domoph.pro')->first();
+        if ($userDiana) {
+            $residenteDiana = Residente::where('user_id', $userDiana->id)
+                ->where('es_principal', true)
+                ->first();
+
+            if ($residenteDiana) {
+                $unidadDianaId = $residenteDiana->unidad_id;
+            }
+        }
+
         $unidadesEnMora = collect($unidadesIds)->random(min(5, count($unidadesIds)))->toArray();
+
+        // Asegurar que la unidad de Diana Zamudio siempre quede en mora
+        if ($unidadDianaId !== null && in_array($unidadDianaId, $unidadesIds, true)) {
+            if (!in_array($unidadDianaId, $unidadesEnMora, true)) {
+                if (count($unidadesEnMora) >= 5) {
+                    // Reemplazar la última unidad seleccionada por la de Diana
+                    $unidadesEnMora[count($unidadesEnMora) - 1] = $unidadDianaId;
+                } else {
+                    // Agregarla a la lista
+                    $unidadesEnMora[] = $unidadDianaId;
+                }
+
+                // Normalizar eliminando duplicados
+                $unidadesEnMora = array_values(array_unique($unidadesEnMora));
+            }
+        }
         $unidadesSinMora = array_diff($unidadesIds, $unidadesEnMora);
 
         $this->command->info('   📌 Unidades que quedarán en mora: ' . count($unidadesEnMora));

@@ -3,8 +3,11 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use App\Helpers\WhatsAppHelper;
+use App\Mail\CuentaCobroGenerada;
 use App\Models\Propiedad;
 use App\Models\Unidad;
+use App\Models\Residente;
 use App\Models\CuotaAdministracion;
 use App\Models\CuentaCobro;
 use App\Models\CuentaCobroDetalle;
@@ -13,6 +16,7 @@ use App\Models\Recaudo;
 use App\Models\ConfiguracionPropiedad;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class GenerarCuentasCobroMensual extends Command
 {
@@ -314,6 +318,59 @@ class GenerarCuentasCobroMensual extends Command
                         }
 
                         $totalCuentasCreadas++;
+
+                        // Enviar correo y WhatsApp a residentes principales
+                        try {
+                            // Formatear número de unidad para el mensaje
+                            $numeroUnidadFormateado = $unidad->numero;
+                            if ($unidad->torre) {
+                                $numeroUnidadFormateado .= ' - ' . $unidad->torre;
+                            }
+                            if ($unidad->bloque) {
+                                $numeroUnidadFormateado .= ' - ' . $unidad->bloque;
+                            }
+
+                            $residentesPrincipales = Residente::where('unidad_id', $unidad->id)
+                                ->where('es_principal', true)
+                                ->where('recibe_notificaciones', true)
+                                ->with('user')
+                                ->get();
+
+                            foreach ($residentesPrincipales as $residente) {
+                                if ($residente->user) {
+                                    // Enviar correo
+                                    if ($residente->user->email) {
+                                        try {
+                                            if (filter_var($residente->user->email, FILTER_VALIDATE_EMAIL)) {
+                                                Mail::to($residente->user->email)->send(new CuentaCobroGenerada($cuentaCobro));
+                                                $this->info("    ✓ Correo enviado a {$residente->user->email}");
+                                            }
+                                        } catch (\Exception $emailException) {
+                                            \Log::error("Error al enviar correo de cuenta de cobro a {$residente->user->email}: " . $emailException->getMessage());
+                                            $this->warn("    ⚠ Error al enviar correo a {$residente->user->email}");
+                                        }
+                                    }
+
+                                    // Enviar WhatsApp
+                                    if ($residente->user->telefono) {
+                                        try {
+                                            $nombreResidente = $residente->user->nombre ?? 'Residente';
+                                            $valorTotalFormateado = number_format($cuentaCobro->valor_total, 2, ',', '.');
+                                            $mensajeWhatsApp = "Hola {$nombreResidente}, se ha generado una nueva cuenta de cobro para tu unidad {$numeroUnidadFormateado} correspondiente al período {$periodo}. Valor total: \${$valorTotalFormateado} COP. Puedes consultarla en: https://domoph.pro/app/cartera";
+                                            
+                                            WhatsAppHelper::enviarMensaje($residente->user->telefono, $mensajeWhatsApp);
+                                            $this->info("    ✓ WhatsApp enviado a {$residente->user->telefono}");
+                                        } catch (\Exception $whatsappException) {
+                                            \Log::error("Error al enviar WhatsApp de cuenta de cobro a {$residente->user->telefono}: " . $whatsappException->getMessage());
+                                            $this->warn("    ⚠ Error al enviar WhatsApp a {$residente->user->telefono}");
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (\Exception $notificacionException) {
+                            \Log::error("Error al enviar notificaciones de cuenta de cobro: " . $notificacionException->getMessage());
+                            $this->warn("    ⚠ Error al enviar notificaciones");
+                        }
 
                     } catch (\Exception $e) {
                         $totalErrores++;

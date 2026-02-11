@@ -439,12 +439,12 @@ class DemoSeeder extends Seeder
 
         $residentes = [];
         $nombres = [
-            'Carlos', 'María', 'Juan', 'Diana', 'Luis', 'Laura', 'Pedro', 'Sofia',
+            'Diana', 'María', 'Juan', 'Ana', 'Luis', 'Laura', 'Pedro', 'Sofia',
             'Diego', 'Camila', 'Andrés', 'Valentina', 'Jorge', 'Isabella', 'Ricardo', 'Daniela',
             'Fernando', 'Natalia', 'Gustavo', 'Andrea', 'Roberto', 'Paula', 'Miguel', 'Carolina'
         ];
         $apellidos = [
-            'García', 'Rodríguez', 'López', 'Zamudio', 'González', 'Pérez', 'Sánchez', 'Ramírez',
+            'Zamudio', 'Rodríguez', 'López', 'Martínez', 'González', 'Pérez', 'Sánchez', 'Ramírez',
             'Torres', 'Flores', 'Rivera', 'Gómez', 'Díaz', 'Cruz', 'Morales', 'Ortiz'
         ];
         $tiposRelacion = ['propietario', 'arrendatario', 'residente_temporal', 'otro'];

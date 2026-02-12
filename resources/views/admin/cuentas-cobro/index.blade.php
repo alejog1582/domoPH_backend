@@ -192,9 +192,9 @@
 
     <!-- Tabla de Cuentas de Cobro -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-800">
+        <div class="table-container">
+            <table class="table-domoph min-w-full">
+                <thead>
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">PERÍODO</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">UNIDAD</th>
@@ -207,9 +207,9 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ACCIONES</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
                     @forelse($cuentasCobro as $cuenta)
-                        <tr class="hover:bg-gray-50">
+                        <tr>
                             <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 @php
                                     $fecha = \Carbon\Carbon::createFromFormat('Y-m', $cuenta->periodo);

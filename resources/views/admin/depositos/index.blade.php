@@ -113,7 +113,7 @@
             </div>
 
             <div class="flex justify-end gap-2">
-                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <button type="submit" class="btn-gradient-primary">
                     <i class="fas fa-search mr-2"></i>Filtrar
                 </button>
                 <a href="{{ route('admin.depositos.index') }}" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500">
@@ -125,9 +125,9 @@
 
     <!-- Tabla de Depósitos -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
-        <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
+        <div class="table-container">
+            <table class="table-domoph min-w-full">
+                <thead>
                     <tr>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                             Código
@@ -152,9 +152,9 @@
                         </th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
                     @forelse($depositos as $deposito)
-                        <tr class="hover:bg-gray-50">
+                        <tr>
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <div class="text-sm font-medium text-gray-900">{{ $deposito->codigo }}</div>
                             </td>

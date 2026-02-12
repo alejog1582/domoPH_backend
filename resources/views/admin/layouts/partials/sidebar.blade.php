@@ -88,7 +88,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('residentes.view'))
             <a 
                 href="{{ route('admin.residentes.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.residentes.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.residentes.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-users mr-3 text-xs"></i>
                 Residentes
@@ -97,7 +97,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('mascotas.view'))
             <a 
                 href="{{ route('admin.mascotas.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.mascotas.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.mascotas.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-paw mr-3 text-xs"></i>
                 Mascotas
@@ -106,7 +106,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('parqueaderos.view'))
             <a 
                 href="{{ route('admin.parqueaderos.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.parqueaderos.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.parqueaderos.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-car mr-3 text-xs"></i>
                 Parqueaderos
@@ -115,7 +115,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('depositos.view'))
             <a 
                 href="{{ route('admin.depositos.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.depositos.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.depositos.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-warehouse mr-3 text-xs"></i>
                 Depósitos
@@ -124,7 +124,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('zonas-sociales.view'))
             <a 
                 href="{{ route('admin.zonas-sociales.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.zonas-sociales.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.zonas-sociales.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-swimming-pool mr-3 text-xs"></i>
                 Zonas Comunes
@@ -154,7 +154,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('cuotas-administracion.view'))
             <a 
                 href="{{ route('admin.cuotas-administracion.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.cuotas-administracion.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.cuotas-administracion.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-cog mr-3 text-xs"></i>
                 Conf. Cuotas Administración
@@ -163,7 +163,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('cartera.view'))
             <a 
                 href="{{ route('admin.cartera.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.cartera.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.cartera.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-wallet mr-3 text-xs"></i>
                 Cartera Unidades
@@ -172,7 +172,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('cuentas-cobro.view'))
             <a 
                 href="{{ route('admin.cuentas-cobro.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.cuentas-cobro.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.cuentas-cobro.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-file-invoice-dollar mr-3 text-xs"></i>
                 Cuentas de Cobro
@@ -181,7 +181,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('recaudos.view'))
             <a 
                 href="{{ route('admin.recaudos.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.recaudos.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.recaudos.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-money-bill-wave mr-3 text-xs"></i>
                 Recaudos
@@ -190,7 +190,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('acuerdos-pagos.view'))
             <a 
                 href="{{ route('admin.acuerdos-pagos.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.acuerdos-pagos.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.acuerdos-pagos.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-handshake mr-3 text-xs"></i>
                 Acuerdos de Pago
@@ -220,7 +220,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('comunicados.view'))
             <a 
                 href="{{ route('admin.comunicados.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.comunicados.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.comunicados.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-bullhorn mr-3 text-xs"></i>
                 Comunicados
@@ -229,7 +229,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('correspondencias.view'))
             <a 
                 href="{{ route('admin.correspondencias.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.correspondencias.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.correspondencias.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-box mr-3 text-xs"></i>
                 Correspondencia
@@ -238,7 +238,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('visitas.view'))
             <a 
                 href="{{ route('admin.visitas.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.visitas.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.visitas.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-user-friends mr-3 text-xs"></i>
                 Visitas
@@ -247,7 +247,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('autorizaciones.view'))
             <a 
                 href="{{ route('admin.autorizaciones.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.autorizaciones.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.autorizaciones.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-id-card mr-3 text-xs"></i>
                 Autorizaciones
@@ -277,7 +277,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('llamados-atencion.view'))
             <a 
                 href="{{ route('admin.llamados-atencion.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.llamados-atencion.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.llamados-atencion.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-exclamation-triangle mr-3 text-xs"></i>
                 Llamados de Atención
@@ -286,7 +286,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('pqrs.view'))
             <a 
                 href="{{ route('admin.pqrs.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.pqrs.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.pqrs.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-comments mr-3 text-xs"></i>
                 PQRS
@@ -314,7 +314,7 @@
     <div class="mb-1">
         <a 
             href="{{ route('admin.sorteos-parqueadero.index') }}" 
-            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.sorteos-parqueadero.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.sorteos-parqueadero.*') ? 'active' : '' }}"
         >
             <i class="fas fa-car mr-3"></i>
             <span>Sorteos Parqueaderos</span>
@@ -327,7 +327,7 @@
     <div class="mb-1">
         <a 
             href="{{ route('admin.manual-convivencia.index') }}" 
-            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.manual-convivencia.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.manual-convivencia.*') ? 'active' : '' }}"
         >
             <i class="fas fa-book mr-3"></i>
             <span>Manual de Convivencia</span>
@@ -340,7 +340,7 @@
     <div class="mb-1">
         <a 
             href="{{ route('admin.usuarios-admin.index') }}" 
-            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.usuarios-admin.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.usuarios-admin.*') ? 'active' : '' }}"
         >
             <i class="fas fa-user-cog mr-3"></i>
             <span>Usuarios Admin</span>
@@ -353,7 +353,7 @@
     <div class="mb-1">
         <a 
             href="{{ route('admin.encuestas-votaciones.index') }}" 
-            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.encuestas-votaciones.*') || request()->routeIs('admin.encuestas.*') || request()->routeIs('admin.votaciones.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.encuestas-votaciones.*') || request()->routeIs('admin.encuestas.*') || request()->routeIs('admin.votaciones.*') ? 'active' : '' }}"
         >
             <i class="fas fa-clipboard-list mr-3"></i>
             <span>Encuestas y Votaciones</span>
@@ -366,7 +366,7 @@
     <div class="mb-1">
         <a 
             href="{{ route('admin.licitaciones.index') }}" 
-            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.licitaciones.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.licitaciones.*') ? 'active' : '' }}"
         >
             <i class="fas fa-file-contract mr-3"></i>
             <span>Cartelera de Licitaciones</span>
@@ -403,7 +403,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('consejo-reuniones.view'))
             <a 
                 href="{{ route('admin.consejo-reuniones.index') }}" 
-                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-reuniones.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-reuniones.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-calendar-alt mr-2"></i>
                 Consejo – Reuniones
@@ -413,7 +413,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('consejo-actas.view'))
             <a 
                 href="{{ route('admin.consejo-actas.index') }}" 
-                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-actas.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-actas.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-file-signature mr-2"></i>
                 Actas de Reuniones
@@ -423,7 +423,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('consejo-decisiones.view'))
             <a 
                 href="{{ route('admin.consejo-decisiones.index') }}" 
-                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-decisiones.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-decisiones.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-check-circle mr-2"></i>
                 Decisiones del Consejo
@@ -433,7 +433,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('consejo-tareas.view'))
             <a 
                 href="{{ route('admin.consejo-tareas.index') }}" 
-                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-tareas.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-tareas.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-tasks mr-2"></i>
                 Tareas y Seguimiento
@@ -443,7 +443,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('consejo-comunicaciones.view'))
             <a 
                 href="{{ route('admin.consejo-comunicaciones.index') }}" 
-                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-comunicaciones.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-comunicaciones.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-envelope mr-2"></i>
                 Comunicaciones del Consejo
@@ -457,7 +457,7 @@
     <div class="mb-1">
         <a 
             href="{{ route('admin.asambleas.index') }}" 
-            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.asambleas.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.asambleas.*') ? 'active' : '' }}"
         >
             <i class="fas fa-users mr-3"></i>
             <span>Asambleas</span>
@@ -484,7 +484,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('ecommerce-categorias.view'))
             <a 
                 href="{{ route('admin.ecommerce-categorias.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.ecommerce-categorias.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.ecommerce-categorias.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-tags mr-3 text-xs"></i>
                 Categorías
@@ -493,7 +493,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('ecommerce.view'))
             <a 
                 href="{{ route('admin.ecommerce.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.ecommerce.*') && !request()->routeIs('admin.ecommerce-categorias.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.ecommerce.*') && !request()->routeIs('admin.ecommerce-categorias.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-box mr-3 text-xs"></i>
                 Productos
@@ -525,7 +525,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('configuraciones-propiedad.view'))
             <a 
                 href="{{ route('admin.configuraciones-propiedad.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.configuraciones-propiedad.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.configuraciones-propiedad.*') ? 'submenu-item active' : '' }}"
             >
                 <i class="fas fa-sliders-h mr-3 text-xs"></i>
                 Configuraciones Propiedad

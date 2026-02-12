@@ -100,34 +100,121 @@
 }
 
 .sidebar-domoph a {
-  color: var(--sidebar-foreground);
+  color: hsl(210, 40%, 98%) !important;
   transition: all 0.2s ease;
+}
+
+.sidebar-domoph a i {
+  color: hsl(210, 40%, 98%) !important;
 }
 
 .sidebar-domoph a:hover {
-  background-color: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
+  background-color: hsl(222, 47%, 22%) !important;
+  color: hsl(210, 40%, 98%) !important;
+}
+
+.sidebar-domoph a:hover i {
+  color: hsl(210, 40%, 98%) !important;
 }
 
 .sidebar-domoph a.active {
-  background-color: var(--sidebar-primary);
-  color: var(--sidebar-primary-foreground);
+  background-color: hsl(217, 91%, 54%) !important;
+  color: white !important;
+}
+
+.sidebar-domoph a.active i {
+  color: white !important;
+}
+
+.sidebar-domoph a.active:hover {
+  background-color: hsl(217, 91%, 54%) !important;
+  color: white !important;
+  opacity: 0.95;
+}
+
+.sidebar-domoph a.active:hover i {
+  color: white !important;
 }
 
 .sidebar-domoph .submenu-item {
-  color: var(--sidebar-foreground);
+  color: hsl(210, 40%, 98%) !important;
   transition: all 0.2s ease;
 }
 
+.sidebar-domoph .submenu-item i {
+  color: hsl(210, 40%, 98%) !important;
+}
+
 .sidebar-domoph .submenu-item:hover {
-  background-color: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
+  background-color: hsl(222, 47%, 22%) !important;
+  color: hsl(210, 40%, 98%) !important;
+}
+
+.sidebar-domoph .submenu-item:hover i {
+  color: hsl(210, 40%, 98%) !important;
 }
 
 .sidebar-domoph .submenu-item.active {
-  background-color: var(--sidebar-accent);
-  color: var(--sidebar-accent-foreground);
-  border-left: 2px solid var(--sidebar-primary);
+  background-color: hsl(222, 47%, 22%) !important;
+  color: hsl(210, 40%, 98%) !important;
+  border-left: 2px solid hsl(217, 91%, 54%) !important;
+}
+
+.sidebar-domoph .submenu-item.active i {
+  color: hsl(210, 40%, 98%) !important;
+}
+
+.sidebar-domoph .submenu-item.active:hover {
+  background-color: hsl(222, 47%, 22%) !important;
+  color: hsl(210, 40%, 98%) !important;
+  border-left: 2px solid hsl(217, 91%, 54%) !important;
+  opacity: 0.95;
+}
+
+.sidebar-domoph .submenu-item.active:hover i {
+  color: hsl(210, 40%, 98%) !important;
+}
+
+/* Estilos para botones del menú (como Copropiedad, Cartera, etc.) */
+.sidebar-domoph button {
+  color: hsl(210, 40%, 98%) !important;
+  transition: all 0.2s ease;
+  background: transparent;
+  border: none;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-domoph button i {
+  color: hsl(210, 40%, 98%) !important;
+}
+
+.sidebar-domoph button:hover {
+  background-color: hsl(222, 47%, 22%) !important;
+  color: hsl(210, 40%, 98%) !important;
+}
+
+.sidebar-domoph button:hover i {
+  color: hsl(210, 40%, 98%) !important;
+}
+
+.sidebar-domoph button.active {
+  background-color: hsl(217, 91%, 54%) !important;
+  color: white !important;
+}
+
+.sidebar-domoph button.active i {
+  color: white !important;
+}
+
+.sidebar-domoph button.active:hover {
+  background-color: hsl(217, 91%, 54%) !important;
+  color: white !important;
+  opacity: 0.95;
+}
+
+.sidebar-domoph button.active:hover i {
+  color: white !important;
 }
 
 /* Button Styles */
@@ -200,6 +287,22 @@ a.bg-blue-700:hover,
   transform: translateY(-1px);
 }
 
+/* Title Styles - Aplicar color azul primario a todos los títulos */
+h1.text-gray-900,
+h2.text-gray-900,
+h3.text-gray-900,
+h1.text-3xl.font-bold.text-gray-900,
+h1.text-2xl.font-bold.text-gray-900,
+h2.text-xl.font-semibold.text-gray-900,
+h2.text-2xl.font-semibold.text-gray-900,
+h1.text-3xl.font-bold,
+h1.text-2xl.font-bold,
+h2.text-xl.font-semibold,
+h2.text-2xl.font-semibold {
+  color: var(--primary) !important;
+  color: hsl(217, 91%, 54%) !important;
+}
+
 /* Table Styles */
 .table-domoph {
   width: 100%;
@@ -249,15 +352,19 @@ a.bg-blue-700:hover,
   background-color: var(--muted);
 }
 
-/* Estilos para tablas que aún usan clases de Tailwind - Reemplazar bg-gray-800 con gradiente */
+/* Estilos para tablas que aún usan clases de Tailwind - Reemplazar bg-gray-800 y bg-gray-50 con gradiente */
 table thead.bg-gray-800,
-thead.bg-gray-800 {
+thead.bg-gray-800,
+table thead.bg-gray-50,
+thead.bg-gray-50 {
   background: var(--gradient-primary) !important;
   background-image: linear-gradient(135deg, hsl(217, 91%, 54%) 0%, hsl(142, 71%, 45%) 100%) !important;
 }
 
 table thead.bg-gray-800 th,
-thead.bg-gray-800 th {
+thead.bg-gray-800 th,
+table thead.bg-gray-50 th,
+thead.bg-gray-50 th {
   color: white !important;
   background: transparent !important;
 }
@@ -347,6 +454,42 @@ thead.bg-gray-800 th {
 /* Background */
 .bg-domoph {
   background-color: var(--background);
+}
+
+/* Prevenir scroll horizontal en toda la página */
+body {
+  overflow-x: hidden;
+}
+
+main {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* Contenedor de tabla con scroll horizontal */
+.table-container {
+  overflow-x: auto;
+  overflow-y: visible;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+.table-container::-webkit-scrollbar {
+  height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+  background: var(--muted);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
 }
 
 /* Text Colors */

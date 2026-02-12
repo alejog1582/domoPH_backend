@@ -110,9 +110,9 @@
 
 <!-- Tabla de Reservas -->
 <div class="bg-white rounded-lg shadow overflow-hidden">
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
+    <div class="table-container">
+        <table class="table-domoph min-w-full">
+            <thead>
                 <tr>
                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Fecha Reserva
@@ -146,9 +146,9 @@
                     </th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
+            <tbody>
                 @forelse($reservas as $reserva)
-                    <tr class="hover:bg-gray-50">
+                    <tr>
                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             <div>{{ $reserva->fecha_reserva->format('d/m/Y') }}</div>
                             <div class="text-xs text-gray-400">{{ $reserva->fecha_reserva->format('l') }}</div>

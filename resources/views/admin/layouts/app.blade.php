@@ -12,12 +12,15 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- domoPH Custom Styles -->
+    <link rel="stylesheet" href="{{ asset('css/domoph-styles.css') }}">
+    
     @stack('styles')
 </head>
-<body class="bg-gray-100">
+<body class="bg-domoph">
     <div class="min-h-screen flex flex-col">
         <!-- Navbar -->
-        <nav class="bg-white shadow-lg">
+        <nav class="navbar-domoph">
             <div class="w-full px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-end items-center h-16">
                     <div class="flex items-center space-x-4">
@@ -25,15 +28,15 @@
                             $propiedad = \App\Helpers\AdminHelper::getPropiedadActiva();
                         @endphp
                         @if($propiedad)
-                            <span class="text-gray-700 text-sm">
+                            <span class="text-sm">
                                 <i class="fas fa-building mr-1"></i>
                                 {{ $propiedad->nombre }}
                             </span>
                         @endif
-                        <span class="text-gray-700">{{ Auth::user()->nombre }}</span>
+                        <span>{{ Auth::user()->nombre }}</span>
                         <form method="POST" action="{{ route('admin.logout') }}">
                             @csrf
-                            <button type="submit" class="text-red-600 hover:text-red-800">
+                            <button type="submit" class="hover:opacity-80 transition-opacity">
                                 <i class="fas fa-sign-out-alt mr-1"></i> Salir
                             </button>
                         </form>
@@ -45,7 +48,7 @@
         <!-- Sidebar y Contenido -->
         <div class="flex flex-1">
             <!-- Sidebar -->
-            <aside class="w-64 bg-white shadow-lg">
+            <aside class="w-64 sidebar-domoph shadow-lg">
                 <nav class="mt-5 px-2">
                     @include('admin.layouts.partials.sidebar')
                 </nav>

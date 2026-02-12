@@ -44,15 +44,15 @@
             <img src="{{ asset('imagenes/logo.png') }}" alt="domoPH Logo" class="h-12 w-auto object-contain mr-2">
         @endif
         <div class="flex flex-col">
-            <span class="text-xl font-bold text-gray-800">domoPH</span>
-            <span class="text-xs text-gray-500">Admin</span>
+            <span class="text-xl font-bold text-gradient">domoPH</span>
+            <span class="text-xs text-muted-domoph">Admin</span>
         </div>
     </a>
 </div>
 
 <!-- Dashboard -->
 @if(\App\Helpers\AdminHelper::hasPermission('dashboard.view'))
-    <a href="{{ route('admin.dashboard') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.dashboard') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}">
+    <a href="{{ route('admin.dashboard') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
         <i class="fas fa-home mr-3"></i>
         Dashboard
     </a>
@@ -65,7 +65,7 @@
         <button 
             type="button" 
             onclick="toggleSubmenu('copropiedad-menu')"
-            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.unidades.*') || request()->routeIs('admin.copropiedad.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.unidades.*') || request()->routeIs('admin.copropiedad.*') ? 'active' : '' }}"
         >
             <div class="flex items-center">
                 <i class="fas fa-building mr-3"></i>
@@ -79,7 +79,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('unidades.view'))
             <a 
                 href="{{ route('admin.unidades.index') }}" 
-                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.unidades.*') ? 'bg-blue-50 text-blue-700 border-l-2 border-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.unidades.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-door-open mr-3 text-xs"></i>
                 Unidades
@@ -140,7 +140,7 @@
         <button 
             type="button" 
             onclick="toggleSubmenu('cartera-menu')"
-            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.cuotas-administracion.*') || request()->routeIs('admin.cartera.*') || request()->routeIs('admin.cuentas-cobro.*') || request()->routeIs('admin.recaudos.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.cuotas-administracion.*') || request()->routeIs('admin.cartera.*') || request()->routeIs('admin.cuentas-cobro.*') || request()->routeIs('admin.recaudos.*') ? 'active' : '' }}"
         >
             <div class="flex items-center">
                 <i class="fas fa-wallet mr-3"></i>
@@ -206,7 +206,7 @@
         <button 
             type="button" 
             onclick="toggleSubmenu('gestion-menu')"
-            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.comunicados.*') || request()->routeIs('admin.correspondencias.*') || request()->routeIs('admin.visitas.*') || request()->routeIs('admin.autorizaciones.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.comunicados.*') || request()->routeIs('admin.correspondencias.*') || request()->routeIs('admin.visitas.*') || request()->routeIs('admin.autorizaciones.*') ? 'active' : '' }}"
         >
             <div class="flex items-center">
                 <i class="fas fa-tasks mr-3"></i>
@@ -263,7 +263,7 @@
         <button 
             type="button" 
             onclick="toggleSubmenu('convivencia-menu')"
-            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.llamados-atencion.*') || request()->routeIs('admin.pqrs.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.llamados-atencion.*') || request()->routeIs('admin.pqrs.*') ? 'active' : '' }}"
         >
             <div class="flex items-center">
                 <i class="fas fa-users mr-3"></i>
@@ -301,7 +301,7 @@
     <div class="mb-1">
         <a 
             href="{{ route('admin.reservas.index') }}" 
-            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.reservas.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.reservas.*') ? 'active' : '' }}"
         >
             <i class="fas fa-calendar-check mr-3"></i>
             <span>Reservas</span>
@@ -379,7 +379,7 @@
     <div class="mb-1">
         <button 
             type="button"
-            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.consejo-*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.consejo-*') ? 'active' : '' }}"
             onclick="toggleSubmenu('consejo-menu')"
         >
             <div class="flex items-center">
@@ -393,7 +393,7 @@
             @if(\App\Helpers\AdminHelper::hasPermission('consejo-integrantes.view'))
             <a 
                 href="{{ route('admin.consejo-integrantes.index') }}" 
-                class="block px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.consejo-integrantes.*') ? 'bg-blue-50 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+                class="block px-2 py-2 text-sm font-medium rounded-md submenu-item {{ request()->routeIs('admin.consejo-integrantes.*') ? 'active' : '' }}"
             >
                 <i class="fas fa-user-friends mr-2"></i>
                 Consejo – Integrantes
@@ -470,7 +470,7 @@
         <button 
             type="button" 
             onclick="toggleSubmenu('ecommerce-menu')"
-            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.ecommerce.*') || request()->routeIs('admin.ecommerce-categorias.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.ecommerce.*') || request()->routeIs('admin.ecommerce-categorias.*') ? 'active' : '' }}"
         >
             <div class="flex items-center">
                 <i class="fas fa-shopping-bag mr-3"></i>
@@ -511,7 +511,7 @@
         <button 
             type="button" 
             onclick="toggleSubmenu('configuraciones-menu')"
-            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.configuraciones-propiedad.*') ? 'bg-blue-100 text-blue-900' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' }}"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.configuraciones-propiedad.*') ? 'active' : '' }}"
         >
             <div class="flex items-center">
                 <i class="fas fa-cog mr-3"></i>

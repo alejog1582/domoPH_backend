@@ -7,8 +7,18 @@
     <title>Login - domoPH SuperAdmin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- domoPH Custom Styles -->
+    <link rel="stylesheet" href="{{ asset('css/domoph-styles.css') }}">
+    
+    <style>
+        .login-background {
+            background: linear-gradient(135deg, hsl(217, 91%, 54%) 0%, hsl(142, 71%, 45%) 100%);
+            min-height: 100vh;
+        }
+    </style>
 </head>
-<body class="bg-gradient-to-br from-blue-500 to-blue-700 min-h-screen flex items-center justify-center">
+<body class="login-background min-h-screen flex items-center justify-center">
     <div class="max-w-md w-full space-y-8 px-10 pt-4 pb-10 bg-white rounded-xl shadow-2xl">
         <div class="text-center mb-2">
             <div class="flex justify-center mb-1">
@@ -77,10 +87,10 @@
             <div>
                 <button 
                     type="submit" 
-                    class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                    class="btn-gradient-primary w-full relative"
                 >
                     <span class="absolute left-0 inset-y-0 flex items-center pl-3">
-                        <i class="fas fa-lock text-blue-500 group-hover:text-blue-400"></i>
+                        <i class="fas fa-lock text-white"></i>
                     </span>
                     Iniciar Sesión
                 </button>

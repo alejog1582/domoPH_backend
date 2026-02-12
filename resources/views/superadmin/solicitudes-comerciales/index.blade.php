@@ -40,14 +40,14 @@
                 <option value="media" {{ request('prioridad') == 'media' ? 'selected' : '' }}>Media</option>
                 <option value="alta" {{ request('prioridad') == 'alta' ? 'selected' : '' }}>Alta</option>
             </select>
-            <button type="submit" class="bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+            <button type="submit" class="btn-gradient-primary">
                 <i class="fas fa-search mr-2"></i> Buscar
             </button>
         </form>
     </div>
 
-    <table class="min-w-full divide-y divide-gray-200">
-        <thead class="bg-gray-50">
+    <table class="table-domoph min-w-full">
+        <thead>
             <tr>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contacto</th>
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tipo</th>
@@ -58,9 +58,9 @@
                 <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acciones</th>
             </tr>
         </thead>
-        <tbody class="bg-white divide-y divide-gray-200">
+        <tbody>
             @forelse($solicitudes as $solicitud)
-                <tr class="hover:bg-gray-50">
+                <tr>
                     <td class="px-6 py-4">
                         <div class="text-sm font-medium text-gray-900">{{ $solicitud->nombre_contacto }}</div>
                         <div class="text-sm text-gray-500">{{ $solicitud->empresa ?? 'Sin empresa' }}</div>

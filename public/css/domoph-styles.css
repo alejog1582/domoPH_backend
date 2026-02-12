@@ -1,0 +1,367 @@
+/* ==============================================
+   DESIGN SYSTEM - domoPH Backend
+   "Vive tu conjunto"
+   ============================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+  /* Brand Core Colors */
+  --primary: hsl(217, 91%, 54%);
+  --primary-foreground: hsl(0, 0%, 100%);
+  
+  --secondary: hsl(142, 71%, 45%);
+  --secondary-foreground: hsl(0, 0%, 100%);
+  
+  /* Neutral UI */
+  --background: hsl(210, 40%, 98%);
+  --foreground: hsl(222, 47%, 17%);
+  
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(222, 47%, 17%);
+  
+  --muted: hsl(210, 40%, 96%);
+  --muted-foreground: hsl(215, 16%, 47%);
+  
+  --accent: hsl(210, 40%, 96%);
+  --accent-foreground: hsl(222, 47%, 17%);
+  
+  /* State Colors */
+  --destructive: hsl(0, 84%, 60%);
+  --destructive-foreground: hsl(0, 0%, 100%);
+  
+  --warning: hsl(48, 96%, 53%);
+  --warning-foreground: hsl(222, 47%, 17%);
+  
+  --info: hsl(199, 89%, 60%);
+  --info-foreground: hsl(0, 0%, 100%);
+  
+  --success: hsl(142, 71%, 45%);
+  --success-foreground: hsl(0, 0%, 100%);
+  
+  /* UI Elements */
+  --border: hsl(215, 25%, 90%);
+  --input: hsl(215, 25%, 90%);
+  --ring: hsl(217, 91%, 54%);
+  
+  --radius: 0.75rem;
+  
+  /* Sidebar */
+  --sidebar-background: hsl(222, 47%, 17%);
+  --sidebar-foreground: hsl(210, 40%, 98%);
+  --sidebar-primary: hsl(217, 91%, 54%);
+  --sidebar-primary-foreground: hsl(0, 0%, 100%);
+  --sidebar-accent: hsl(222, 47%, 22%);
+  --sidebar-accent-foreground: hsl(210, 40%, 98%);
+  --sidebar-border: hsl(222, 47%, 25%);
+  --sidebar-ring: hsl(217, 91%, 54%);
+  --sidebar-muted: hsl(215, 16%, 65%);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, hsl(217, 91%, 54%) 0%, hsl(142, 71%, 45%) 100%);
+  --gradient-tech: linear-gradient(135deg, hsl(217, 91%, 54%) 0%, hsl(199, 89%, 60%) 100%);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px 0 hsl(222 47% 17% / 0.05);
+  --shadow-md: 0 4px 6px -1px hsl(222 47% 17% / 0.08), 0 2px 4px -2px hsl(222 47% 17% / 0.05);
+  --shadow-lg: 0 10px 15px -3px hsl(222 47% 17% / 0.08), 0 4px 6px -4px hsl(222 47% 17% / 0.05);
+  --shadow-xl: 0 20px 25px -5px hsl(222 47% 17% / 0.1), 0 8px 10px -6px hsl(222 47% 17% / 0.05);
+  --shadow-card: 0 1px 3px 0 hsl(222 47% 17% / 0.06), 0 1px 2px -1px hsl(222 47% 17% / 0.06);
+  --shadow-card-hover: 0 10px 20px -5px hsl(222 47% 17% / 0.1);
+}
+
+* {
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Gradient backgrounds */
+.bg-gradient-primary {
+  background: var(--gradient-primary);
+}
+
+.bg-gradient-tech {
+  background: var(--gradient-tech);
+}
+
+/* Gradient text */
+.text-gradient {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Sidebar Styles */
+.sidebar-domoph {
+  background-color: var(--sidebar-background);
+  color: var(--sidebar-foreground);
+}
+
+.sidebar-domoph a {
+  color: var(--sidebar-foreground);
+  transition: all 0.2s ease;
+}
+
+.sidebar-domoph a:hover {
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+
+.sidebar-domoph a.active {
+  background-color: var(--sidebar-primary);
+  color: var(--sidebar-primary-foreground);
+}
+
+.sidebar-domoph .submenu-item {
+  color: var(--sidebar-foreground);
+  transition: all 0.2s ease;
+}
+
+.sidebar-domoph .submenu-item:hover {
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+}
+
+.sidebar-domoph .submenu-item.active {
+  background-color: var(--sidebar-accent);
+  color: var(--sidebar-accent-foreground);
+  border-left: 2px solid var(--sidebar-primary);
+}
+
+/* Button Styles */
+.btn-gradient-primary {
+  background: var(--gradient-primary);
+  color: white;
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-md);
+}
+
+.btn-gradient-primary:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-1px);
+}
+
+.btn-gradient-primary:active {
+  transform: translateY(0);
+}
+
+/* Botones azules con gradiente - Reemplazar todos los bg-blue-* */
+button.bg-blue-600,
+a.bg-blue-600,
+button.bg-blue-500,
+a.bg-blue-500,
+button.bg-blue-700,
+a.bg-blue-700,
+.bg-blue-600,
+.bg-blue-500,
+.bg-blue-700 {
+  background: var(--gradient-primary) !important;
+  background-image: linear-gradient(135deg, hsl(217, 91%, 54%) 0%, hsl(142, 71%, 45%) 100%) !important;
+  color: white !important;
+  border: none !important;
+}
+
+button.bg-blue-600:hover,
+a.bg-blue-600:hover,
+button.bg-blue-500:hover,
+a.bg-blue-500:hover,
+button.bg-blue-700:hover,
+a.bg-blue-700:hover,
+.bg-blue-600:hover,
+.bg-blue-500:hover,
+.bg-blue-700:hover {
+  background: var(--gradient-primary) !important;
+  background-image: linear-gradient(135deg, hsl(217, 91%, 54%) 0%, hsl(142, 71%, 45%) 100%) !important;
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-lg);
+}
+
+.btn-white-on-gradient {
+  background: white;
+  color: var(--primary);
+  border: none;
+  padding: 0.625rem 1.5rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-white-on-gradient:hover {
+  background: var(--muted);
+  transform: translateY(-1px);
+}
+
+/* Table Styles */
+.table-domoph {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.table-domoph thead {
+  background: var(--gradient-primary);
+  color: white;
+}
+
+.table-domoph thead th {
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: white;
+}
+
+.table-domoph tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background-color 0.2s ease;
+  background-color: white;
+}
+
+.table-domoph tbody tr:hover {
+  background-color: var(--muted);
+}
+
+.table-domoph tbody td {
+  padding: 1rem;
+  color: var(--foreground);
+}
+
+/* Tabla con colores alternados */
+.table-domoph tbody tr:nth-child(even) {
+  background-color: hsl(210, 40%, 99%);
+}
+
+.table-domoph tbody tr:nth-child(even):hover {
+  background-color: var(--muted);
+}
+
+/* Estilos para tablas que aún usan clases de Tailwind - Reemplazar bg-gray-800 con gradiente */
+table thead.bg-gray-800,
+thead.bg-gray-800 {
+  background: var(--gradient-primary) !important;
+  background-image: linear-gradient(135deg, hsl(217, 91%, 54%) 0%, hsl(142, 71%, 45%) 100%) !important;
+}
+
+table thead.bg-gray-800 th,
+thead.bg-gray-800 th {
+  color: white !important;
+  background: transparent !important;
+}
+
+/* Card Styles */
+.card-domoph {
+  background: var(--card);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-card);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.card-domoph:hover {
+  box-shadow: var(--shadow-card-hover);
+}
+
+.card-featured {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  color: white;
+  background: var(--gradient-primary);
+}
+
+/* Status Badges */
+.status-success {
+  background-color: hsl(142, 71%, 45%, 0.1);
+  color: var(--success);
+  border: 1px solid hsl(142, 71%, 45%, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-error {
+  background-color: hsl(0, 84%, 60%, 0.1);
+  color: var(--destructive);
+  border: 1px solid hsl(0, 84%, 60%, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-warning {
+  background-color: hsl(48, 96%, 53%, 0.1);
+  color: var(--warning);
+  border: 1px solid hsl(48, 96%, 53%, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.status-info {
+  background-color: hsl(199, 89%, 60%, 0.1);
+  color: var(--info);
+  border: 1px solid hsl(199, 89%, 60%, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* Navbar Styles */
+.navbar-domoph {
+  background: var(--sidebar-background);
+  color: var(--sidebar-foreground);
+  box-shadow: var(--shadow-md);
+}
+
+.navbar-domoph a,
+.navbar-domoph span,
+.navbar-domoph button {
+  color: var(--sidebar-foreground);
+}
+
+.navbar-domoph button:hover {
+  color: var(--sidebar-accent-foreground);
+  background-color: var(--sidebar-accent);
+}
+
+/* Background */
+.bg-domoph {
+  background-color: var(--background);
+}
+
+/* Text Colors */
+.text-primary-domoph {
+  color: var(--primary);
+}
+
+.text-secondary-domoph {
+  color: var(--secondary);
+}
+
+.text-foreground-domoph {
+  color: var(--foreground);
+}
+
+.text-muted-domoph {
+  color: var(--muted-foreground);
+}

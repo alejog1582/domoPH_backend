@@ -74,7 +74,7 @@
                     <i class="fas fa-times mr-1"></i> Limpiar filtros
                 </a>
                 <div class="flex items-center space-x-2">
-                    <button type="submit" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition">
+                    <button type="submit" class="btn-gradient-primary inline-flex items-center">
                         <i class="fas fa-search mr-2"></i>
                         Buscar
                     </button>
@@ -86,8 +86,8 @@
     <!-- Tabla de Zonas Comunes -->
     <div class="bg-white rounded-lg shadow overflow-hidden">
         <div class="overflow-x-auto">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-800">
+            <table class="table-domoph min-w-full">
+                <thead>
                     <tr>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">NOMBRE</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">UBICACIÓN</th>
@@ -98,7 +98,7 @@
                         <th class="px-6 py-3 text-left text-xs font-medium text-white uppercase tracking-wider">ACCIONES</th>
                     </tr>
                 </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
+                <tbody>
                     @forelse($zonasSociales as $zona)
                         <tr class="hover:bg-gray-50">
                             <td class="px-6 py-4 whitespace-nowrap">

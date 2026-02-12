@@ -11,8 +11,18 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- domoPH Custom Styles -->
+    <link rel="stylesheet" href="{{ asset('css/domoph-styles.css') }}">
+    
+    <style>
+        .login-background {
+            background: linear-gradient(135deg, hsl(217, 91%, 54%) 0%, hsl(142, 71%, 45%) 100%);
+            min-height: 100vh;
+        }
+    </style>
 </head>
-<body class="bg-blue-600 flex items-center justify-center min-h-screen">
+<body class="login-background flex items-center justify-center min-h-screen">
     <div class="bg-white rounded-lg shadow-xl px-8 pt-4 pb-8 w-full max-w-md">
         <div class="text-center mb-2">
             <div class="flex justify-center mb-1">
@@ -76,7 +86,7 @@
 
             <button 
                 type="submit" 
-                class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline transition duration-150"
+                class="btn-gradient-primary w-full"
             >
                 <i class="fas fa-lock mr-2"></i>
                 Iniciar Sesión

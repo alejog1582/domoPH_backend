@@ -14,6 +14,74 @@
 </div>
 
 @if($propiedad)
+    <!-- Estadísticas Principales -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-6">
+        <!-- Tarjeta de Unidades -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-gradient-primary rounded-md p-3">
+                    <i class="fas fa-door-open text-white text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Unidades</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['unidades'] ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Residentes -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-gradient-primary rounded-md p-3">
+                    <i class="fas fa-users text-white text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Residentes</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['residentes'] ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Mascotas -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-gradient-primary rounded-md p-3">
+                    <i class="fas fa-paw text-white text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Mascotas</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['mascotas'] ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Cartera en Mora -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-gradient-primary rounded-md p-3">
+                    <i class="fas fa-exclamation-triangle text-white text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Cartera en Mora</p>
+                    <p class="text-2xl font-semibold text-gray-900">${{ number_format($stats['cartera_mora'] ?? 0, 0, ',', '.') }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tarjeta de Reservas -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <div class="flex items-center">
+                <div class="flex-shrink-0 bg-gradient-primary rounded-md p-3">
+                    <i class="fas fa-calendar-check text-white text-2xl"></i>
+                </div>
+                <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-500">Reservas</p>
+                    <p class="text-2xl font-semibold text-gray-900">{{ $stats['reservas'] ?? 0 }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Información de la Propiedad -->
     <div class="bg-white rounded-lg shadow p-6 mb-6">
         <h2 class="text-xl font-semibold text-gray-900 mb-4">

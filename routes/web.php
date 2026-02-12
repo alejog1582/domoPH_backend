@@ -167,7 +167,26 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     
     // Dashboard
     Route::get('dashboard', function () {
-        return view('admin.dashboard');
+        $propiedad = \App\Helpers\AdminHelper::getPropiedadActiva();
+        
+        $stats = [];
+        if ($propiedad) {
+            $stats = [
+                'unidades' => \App\Models\Unidad::where('propiedad_id', $propiedad->id)->count(),
+                'residentes' => \App\Models\Residente::whereHas('unidad', function($q) use ($propiedad) {
+                    $q->where('propiedad_id', $propiedad->id);
+                })->count(),
+                'mascotas' => \App\Models\Mascota::whereHas('unidad', function($q) use ($propiedad) {
+                    $q->where('propiedad_id', $propiedad->id);
+                })->count(),
+                'cartera_mora' => \App\Models\Cartera::where('copropiedad_id', $propiedad->id)
+                    ->where('activo', true)
+                    ->sum('saldo_mora'),
+                'reservas' => \App\Models\Reserva::where('copropiedad_id', $propiedad->id)->count(),
+            ];
+        }
+        
+        return view('admin.dashboard', compact('stats'));
     })->name('dashboard')->middleware('permission:dashboard.view');
     
     // Gestión de Unidades

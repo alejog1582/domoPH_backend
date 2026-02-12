@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $urlLogin = 'https://domoph.pro/app/login';
+    $urlLogin = rtrim(env('APP_URL', 'http://localhost'), '/') . '/app/login';
     $propiedad = $residente->unidad->propiedad ?? null;
     $unidad = $residente->unidad;
     

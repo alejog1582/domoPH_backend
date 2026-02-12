@@ -4,7 +4,7 @@
 
 @section('content')
 @php
-    $urlLogin = config('app.url_backend', config('app.url_backend')) . '/admin/login';
+    $urlLogin = rtrim(env('APP_URL_BACKEND', 'http://localhost'), '/') . '/admin/login';
 @endphp
 
     <!-- Saludo Personalizado -->

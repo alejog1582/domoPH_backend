@@ -28,7 +28,7 @@
                                 
                                 // Opción 2: URL local absoluta
                                 if (!$logoUrl) {
-                                    $appUrl = rtrim(config('app.url'), '/');
+                                    $appUrl = rtrim(env('APP_URL', 'http://localhost'), '/');
                                     $logoUrl = $appUrl . '/imagenes/logo.png';
                                 }
                             @endphp

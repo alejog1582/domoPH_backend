@@ -34,8 +34,8 @@
         default => '#6b7280',
     };
 
-    $urlAdmin = config('app.url_backend') . '/superadmin/solicitudes-comerciales/' . $solicitud->id;
-    $appUrl = config('app.url');
+    $urlAdmin = rtrim(env('APP_URL_BACKEND', 'http://localhost'), '/') . '/superadmin/solicitudes-comerciales/' . $solicitud->id;
+    $appUrl = env('APP_URL', 'http://localhost');
 @endphp
     <!-- Title -->
     <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
@@ -281,7 +281,7 @@
             <td style="padding-top: 8px;">
                 <p style="margin: 0; font-size: 14px; color: #6b7280; line-height: 1.5;">
                     Saludos,<br>
-                    <strong style="color: #1f2937;">{{ config('app.name') }}</strong>
+                    <strong style="color: #1f2937;">{{ env('APP_NAME') }}</strong>
                 </p>
             </td>
         </tr>

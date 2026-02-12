@@ -6,7 +6,7 @@
 @php
     $unidad = $cuentaCobro->unidad;
     $propiedad = $unidad->propiedad ?? null;
-    $urlCartera = 'https://domoph.pro/app/cartera';
+    $urlCartera = rtrim(env('APP_URL', 'http://localhost'), '/') . '/app/cartera';
     
     // Formatear número de unidad
     $numeroUnidad = $unidad->numero;

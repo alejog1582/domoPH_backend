@@ -21,6 +21,7 @@ use App\Models\Encuesta;
 use App\Models\Votacion;
 use App\Models\EncuestaRespuesta;
 use App\Models\Voto;
+use App\Models\LlamadoAtencion;
 use Illuminate\Validation\ValidationException;
 use Carbon\Carbon;
 
@@ -290,6 +291,27 @@ class ResidenteAuthController extends Controller
             return !$comunicado['leido']; // Solo los no leídos
         })
         ->values();
+
+        // Obtener llamados de atención activos
+        $llamadosAtencion = LlamadoAtencion::where('copropiedad_id', $propiedadData['id'])
+            ->where('unidad_id', $residente->unidad->id)
+            ->where('activo', true)
+            ->whereIn('estado', ['abierto', 'en_proceso'])
+            ->orderBy('fecha_registro', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($llamado) {
+                return [
+                    'id' => $llamado->id,
+                    'tipo' => $llamado->tipo,
+                    'motivo' => $llamado->motivo,
+                    'descripcion' => $llamado->descripcion,
+                    'nivel' => $llamado->nivel,
+                    'estado' => $llamado->estado,
+                    'fecha_registro' => $llamado->fecha_registro?->format('Y-m-d H:i:s'),
+                    'fecha_registro_formateada' => $llamado->fecha_registro?->format('d M Y'),
+                ];
+            });
 
         // Obtener reservas activas (si existe el modelo)
         // Por ahora retornamos un array vacío, se puede implementar cuando exista el modelo
@@ -594,6 +616,7 @@ class ResidenteAuthController extends Controller
                 'proximo_vencimiento' => $proximoVencimiento,
                 'pqrs_abiertas' => $pqrsAbiertas,
                 'comunicados_nuevos' => $comunicadosNuevos,
+                'llamados_atencion' => $llamadosAtencion,
                 'reservas_activas' => $reservasActivas,
                 'proxima_reserva' => $proximaReserva,
                 'sorteo_parqueadero_activo' => $sorteoData,
@@ -810,6 +833,27 @@ class ResidenteAuthController extends Controller
             return !$comunicado['leido'];
         })
         ->values();
+
+        // Obtener llamados de atención activos
+        $llamadosAtencion = LlamadoAtencion::where('copropiedad_id', $propiedadData['id'])
+            ->where('unidad_id', $residente->unidad->id)
+            ->where('activo', true)
+            ->whereIn('estado', ['abierto', 'en_proceso'])
+            ->orderBy('fecha_registro', 'desc')
+            ->limit(10)
+            ->get()
+            ->map(function ($llamado) {
+                return [
+                    'id' => $llamado->id,
+                    'tipo' => $llamado->tipo,
+                    'motivo' => $llamado->motivo,
+                    'descripcion' => $llamado->descripcion,
+                    'nivel' => $llamado->nivel,
+                    'estado' => $llamado->estado,
+                    'fecha_registro' => $llamado->fecha_registro?->format('Y-m-d H:i:s'),
+                    'fecha_registro_formateada' => $llamado->fecha_registro?->format('d M Y'),
+                ];
+            });
 
         // Obtener reservas activas
         $reservasActivas = [];
@@ -1111,6 +1155,7 @@ class ResidenteAuthController extends Controller
                 'proximo_vencimiento' => $proximoVencimiento,
                 'pqrs_abiertas' => $pqrsAbiertas,
                 'comunicados_nuevos' => $comunicadosNuevos,
+                'llamados_atencion' => $llamadosAtencion,
                 'reservas_activas' => $reservasActivas,
                 'proxima_reserva' => $proximaReserva,
                 'sorteo_parqueadero_activo' => $sorteoData,

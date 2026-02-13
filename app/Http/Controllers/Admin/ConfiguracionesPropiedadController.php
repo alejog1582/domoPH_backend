@@ -52,25 +52,35 @@ class ConfiguracionesPropiedadController extends Controller
             return back()->with('error', 'Configuración no encontrada.');
         }
 
-        // Validar que solo se puedan actualizar configuraciones de tipo boolean
-        if ($configuracion->tipo !== 'boolean') {
-            return back()->with('error', 'Solo se pueden actualizar configuraciones de tipo boolean.');
+        // Validar que se puedan actualizar configuraciones de tipo boolean o html
+        if (!in_array($configuracion->tipo, ['boolean', 'html', 'text'])) {
+            return back()->with('error', 'Solo se pueden actualizar configuraciones de tipo boolean, html o text.');
         }
 
-        // Obtener el valor (puede venir como string 'true'/'false', '1'/'0', o boolean)
-        // Si no viene, significa que el checkbox está desmarcado (false)
-        $valor = $request->has('valor') ? $request->input('valor') : false;
-        
-        if (is_string($valor)) {
-            $valor = $valor === 'true' || $valor === '1';
+        $valor = null;
+
+        if ($configuracion->tipo === 'boolean') {
+            // Obtener el valor (puede venir como string 'true'/'false', '1'/'0', o boolean)
+            // Si no viene, significa que el checkbox está desmarcado (false)
+            $valor = $request->has('valor') ? $request->input('valor') : false;
+            
+            if (is_string($valor)) {
+                $valor = $valor === 'true' || $valor === '1';
+            }
+            $valor = $valor ? 'true' : 'false';
+        } elseif (in_array($configuracion->tipo, ['html', 'text'])) {
+            // Para configuraciones de tipo html o text
+            $request->validate([
+                'valor' => 'required|string',
+            ]);
+            $valor = $request->input('valor');
         }
-        $valor = (bool) $valor;
         
         // Actualizar la configuración
         DB::table('configuraciones_propiedad')
             ->where('id', $id)
             ->update([
-                'valor' => $valor ? 'true' : 'false',
+                'valor' => $valor,
                 'updated_at' => now(),
             ]);
 
@@ -89,30 +99,42 @@ class ConfiguracionesPropiedadController extends Controller
                 ->with('error', 'No hay propiedad asignada.');
         }
 
-        // Obtener todas las configuraciones boolean de la propiedad
+        // Obtener todas las configuraciones de la propiedad
         $todasConfiguraciones = DB::table('configuraciones_propiedad')
             ->where('propiedad_id', $propiedad->id)
-            ->where('tipo', 'boolean')
             ->get();
 
         DB::beginTransaction();
         try {
-            // Obtener los valores enviados (solo los checkboxes marcados se envían)
-            $valoresEnviados = $request->input('configuraciones', []);
+            // Obtener los valores enviados para configuraciones boolean (solo los checkboxes marcados se envían)
+            $valoresBoolean = $request->input('configuraciones', []);
+            
+            // Obtener los valores enviados para configuraciones html/text
+            $valoresHtml = $request->input('configuraciones_html', []);
 
             foreach ($todasConfiguraciones as $configuracion) {
-                // Si está en el array enviado, está marcado (true), si no, está desmarcado (false)
-                $estaMarcado = isset($valoresEnviados[$configuracion->id]);
-                
-                // Convertir a string 'true' o 'false'
-                $valorFinal = $estaMarcado ? 'true' : 'false';
-                
-                DB::table('configuraciones_propiedad')
-                    ->where('id', $configuracion->id)
-                    ->update([
-                        'valor' => $valorFinal,
-                        'updated_at' => now(),
-                    ]);
+                if ($configuracion->tipo === 'boolean') {
+                    // Si está en el array enviado, está marcado (true), si no, está desmarcado (false)
+                    $estaMarcado = isset($valoresBoolean[$configuracion->id]);
+                    
+                    // Convertir a string 'true' o 'false'
+                    $valorFinal = $estaMarcado ? 'true' : 'false';
+                    
+                    DB::table('configuraciones_propiedad')
+                        ->where('id', $configuracion->id)
+                        ->update([
+                            'valor' => $valorFinal,
+                            'updated_at' => now(),
+                        ]);
+                } elseif (in_array($configuracion->tipo, ['html', 'text']) && isset($valoresHtml[$configuracion->id])) {
+                    // Actualizar configuraciones de tipo html o text
+                    DB::table('configuraciones_propiedad')
+                        ->where('id', $configuracion->id)
+                        ->update([
+                            'valor' => $valoresHtml[$configuracion->id],
+                            'updated_at' => now(),
+                        ]);
+                }
             }
 
             DB::commit();

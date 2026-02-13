@@ -15,6 +15,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Carbon\Carbon;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class RecaudoController extends Controller
 {
@@ -493,6 +495,84 @@ class RecaudoController extends Controller
             \Log::error('Error al importar recaudos: ' . $e->getMessage());
             return back()->with('error', 'Error al procesar el archivo: ' . $e->getMessage());
         }
+    }
+
+    /**
+     * Descargar PDF del recaudo
+     */
+    public function descargarPdf($id)
+    {
+        $recaudo = Recaudo::with([
+            'copropiedad',
+            'unidad.residentePrincipal.user',
+            'cuentaCobro',
+            'detalles.cuentaCobroDetalle',
+            'registradoPor'
+        ])->findOrFail($id);
+
+        $propiedad = $recaudo->copropiedad;
+        $unidad = $recaudo->unidad;
+        $residentePrincipal = $unidad->residentePrincipal;
+        $usuario = $residentePrincipal ? $residentePrincipal->user : null;
+        $cuentaCobro = $recaudo->cuentaCobro;
+
+        // Convertir colores hex a RGB para usar en el PDF
+        $primaryColor = $propiedad->color_primario ?? '#3b82f6';
+        $secondaryColor = $propiedad->color_secundario ?? '#10b981';
+        
+        // Función para convertir hex a RGB
+        $hexToRgb = function($hex) {
+            $hex = str_replace('#', '', $hex);
+            if (strlen($hex) == 6) {
+                return [
+                    hexdec(substr($hex, 0, 2)),
+                    hexdec(substr($hex, 2, 2)),
+                    hexdec(substr($hex, 4, 2))
+                ];
+            }
+            return [59, 130, 246]; // default blue
+        };
+        
+        $primaryRgb = $hexToRgb($primaryColor);
+        $secondaryRgb = $hexToRgb($secondaryColor);
+
+        // Preparar datos para la vista
+        $data = [
+            'recaudo' => $recaudo,
+            'propiedad' => $propiedad,
+            'unidad' => $unidad,
+            'usuario' => $usuario,
+            'cuentaCobro' => $cuentaCobro,
+            'primaryColor' => $primaryColor,
+            'secondaryColor' => $secondaryColor,
+            'primaryRgb' => $primaryRgb,
+            'secondaryRgb' => $secondaryRgb,
+        ];
+
+        // Generar HTML
+        $html = view('admin.recaudos.pdf', $data)->render();
+
+        // Configurar opciones de Dompdf
+        $options = new Options();
+        $options->set('isHtml5ParserEnabled', true);
+        $options->set('isRemoteEnabled', true);
+        $options->set('defaultFont', 'DejaVu Sans');
+        $options->set('chroot', public_path());
+        $options->set('isPhpEnabled', true);
+
+        // Crear instancia de Dompdf
+        $dompdf = new Dompdf($options);
+        $dompdf->loadHtml($html);
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        // Generar nombre del archivo
+        $nombreArchivo = 'recaudo_' . $recaudo->numero_recaudo . '_' . $unidad->numero . '.pdf';
+
+        // Descargar PDF
+        return response()->streamDownload(function() use ($dompdf) {
+            echo $dompdf->output();
+        }, $nombreArchivo);
     }
 
     /**

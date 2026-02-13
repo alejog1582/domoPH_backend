@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             EcommerceSeeder::class,
             CarteraSeeder::class,
             ComunicadoSeeder::class,
+            ComunicacionesCobranzaSeeder::class,
         ]);
     }
 }

@@ -218,10 +218,28 @@ class DemoSeeder extends Seeder
             ]
         );
 
+        // Crear configuración comentarios_cuentas_cobro
+        DB::table('configuraciones_propiedad')->updateOrInsert(
+            [
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'comentarios_cuentas_cobro',
+            ],
+            [
+                'valor' => '<p>Puede realizar su pago en el<strong> Banco Davivienda, Cuenta de Ahorros No. 004470467319</strong>.</p>
+ <p>&nbsp;</p>
+ <p>Gracias por su cumplimiento y por contribuir al bienestar y adecuada administraci&oacute;n de la copropiedad.</p>',
+                'tipo' => 'html',
+                'descripcion' => 'Comentario que se mostrará al finalizar la cuenta de cobro en el PDF',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
         $this->command->info('   ✓ Propiedad demo creada');
         $this->command->info('   ✓ Administrador asociado a la propiedad');
         $this->command->info('   ✓ Configuración activar_tienda creada');
         $this->command->info('   ✓ Configuración ecommerce_requiere_aprobacion creada');
+        $this->command->info('   ✓ Configuración comentarios_cuentas_cobro creada');
         return $propiedad;
     }
 
@@ -244,8 +262,18 @@ class DemoSeeder extends Seeder
         $caracteristicas = $plan->caracteristicas ?? [];
         $modulosSlugs = $caracteristicas['modulos'] ?? [];
 
+        // Para el usuario demo, asignar TODOS los módulos activos con es_admin = true
+        // Esto incluye comunicaciones-cobranza y cualquier otro módulo admin
+        $modulosAdmin = Modulo::where('activo', true)
+            ->where('es_admin', true)
+            ->pluck('slug')
+            ->toArray();
+
+        // Combinar módulos del plan con todos los módulos admin
+        $modulosSlugs = array_unique(array_merge($modulosSlugs, $modulosAdmin));
+
         if (empty($modulosSlugs)) {
-            $this->command->warn('   ⚠ El plan no tiene módulos definidos');
+            $this->command->warn('   ⚠ No se encontraron módulos para asignar');
             return;
         }
 
@@ -253,7 +281,7 @@ class DemoSeeder extends Seeder
         $modulos = Modulo::whereIn('slug', $modulosSlugs)->get();
 
         if ($modulos->isEmpty()) {
-            $this->command->warn('   ⚠ No se encontraron módulos con los slugs del plan');
+            $this->command->warn('   ⚠ No se encontraron módulos con los slugs especificados');
             return;
         }
 

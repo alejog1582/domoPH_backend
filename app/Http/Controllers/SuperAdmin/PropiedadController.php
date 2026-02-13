@@ -149,6 +149,17 @@ class PropiedadController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Crear configuración comentarios_cuentas_cobro
+            DB::table('configuraciones_propiedad')->insert([
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'comentarios_cuentas_cobro',
+                'valor' => '<p><strong>¡Gracias por su pago y por contribuir al buen funcionamiento de la copropiedad!</strong></p>',
+                'tipo' => 'html',
+                'descripcion' => 'Comentario que se mostrará al finalizar la cuenta de cobro en el PDF',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
             // Guardar la contraseña en texto plano antes de hashearla (para el correo)
             $passwordPlano = $request->admin_password;
 

@@ -105,6 +105,14 @@ class PermissionSeeder extends Seeder
             ['nombre' => 'Editar acuerdos de pago', 'slug' => 'acuerdos-pagos.edit', 'modulo' => 'acuerdos-pagos'],
             ['nombre' => 'Eliminar acuerdos de pago', 'slug' => 'acuerdos-pagos.delete', 'modulo' => 'acuerdos-pagos'],
             
+            // Comunicaciones de Cobranza
+            ['nombre' => 'Ver comunicaciones de cobranza', 'slug' => 'comunicaciones-cobranza.view', 'modulo' => 'comunicaciones-cobranza'],
+            ['nombre' => 'Crear comunicaciones de cobranza', 'slug' => 'comunicaciones-cobranza.create', 'modulo' => 'comunicaciones-cobranza'],
+            ['nombre' => 'Editar comunicaciones de cobranza', 'slug' => 'comunicaciones-cobranza.edit', 'modulo' => 'comunicaciones-cobranza'],
+            ['nombre' => 'Eliminar comunicaciones de cobranza', 'slug' => 'comunicaciones-cobranza.delete', 'modulo' => 'comunicaciones-cobranza'],
+            ['nombre' => 'Enviar comunicaciones manualmente', 'slug' => 'comunicaciones-cobranza.enviar', 'modulo' => 'comunicaciones-cobranza'],
+            ['nombre' => 'Ver historial de envíos', 'slug' => 'comunicaciones-cobranza.historial', 'modulo' => 'comunicaciones-cobranza'],
+            
             // Gestión
             ['nombre' => 'Ver comunicados', 'slug' => 'comunicados.view', 'modulo' => 'comunicados'],
             ['nombre' => 'Crear comunicados', 'slug' => 'comunicados.create', 'modulo' => 'comunicados'],

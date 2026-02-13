@@ -210,11 +210,14 @@
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
                                 <button 
                                     onclick="verRecaudo({{ $recaudo->id }})" 
-                                    class="text-blue-600 hover:text-blue-900" 
+                                    class="text-blue-600 hover:text-blue-900 mr-2" 
                                     title="Ver detalles"
                                 >
                                     <i class="fas fa-eye"></i>
                                 </button>
+                                <a href="{{ route('admin.recaudos.pdf', $recaudo->id) }}" target="_blank" class="text-blue-600 hover:text-blue-900" title="Descargar PDF">
+                                    <i class="fas fa-download"></i>
+                                </a>
                             </td>
                         </tr>
                     @empty

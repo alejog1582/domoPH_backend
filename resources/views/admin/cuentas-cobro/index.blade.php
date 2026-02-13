@@ -269,6 +269,14 @@
                                 @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <a 
+                                    href="{{ route('admin.cuentas-cobro.pdf', $cuenta->id) }}" 
+                                    class="text-green-600 hover:text-green-900 mr-2" 
+                                    title="Descargar PDF"
+                                    target="_blank"
+                                >
+                                    <i class="fas fa-download"></i>
+                                </a>
                                 @if($cuenta->recaudos->count() > 0)
                                     <button 
                                         onclick="verRecaudos({{ $cuenta->id }})" 

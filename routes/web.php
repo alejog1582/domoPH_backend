@@ -19,6 +19,7 @@ use App\Http\Controllers\Admin\CarteraController;
 use App\Http\Controllers\Admin\CuentaCobroController;
 use App\Http\Controllers\Admin\RecaudoController;
 use App\Http\Controllers\Admin\AcuerdoPagoController;
+use App\Http\Controllers\Admin\ComunicacionesCobranzaController;
 use App\Http\Controllers\Admin\ComunicadoController;
 use App\Http\Controllers\Admin\CorrespondenciaController;
 use App\Http\Controllers\Admin\VisitaController;
@@ -324,11 +325,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:cuentas-cobro.view')->group(function () {
         Route::get('cuentas-cobro', [CuentaCobroController::class, 'index'])->name('cuentas-cobro.index');
         Route::get('cuentas-cobro/recaudo/{recaudoId}', [CuentaCobroController::class, 'obtenerRecaudo'])->name('cuentas-cobro.recaudo');
+        Route::get('cuentas-cobro/{id}/pdf', [CuentaCobroController::class, 'descargarPdf'])->name('cuentas-cobro.pdf');
     });
     
     // Gestión de Recaudos
     Route::middleware('permission:recaudos.view')->group(function () {
         Route::get('recaudos', [RecaudoController::class, 'index'])->name('recaudos.index');
+        Route::get('recaudos/{id}/pdf', [RecaudoController::class, 'descargarPdf'])->name('recaudos.pdf');
         Route::get('recaudos/cargar', [RecaudoController::class, 'showCargarRecaudos'])->name('recaudos.cargar');
         Route::get('recaudos/template', [RecaudoController::class, 'downloadTemplate'])->name('recaudos.download-template');
         Route::post('recaudos/import', [RecaudoController::class, 'importRecaudos'])->name('recaudos.import');
@@ -345,6 +348,25 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:acuerdos-pagos.edit')->group(function () {
         Route::get('acuerdos-pagos/{acuerdoPago}/edit', [AcuerdoPagoController::class, 'edit'])->name('acuerdos-pagos.edit');
         Route::put('acuerdos-pagos/{acuerdoPago}', [AcuerdoPagoController::class, 'update'])->name('acuerdos-pagos.update');
+    });
+    
+    // Gestión de Comunicaciones de Cobranza
+    Route::middleware('permission:comunicaciones-cobranza.view')->group(function () {
+        Route::get('comunicaciones-cobranza', [ComunicacionesCobranzaController::class, 'index'])->name('comunicaciones-cobranza.index');
+    });
+    Route::middleware('permission:comunicaciones-cobranza.create')->group(function () {
+        Route::get('comunicaciones-cobranza/create', [ComunicacionesCobranzaController::class, 'create'])->name('comunicaciones-cobranza.create');
+        Route::post('comunicaciones-cobranza', [ComunicacionesCobranzaController::class, 'store'])->name('comunicaciones-cobranza.store');
+    });
+    Route::middleware('permission:comunicaciones-cobranza.view')->group(function () {
+        Route::get('comunicaciones-cobranza/{id}', [ComunicacionesCobranzaController::class, 'show'])->name('comunicaciones-cobranza.show');
+    });
+    Route::middleware('permission:comunicaciones-cobranza.edit')->group(function () {
+        Route::get('comunicaciones-cobranza/{id}/edit', [ComunicacionesCobranzaController::class, 'edit'])->name('comunicaciones-cobranza.edit');
+        Route::put('comunicaciones-cobranza/{id}', [ComunicacionesCobranzaController::class, 'update'])->name('comunicaciones-cobranza.update');
+    });
+    Route::middleware('permission:comunicaciones-cobranza.delete')->group(function () {
+        Route::delete('comunicaciones-cobranza/{id}', [ComunicacionesCobranzaController::class, 'destroy'])->name('comunicaciones-cobranza.destroy');
     });
     
     // Gestión de Comunicados

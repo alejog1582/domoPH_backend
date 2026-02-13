@@ -196,6 +196,15 @@
                 Acuerdos de Pago
             </a>
             @endif
+            @if(\App\Helpers\AdminHelper::hasPermission('comunicaciones-cobranza.view'))
+            <a 
+                href="{{ route('admin.comunicaciones-cobranza.index') }}" 
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.comunicaciones-cobranza.*') ? 'submenu-item active' : '' }}"
+            >
+                <i class="fas fa-envelope mr-3 text-xs"></i>
+                Comunicaciones de Cobranza
+            </a>
+            @endif
         </div>
     </div>
     @endif

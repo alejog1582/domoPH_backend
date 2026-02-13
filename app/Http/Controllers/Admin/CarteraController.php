@@ -7,6 +7,8 @@ use App\Models\Cartera;
 use App\Models\Unidad;
 use App\Models\CuentaCobro;
 use App\Models\CuentaCobroDetalle;
+use App\Models\Recaudo;
+use App\Models\RecaudoDetalle;
 use App\Helpers\AdminHelper;
 use App\Services\PlantillaCarteraService;
 use Illuminate\Http\Request;
@@ -438,6 +440,68 @@ class CarteraController extends Controller
             }])
             ->orderBy('created_at', 'desc')
             ->get();
+
+        // Agrupar detalles por cuenta de cobro para calcular recaudos no aplicados
+        $detallesPorCuenta = $detalles->groupBy('cuenta_cobro_id');
+        
+        // Calcular el valor neto de cada detalle considerando los recaudos
+        $detalles = $detalles->map(function($detalle) use ($detallesPorCuenta) {
+            // Obtener recaudos aplicados directamente a este detalle
+            $totalRecaudosDetalle = RecaudoDetalle::where('cuenta_cobro_detalle_id', $detalle->id)
+                ->whereHas('recaudo', function($query) {
+                    $query->where('estado', '!=', 'anulado')
+                          ->where('activo', true);
+                })
+                ->sum('valor_aplicado');
+            
+            // Obtener todos los recaudos de la cuenta de cobro
+            $recaudosCuenta = Recaudo::where('cuenta_cobro_id', $detalle->cuenta_cobro_id)
+                ->where('estado', '!=', 'anulado')
+                ->where('activo', true)
+                ->get();
+            
+            $totalRecaudosCuenta = $recaudosCuenta->sum('valor_pagado');
+            
+            // Obtener el total de recaudos aplicados a detalles específicos de esta cuenta
+            $totalRecaudosAplicadosDetalles = RecaudoDetalle::whereHas('recaudo', function($query) use ($detalle) {
+                    $query->where('cuenta_cobro_id', $detalle->cuenta_cobro_id)
+                          ->where('estado', '!=', 'anulado')
+                          ->where('activo', true);
+                })
+                ->whereHas('cuentaCobroDetalle', function($query) use ($detalle) {
+                    $query->where('cuenta_cobro_id', $detalle->cuenta_cobro_id);
+                })
+                ->sum('valor_aplicado');
+            
+            // Calcular recaudos no aplicados a detalles específicos (recaudos sin RecaudoDetalle o con saldo no aplicado)
+            $recaudosNoAplicados = max(0, $totalRecaudosCuenta - $totalRecaudosAplicadosDetalles);
+            
+            // Calcular el valor neto
+            $valorNeto = $detalle->valor;
+            
+            // Restar recaudos aplicados directamente a este detalle
+            $valorNeto -= $totalRecaudosDetalle;
+            
+            // Si hay recaudos no aplicados a detalles específicos, distribuirlos proporcionalmente
+            if ($recaudosNoAplicados > 0 && $detalle->cuentaCobro && $detalle->cuentaCobro->valor_total > 0) {
+                // Obtener todos los detalles de esta cuenta de cobro
+                $detallesCuenta = $detallesPorCuenta->get($detalle->cuenta_cobro_id, collect());
+                $totalValorDetalles = $detallesCuenta->sum('valor');
+                
+                if ($totalValorDetalles > 0) {
+                    // Calcular la proporción de este detalle respecto al total de detalles
+                    $proporcion = $detalle->valor / $totalValorDetalles;
+                    // Aplicar la proporción de recaudos no aplicados
+                    $recaudosNoAplicadosDetalle = $recaudosNoAplicados * $proporcion;
+                    $valorNeto -= $recaudosNoAplicadosDetalle;
+                }
+            }
+            
+            // Agregar el valor neto calculado al detalle
+            $detalle->valor_neto = $valorNeto;
+            
+            return $detalle;
+        });
 
         return view('admin.cartera.detalles', compact('cartera', 'detalles', 'propiedad'));
     }

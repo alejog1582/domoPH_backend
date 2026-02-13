@@ -125,8 +125,8 @@
                                     <span class="text-gray-400">-</span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium {{ $detalle->valor > 0 ? 'text-red-600' : ($detalle->valor < 0 ? 'text-green-600' : 'text-gray-900') }}">
-                                ${{ number_format($detalle->valor, 2, ',', '.') }}
+                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium {{ isset($detalle->valor_neto) && $detalle->valor_neto > 0 ? 'text-red-600' : (isset($detalle->valor_neto) && $detalle->valor_neto < 0 ? 'text-green-600' : 'text-gray-900') }}">
+                                ${{ number_format(isset($detalle->valor_neto) ? $detalle->valor_neto : $detalle->valor, 2, ',', '.') }}
                             </td>
                         </tr>
                     @empty

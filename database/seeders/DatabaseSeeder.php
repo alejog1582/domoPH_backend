@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             CarteraSeeder::class,
             ComunicadoSeeder::class,
             ComunicacionesCobranzaSeeder::class,
+            ManualConvivenciaSeeder::class,
         ]);
     }
 }

@@ -54,7 +54,7 @@
 @if(\App\Helpers\AdminHelper::hasPermission('dashboard.view'))
     <a href="{{ route('admin.dashboard') }}" class="group flex items-center px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.dashboard') ? 'active' : '' }}">
         <i class="fas fa-home mr-3"></i>
-        Dashboard
+        Inicio
     </a>
 @endif
 

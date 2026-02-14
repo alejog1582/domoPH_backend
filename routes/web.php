@@ -24,6 +24,8 @@ use App\Http\Controllers\Admin\ComunicadoController;
 use App\Http\Controllers\Admin\CorrespondenciaController;
 use App\Http\Controllers\Admin\VisitaController;
 use App\Http\Controllers\Admin\AutorizacionController;
+use App\Http\Controllers\Admin\ParqueaderosVisitantesController;
+use App\Http\Controllers\Admin\ReporteController;
 use App\Http\Controllers\Admin\LlamadoAtencionController;
 use App\Http\Controllers\Admin\PqrsController;
 use App\Http\Controllers\Admin\ReservaController;
@@ -406,6 +408,25 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', \App\Http\Middleware
     Route::middleware('permission:autorizaciones.create')->group(function () {
         Route::get('autorizaciones/create', [AutorizacionController::class, 'create'])->name('autorizaciones.create');
         Route::post('autorizaciones', [AutorizacionController::class, 'store'])->name('autorizaciones.store');
+    });
+    
+    // Gestión de Parqueaderos Visitantes
+    Route::middleware('permission:parqueaderos-visitantes.view')->group(function () {
+        Route::get('parqueaderos-visitantes', [ParqueaderosVisitantesController::class, 'index'])->name('parqueaderos-visitantes.index');
+        Route::get('parqueaderos-visitantes/visita/{parqueaderoId}', [ParqueaderosVisitantesController::class, 'getVisitaPorParqueadero'])->name('parqueaderos-visitantes.get-visita');
+    });
+    Route::middleware('permission:parqueaderos-visitantes.create')->group(function () {
+        Route::post('parqueaderos-visitantes/visita', [ParqueaderosVisitantesController::class, 'storeVisita'])->name('parqueaderos-visitantes.store-visita');
+    });
+    Route::middleware('permission:parqueaderos-visitantes.edit')->group(function () {
+        Route::post('parqueaderos-visitantes/finalizar-pago/{visitaId}', [ParqueaderosVisitantesController::class, 'finalizarPago'])->name('parqueaderos-visitantes.finalizar-pago');
+        Route::post('parqueaderos-visitantes/finalizar-visita/{visitaId}', [ParqueaderosVisitantesController::class, 'finalizarVisita'])->name('parqueaderos-visitantes.finalizar-visita');
+        Route::post('parqueaderos-visitantes/recibir-pago/{liquidacionId}', [ParqueaderosVisitantesController::class, 'recibirPago'])->name('parqueaderos-visitantes.recibir-pago');
+    });
+    
+    // Gestión de Reportes
+    Route::middleware('permission:reportes.view')->group(function () {
+        Route::get('reportes/parqueaderos-visitantes', [ReporteController::class, 'parqueaderosVisitantes'])->name('reportes.parqueaderos-visitantes');
     });
     
     // Gestión de Llamados de Atención

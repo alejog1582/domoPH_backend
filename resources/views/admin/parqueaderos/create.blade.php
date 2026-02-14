@@ -107,7 +107,7 @@
                 >
                     <option value="">Seleccione un estado</option>
                     <option value="disponible" {{ old('estado') == 'disponible' ? 'selected' : '' }}>Disponible</option>
-                    <option value="asignado" {{ old('estado') == 'asignado' ? 'selected' : '' }}>Asignado</option>
+                    <option value="ocupado" {{ old('estado') == 'ocupado' ? 'selected' : '' }}>Ocupado</option>
                     <option value="en_mantenimiento" {{ old('estado') == 'en_mantenimiento' ? 'selected' : '' }}>En Mantenimiento</option>
                     <option value="inhabilitado" {{ old('estado') == 'inhabilitado' ? 'selected' : '' }}>Inhabilitado</option>
                 </select>

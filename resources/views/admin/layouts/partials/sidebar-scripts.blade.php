@@ -92,5 +92,17 @@
                 }
             }
         @endif
+
+        @if(request()->routeIs('admin.reportes.*'))
+            const reportesMenu = document.getElementById('reportes-menu');
+            const reportesIcon = document.getElementById('reportes-menu-icon');
+            if (reportesMenu) {
+                reportesMenu.classList.remove('hidden');
+                if (reportesIcon) {
+                    reportesIcon.classList.remove('fa-chevron-down');
+                    reportesIcon.classList.add('fa-chevron-up');
+                }
+            }
+        @endif
     });
 </script>

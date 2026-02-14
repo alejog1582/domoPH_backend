@@ -235,11 +235,59 @@ class DemoSeeder extends Seeder
             ]
         );
 
+        // Crear configuración cobro_parq_visitantes
+        DB::table('configuraciones_propiedad')->updateOrInsert(
+            [
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'cobro_parq_visitantes',
+            ],
+            [
+                'valor' => 'true',
+                'tipo' => 'boolean',
+                'descripcion' => 'Indica si la administración cobra el parqueadero de visitantes',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        // Crear configuración valor_minuto_parq_visitantes
+        DB::table('configuraciones_propiedad')->updateOrInsert(
+            [
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'valor_minuto_parq_visitantes',
+            ],
+            [
+                'valor' => '90',
+                'tipo' => 'number',
+                'descripcion' => 'Valor por minuto que se cobrará por el parqueadero de visitantes',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
+        // Crear configuración minutos_gracia_parq_visitantes
+        DB::table('configuraciones_propiedad')->updateOrInsert(
+            [
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'minutos_gracia_parq_visitantes',
+            ],
+            [
+                'valor' => '0',
+                'tipo' => 'number',
+                'descripcion' => 'Minutos de gracia que la administración ofrece antes de iniciar el cobro',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]
+        );
+
         $this->command->info('   ✓ Propiedad demo creada');
         $this->command->info('   ✓ Administrador asociado a la propiedad');
         $this->command->info('   ✓ Configuración activar_tienda creada');
         $this->command->info('   ✓ Configuración ecommerce_requiere_aprobacion creada');
         $this->command->info('   ✓ Configuración comentarios_cuentas_cobro creada');
+        $this->command->info('   ✓ Configuración cobro_parq_visitantes creada');
+        $this->command->info('   ✓ Configuración valor_minuto_parq_visitantes creada');
+        $this->command->info('   ✓ Configuración minutos_gracia_parq_visitantes creada');
         return $propiedad;
     }
 
@@ -691,30 +739,37 @@ class DemoSeeder extends Seeder
     {
         $this->command->info('🚗📦 Creando parqueaderos y depósitos...');
 
-        $tiposParqueadero = ['privado', 'comunal', 'privado', 'comunal'];
+        $tiposParqueadero = ['privado', 'visitantes'];
         $tiposVehiculo = ['carro', 'moto', 'carro', 'carro'];
         $nivelesParqueadero = ['Sótano 1', 'Sótano 2', 'Exterior', 'Nivel 1'];
         $nivelesDeposito = ['Sótano 1', 'Sótano 2', 'Nivel 1', 'Nivel 2'];
-        $estados = ['asignado', 'asignado', 'asignado', 'disponible'];
+        $estados = ['ocupado', 'ocupado', 'ocupado', 'disponible'];
 
         // Crear 20 parqueaderos
         for ($i = 1; $i <= 20; $i++) {
             $codigo = 'P-' . str_pad($i, 3, '0', STR_PAD_LEFT);
             $unidad = $unidades[$i - 1];
             $residente = $residentes[$i - 1] ?? $residentes[0];
-            $estado = $estados[rand(0, count($estados) - 1)];
+            $tipo = $tiposParqueadero[rand(0, count($tiposParqueadero) - 1)];
+            
+            // Si es tipo visitantes, el estado debe ser disponible
+            if ($tipo === 'visitantes') {
+                $estado = 'disponible';
+            } else {
+                $estado = $estados[rand(0, count($estados) - 1)];
+            }
 
             Parqueadero::create([
                 'copropiedad_id' => $propiedad->id,
                 'codigo' => $codigo,
-                'tipo' => $tiposParqueadero[rand(0, count($tiposParqueadero) - 1)],
+                'tipo' => $tipo,
                 'tipo_vehiculo' => $tiposVehiculo[rand(0, count($tiposVehiculo) - 1)],
                 'nivel' => $nivelesParqueadero[rand(0, count($nivelesParqueadero) - 1)],
                 'estado' => $estado,
                 'es_cubierto' => rand(0, 1) == 1,
-                'unidad_id' => $estado === 'asignado' ? $unidad->id : null,
-                'residente_responsable_id' => $estado === 'asignado' ? $residente->id : null,
-                'fecha_asignacion' => $estado === 'asignado' ? Carbon::now()->subMonths(rand(1, 12)) : null,
+                'unidad_id' => $estado === 'ocupado' ? $unidad->id : null,
+                'residente_responsable_id' => $estado === 'ocupado' ? $residente->id : null,
+                'fecha_asignacion' => $estado === 'ocupado' ? Carbon::now()->subMonths(rand(1, 12)) : null,
                 'activo' => true,
             ]);
         }
@@ -732,9 +787,9 @@ class DemoSeeder extends Seeder
                 'nivel' => $nivelesDeposito[rand(0, count($nivelesDeposito) - 1)],
                 'estado' => $estado,
                 'area_m2' => rand(5, 15),
-                'unidad_id' => $estado === 'asignado' ? $unidad->id : null,
-                'residente_responsable_id' => $estado === 'asignado' ? $residente->id : null,
-                'fecha_asignacion' => $estado === 'asignado' ? Carbon::now()->subMonths(rand(1, 12)) : null,
+                'unidad_id' => $estado === 'ocupado' ? $unidad->id : null,
+                'residente_responsable_id' => $estado === 'ocupado' ? $residente->id : null,
+                'fecha_asignacion' => $estado === 'ocupado' ? Carbon::now()->subMonths(rand(1, 12)) : null,
                 'activo' => true,
             ]);
         }

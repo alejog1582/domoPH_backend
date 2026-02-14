@@ -41,7 +41,17 @@
             </div>
 
             <div class="divide-y divide-gray-200">
-                @forelse($configuraciones as $config)
+                @php
+                    // Separar configuraciones de parqueaderos de visitantes
+                    $configsParqVisitantes = $configuraciones->filter(function($config) {
+                        return in_array($config->clave, ['cobro_parq_visitantes', 'valor_minuto_parq_visitantes', 'minutos_gracia_parq_visitantes']);
+                    });
+                    $otrasConfiguraciones = $configuraciones->filter(function($config) {
+                        return !in_array($config->clave, ['cobro_parq_visitantes', 'valor_minuto_parq_visitantes', 'minutos_gracia_parq_visitantes']);
+                    });
+                @endphp
+                
+                @forelse($otrasConfiguraciones as $config)
                     @if($config->tipo === 'boolean')
                         <div class="px-6 py-4 hover:bg-gray-50 transition-colors">
                             <div class="flex items-center justify-between">
@@ -57,21 +67,42 @@
                                     @if($config->descripcion)
                                         <p class="mt-1 text-sm text-gray-600">{{ $config->descripcion }}</p>
                                     @endif
+                                    @if($config->clave === 'cobro_parq_visitantes')
+                                        @php
+                                            $valorMinuto = $configuraciones->where('clave', 'valor_minuto_parq_visitantes')->first()->valor ?? '0';
+                                            $puedeHabilitar = floatval($valorMinuto) > 0;
+                                        @endphp
+                                        @if(!$puedeHabilitar)
+                                            <p class="mt-1 text-xs text-yellow-600">
+                                                <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                Para habilitar el cobro, el valor por minuto debe ser mayor a 0.
+                                            </p>
+                                        @endif
+                                    @endif
                                     <p class="mt-1 text-xs text-gray-500">
                                         <span class="font-medium">Tipo:</span> {{ $config->tipo }}
                                     </p>
                                 </div>
                                 <div class="ml-4">
                                     <label class="relative inline-flex items-center cursor-pointer">
+                                        @php
+                                            $valorMinuto = $config->clave === 'cobro_parq_visitantes' 
+                                                ? ($configuraciones->where('clave', 'valor_minuto_parq_visitantes')->first()->valor ?? '0')
+                                                : '1';
+                                            $puedeHabilitar = $config->clave === 'cobro_parq_visitantes' 
+                                                ? (floatval($valorMinuto) > 0)
+                                                : true;
+                                        @endphp
                                         <input 
                                             type="checkbox" 
                                             name="configuraciones[{{ $config->id }}]" 
                                             value="1"
                                             {{ $config->valor === 'true' ? 'checked' : '' }}
+                                            {{ !$puedeHabilitar ? 'disabled' : '' }}
                                             class="sr-only peer"
                                             onchange="enviarFormulario();"
                                         >
-                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 {{ !$puedeHabilitar ? 'opacity-50 cursor-not-allowed' : '' }}"></div>
                                     </label>
                                 </div>
                             </div>
@@ -101,6 +132,38 @@
                                     class="w-full border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                                     rows="10"
                                 >{{ old('configuraciones_html.' . $config->id, $config->valor ?? '') }}</textarea>
+                            </div>
+                        </div>
+                    @elseif($config->tipo === 'number')
+                        <div class="px-6 py-4 hover:bg-gray-50 transition-colors border-b border-gray-200">
+                            <div class="mb-4">
+                                <div class="flex items-center mb-2">
+                                    <h3 class="text-base font-medium text-gray-900">{{ ucfirst(str_replace('_', ' ', $config->clave)) }}</h3>
+                                    @if($config->descripcion)
+                                        <span class="ml-2 text-xs text-gray-500">
+                                            <i class="fas fa-info-circle" title="{{ $config->descripcion }}"></i>
+                                        </span>
+                                    @endif
+                                </div>
+                                @if($config->descripcion)
+                                    <p class="text-sm text-gray-600 mb-3">{{ $config->descripcion }}</p>
+                                @endif
+                                <p class="text-xs text-gray-500 mb-3">
+                                    <span class="font-medium">Tipo:</span> {{ $config->tipo }}
+                                </p>
+                            </div>
+                            <div class="mt-4">
+                                <input 
+                                    type="number" 
+                                    name="configuraciones_number[{{ $config->id }}]" 
+                                    value="{{ old('configuraciones_number.' . $config->id, $config->valor ?? '0') }}"
+                                    min="0"
+                                    step="0.01"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 @error('configuraciones_number.' . $config->id) border-red-500 @enderror"
+                                >
+                                @error('configuraciones_number.' . $config->id)
+                                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                @enderror
                             </div>
                         </div>
                     @else
@@ -134,14 +197,142 @@
                         </div>
                     @endif
                 @empty
+                @endforelse
+                
+                @if($configsParqVisitantes->count() > 0)
+                    <!-- Sección de Configuraciones de Parqueaderos de Visitantes -->
+                    <div class="px-6 py-4 bg-blue-50 border-t-2 border-blue-200">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-car text-blue-600 text-xl mr-3"></i>
+                            <h2 class="text-lg font-semibold text-blue-900">Configuraciones de Parqueaderos de Visitantes</h2>
+                        </div>
+                        <p class="text-sm text-blue-700 mb-4">Configura los parámetros para el cobro de parqueaderos de visitantes</p>
+                        
+                        <div class="space-y-4 bg-white rounded-lg p-4 border border-blue-200">
+                            @php
+                                $cobroParq = $configsParqVisitantes->where('clave', 'cobro_parq_visitantes')->first();
+                                $valorMinuto = $configsParqVisitantes->where('clave', 'valor_minuto_parq_visitantes')->first();
+                                $minutosGracia = $configsParqVisitantes->where('clave', 'minutos_gracia_parq_visitantes')->first();
+                                $puedeHabilitar = $valorMinuto && floatval($valorMinuto->valor) > 0;
+                            @endphp
+                            
+                            <!-- Campo: Cobro parq visitantes -->
+                            @if($cobroParq)
+                                <div class="pb-4 border-b border-gray-200">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex-1">
+                                            <div class="flex items-center mb-2">
+                                                <h3 class="text-base font-medium text-gray-900">Cobro Parqueaderos de Visitantes</h3>
+                                                @if($cobroParq->descripcion)
+                                                    <span class="ml-2 text-xs text-gray-500">
+                                                        <i class="fas fa-info-circle" title="{{ $cobroParq->descripcion }}"></i>
+                                                    </span>
+                                                @endif
+                                            </div>
+                                            @if($cobroParq->descripcion)
+                                                <p class="text-sm text-gray-600 mb-2">{{ $cobroParq->descripcion }}</p>
+                                            @endif
+                                            @if(!$puedeHabilitar)
+                                                <p class="text-xs text-yellow-600 mb-2">
+                                                    <i class="fas fa-exclamation-triangle mr-1"></i>
+                                                    Para habilitar el cobro, el valor por minuto debe ser mayor a 0.
+                                                </p>
+                                            @endif
+                                        </div>
+                                        <div class="ml-4">
+                                            <label class="relative inline-flex items-center cursor-pointer">
+                                                <input 
+                                                    type="checkbox" 
+                                                    name="configuraciones[{{ $cobroParq->id }}]" 
+                                                    value="1"
+                                                    {{ $cobroParq->valor === 'true' ? 'checked' : '' }}
+                                                    {{ !$puedeHabilitar ? 'disabled' : '' }}
+                                                    class="sr-only peer"
+                                                    onchange="enviarFormulario();"
+                                                >
+                                                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 {{ !$puedeHabilitar ? 'opacity-50 cursor-not-allowed' : '' }}"></div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            <!-- Campo: Valor minuto parq visitantes -->
+                            @if($valorMinuto)
+                                <div class="pb-4 border-b border-gray-200">
+                                    <div class="mb-2">
+                                        <div class="flex items-center mb-2">
+                                            <h3 class="text-base font-medium text-gray-900">Valor por Minuto</h3>
+                                            @if($valorMinuto->descripcion)
+                                                <span class="ml-2 text-xs text-gray-500">
+                                                    <i class="fas fa-info-circle" title="{{ $valorMinuto->descripcion }}"></i>
+                                                </span>
+                                            @endif
+                                        </div>
+                                        @if($valorMinuto->descripcion)
+                                            <p class="text-sm text-gray-600 mb-2">{{ $valorMinuto->descripcion }}</p>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <input 
+                                            type="number" 
+                                            name="configuraciones_number[{{ $valorMinuto->id }}]" 
+                                            value="{{ old('configuraciones_number.' . $valorMinuto->id, $valorMinuto->valor ?? '0') }}"
+                                            min="0"
+                                            step="0.01"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 @error('configuraciones_number.' . $valorMinuto->id) border-red-500 @enderror"
+                                        >
+                                        @error('configuraciones_number.' . $valorMinuto->id)
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                            @endif
+                            
+                            <!-- Campo: Minutos gracia parq visitantes -->
+                            @if($minutosGracia)
+                                <div>
+                                    <div class="mb-2">
+                                        <div class="flex items-center mb-2">
+                                            <h3 class="text-base font-medium text-gray-900">Minutos de Gracia</h3>
+                                            @if($minutosGracia->descripcion)
+                                                <span class="ml-2 text-xs text-gray-500">
+                                                    <i class="fas fa-info-circle" title="{{ $minutosGracia->descripcion }}"></i>
+                                                </span>
+                                            @endif
+                                        </div>
+                                        @if($minutosGracia->descripcion)
+                                            <p class="text-sm text-gray-600 mb-2">{{ $minutosGracia->descripcion }}</p>
+                                        @endif
+                                    </div>
+                                    <div>
+                                        <input 
+                                            type="number" 
+                                            name="configuraciones_number[{{ $minutosGracia->id }}]" 
+                                            value="{{ old('configuraciones_number.' . $minutosGracia->id, $minutosGracia->valor ?? '0') }}"
+                                            min="0"
+                                            step="1"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 @error('configuraciones_number.' . $minutosGracia->id) border-red-500 @enderror"
+                                        >
+                                        @error('configuraciones_number.' . $minutosGracia->id)
+                                            <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                                        @enderror
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+                
+                @if($otrasConfiguraciones->count() === 0 && $configsParqVisitantes->count() === 0)
                     <div class="px-6 py-12 text-center">
                         <i class="fas fa-cog text-gray-400 text-4xl mb-4"></i>
                         <p class="text-gray-600">No hay configuraciones disponibles para esta propiedad.</p>
                     </div>
-                @endforelse
+                @endif
             </div>
 
-            @if($configuraciones->where('tipo', 'boolean')->count() > 0 || $configuraciones->whereIn('tipo', ['html', 'text'])->count() > 0)
+            @if($configuraciones->where('tipo', 'boolean')->count() > 0 || $configuraciones->whereIn('tipo', ['html', 'text'])->count() > 0 || $configuraciones->where('tipo', 'number')->count() > 0)
                 <div class="px-6 py-4 bg-gray-50 border-t border-gray-200">
                     <div class="flex items-center justify-between">
                         <p class="text-sm text-gray-600">
@@ -151,6 +342,9 @@
                             @endif
                             @if($configuraciones->whereIn('tipo', ['html', 'text'])->count() > 0)
                                 Guarda los cambios en los campos de texto enriquecido haciendo clic en el botón.
+                            @endif
+                            @if($configuraciones->where('tipo', 'number')->count() > 0)
+                                Guarda los cambios en los campos numéricos haciendo clic en el botón.
                             @endif
                         </p>
                         <button 

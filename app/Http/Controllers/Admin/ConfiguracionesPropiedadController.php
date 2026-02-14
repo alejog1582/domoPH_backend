@@ -52,9 +52,9 @@ class ConfiguracionesPropiedadController extends Controller
             return back()->with('error', 'Configuración no encontrada.');
         }
 
-        // Validar que se puedan actualizar configuraciones de tipo boolean o html
-        if (!in_array($configuracion->tipo, ['boolean', 'html', 'text'])) {
-            return back()->with('error', 'Solo se pueden actualizar configuraciones de tipo boolean, html o text.');
+        // Validar que se puedan actualizar configuraciones de tipo boolean, html, text o number
+        if (!in_array($configuracion->tipo, ['boolean', 'html', 'text', 'number'])) {
+            return back()->with('error', 'Solo se pueden actualizar configuraciones de tipo boolean, html, text o number.');
         }
 
         $valor = null;
@@ -67,6 +67,20 @@ class ConfiguracionesPropiedadController extends Controller
             if (is_string($valor)) {
                 $valor = $valor === 'true' || $valor === '1';
             }
+            
+            // Validación especial para cobro_parq_visitantes
+            if ($configuracion->clave === 'cobro_parq_visitantes' && $valor) {
+                // Verificar que el valor por minuto sea mayor a 0
+                $valorMinuto = DB::table('configuraciones_propiedad')
+                    ->where('propiedad_id', $propiedad->id)
+                    ->where('clave', 'valor_minuto_parq_visitantes')
+                    ->value('valor');
+                
+                if (floatval($valorMinuto) <= 0) {
+                    return back()->with('error', 'No se puede habilitar el cobro de parqueaderos de visitantes si el valor por minuto es menor o igual a 0.');
+                }
+            }
+            
             $valor = $valor ? 'true' : 'false';
         } elseif (in_array($configuracion->tipo, ['html', 'text'])) {
             // Para configuraciones de tipo html o text
@@ -74,6 +88,23 @@ class ConfiguracionesPropiedadController extends Controller
                 'valor' => 'required|string',
             ]);
             $valor = $request->input('valor');
+        } elseif ($configuracion->tipo === 'number') {
+            // Para configuraciones de tipo number
+            $request->validate([
+                'valor' => 'required|numeric|min:0',
+            ]);
+            $valor = (string) $request->input('valor');
+            
+            // Si se actualiza valor_minuto_parq_visitantes y es 0 o menor, desactivar cobro_parq_visitantes
+            if ($configuracion->clave === 'valor_minuto_parq_visitantes' && floatval($valor) <= 0) {
+                DB::table('configuraciones_propiedad')
+                    ->where('propiedad_id', $propiedad->id)
+                    ->where('clave', 'cobro_parq_visitantes')
+                    ->update([
+                        'valor' => 'false',
+                        'updated_at' => now(),
+                    ]);
+            }
         }
         
         // Actualizar la configuración
@@ -111,11 +142,28 @@ class ConfiguracionesPropiedadController extends Controller
             
             // Obtener los valores enviados para configuraciones html/text
             $valoresHtml = $request->input('configuraciones_html', []);
+            
+            // Obtener los valores enviados para configuraciones number
+            $valoresNumber = $request->input('configuraciones_number', []);
 
             foreach ($todasConfiguraciones as $configuracion) {
                 if ($configuracion->tipo === 'boolean') {
                     // Si está en el array enviado, está marcado (true), si no, está desmarcado (false)
                     $estaMarcado = isset($valoresBoolean[$configuracion->id]);
+                    
+                    // Validación especial para cobro_parq_visitantes
+                    if ($configuracion->clave === 'cobro_parq_visitantes' && $estaMarcado) {
+                        // Verificar que el valor por minuto sea mayor a 0
+                        $valorMinuto = DB::table('configuraciones_propiedad')
+                            ->where('propiedad_id', $propiedad->id)
+                            ->where('clave', 'valor_minuto_parq_visitantes')
+                            ->value('valor');
+                        
+                        if (floatval($valorMinuto) <= 0) {
+                            DB::rollBack();
+                            return back()->with('error', 'No se puede habilitar el cobro de parqueaderos de visitantes si el valor por minuto es menor o igual a 0.');
+                        }
+                    }
                     
                     // Convertir a string 'true' o 'false'
                     $valorFinal = $estaMarcado ? 'true' : 'false';
@@ -132,6 +180,32 @@ class ConfiguracionesPropiedadController extends Controller
                         ->where('id', $configuracion->id)
                         ->update([
                             'valor' => $valoresHtml[$configuracion->id],
+                            'updated_at' => now(),
+                        ]);
+                } elseif ($configuracion->tipo === 'number' && isset($valoresNumber[$configuracion->id])) {
+                    // Validar que sea numérico y mayor o igual a 0
+                    $valorNumber = $valoresNumber[$configuracion->id];
+                    
+                    if (!is_numeric($valorNumber) || floatval($valorNumber) < 0) {
+                        DB::rollBack();
+                        return back()->with('error', "El valor para '{$configuracion->clave}' debe ser un número mayor o igual a 0.");
+                    }
+                    
+                    // Si se actualiza valor_minuto_parq_visitantes y es 0 o menor, desactivar cobro_parq_visitantes
+                    if ($configuracion->clave === 'valor_minuto_parq_visitantes' && floatval($valorNumber) <= 0) {
+                        DB::table('configuraciones_propiedad')
+                            ->where('propiedad_id', $propiedad->id)
+                            ->where('clave', 'cobro_parq_visitantes')
+                            ->update([
+                                'valor' => 'false',
+                                'updated_at' => now(),
+                            ]);
+                    }
+                    
+                    DB::table('configuraciones_propiedad')
+                        ->where('id', $configuracion->id)
+                        ->update([
+                            'valor' => (string) $valorNumber,
                             'updated_at' => now(),
                         ]);
                 }

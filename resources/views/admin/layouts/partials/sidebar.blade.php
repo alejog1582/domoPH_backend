@@ -262,6 +262,15 @@
                 Autorizaciones
             </a>
             @endif
+            @if(\App\Helpers\AdminHelper::hasPermission('parqueaderos-visitantes.view'))
+            <a 
+                href="{{ route('admin.parqueaderos-visitantes.index') }}" 
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.parqueaderos-visitantes.*') ? 'submenu-item active' : '' }}"
+            >
+                <i class="fas fa-car mr-3 text-xs"></i>
+                Parqueaderos Visitantes
+            </a>
+            @endif
         </div>
     </div>
     @endif
@@ -506,6 +515,38 @@
             >
                 <i class="fas fa-box mr-3 text-xs"></i>
                 Productos
+            </a>
+            @endif
+        </div>
+    </div>
+    @endif
+    
+    @php
+        $hasReportesPerms = \App\Helpers\AdminHelper::hasPermission('reportes.view');
+    @endphp
+    @if($hasReportesPerms)
+    <div class="mb-1">
+        <button 
+            type="button" 
+            onclick="toggleSubmenu('reportes-menu')"
+            class="group w-full flex items-center justify-between px-2 py-2 text-base font-medium rounded-md {{ request()->routeIs('admin.reportes.*') ? 'active' : '' }}"
+        >
+            <div class="flex items-center">
+                <i class="fas fa-file-text mr-3"></i>
+                <span>Reportes</span>
+            </div>
+            <i id="reportes-menu-icon" class="fas fa-chevron-down text-xs transition-transform duration-200"></i>
+        </button>
+        
+        <!-- Submenú de Reportes -->
+        <div id="reportes-menu" class="hidden pl-4 mt-1 space-y-1">
+            @if(\App\Helpers\AdminHelper::hasPermission('reportes.view'))
+            <a 
+                href="{{ route('admin.reportes.parqueaderos-visitantes') }}" 
+                class="group flex items-center px-2 py-2 text-sm font-medium rounded-md {{ request()->routeIs('admin.reportes.parqueaderos-visitantes') ? 'submenu-item active' : '' }}"
+            >
+                <i class="fas fa-car mr-3 text-xs"></i>
+                Reporte Parq Visitantes
             </a>
             @endif
         </div>

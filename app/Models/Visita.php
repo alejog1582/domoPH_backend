@@ -28,6 +28,7 @@ class Visita extends Model
         'documento_visitante',
         'tipo_visita',
         'placa_vehiculo',
+        'parqueadero_id',
         'motivo',
         'fecha_ingreso',
         'fecha_salida',
@@ -96,6 +97,14 @@ class Visita extends Model
     public function registradoPor()
     {
         return $this->belongsTo(User::class, 'registrada_por');
+    }
+
+    /**
+     * Relación con Parqueadero
+     */
+    public function parqueadero()
+    {
+        return $this->belongsTo(Parqueadero::class, 'parqueadero_id');
     }
 
     /**

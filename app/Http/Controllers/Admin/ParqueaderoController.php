@@ -124,7 +124,7 @@ class ParqueaderoController extends Controller
             'tipo' => 'required|in:privado,comunal,visitantes',
             'tipo_vehiculo' => 'nullable|in:carro,moto',
             'nivel' => 'nullable|string|max:50',
-            'estado' => 'required|in:disponible,asignado,en_mantenimiento,inhabilitado',
+            'estado' => 'required|in:disponible,ocupado,en_mantenimiento,inhabilitado',
             'es_cubierto' => 'boolean',
             'observaciones' => 'nullable|string',
             'unidad_id' => 'nullable|exists:unidades,id',
@@ -232,7 +232,7 @@ class ParqueaderoController extends Controller
             'tipo' => 'required|in:privado,comunal,visitantes',
             'tipo_vehiculo' => 'required|in:carro,moto',
             'nivel' => 'nullable|string|max:50',
-            'estado' => 'required|in:disponible,asignado,en_mantenimiento,inhabilitado',
+            'estado' => 'required|in:disponible,ocupado,en_mantenimiento,inhabilitado',
             'es_cubierto' => 'boolean',
             'observaciones' => 'nullable|string',
             'unidad_id' => 'nullable|exists:unidades,id',
@@ -336,7 +336,7 @@ class ParqueaderoController extends Controller
         // Ejemplos de datos
         $examples = [
             ['P-01', 'privado', 'carro', 'Sótano 1', 'disponible', '1', 'Parqueadero cubierto', '101', 'A', '1', '', ''],
-            ['P-02', 'comunal', 'moto', 'Piso 1', 'asignado', '0', '', '102', 'B', '2', '1234567890', '2026-01-15'],
+            ['P-02', 'privado', 'moto', 'Piso 1', 'ocupado', '0', '', '102', 'B', '2', '1234567890', '2026-01-15'],
             ['V-01', 'visitantes', 'carro', 'Exterior', 'disponible', '0', 'Para visitantes', '', '', '', '', ''],
         ];
         $sheet->fromArray($examples, null, 'A2');
@@ -467,7 +467,7 @@ class ParqueaderoController extends Controller
                         : 'privado',
                     'tipo_vehiculo' => $tipoVehiculo,
                     'nivel' => isset($columnIndexes['nivel']) ? trim($row[$columnIndexes['nivel']]) : null,
-                    'estado' => isset($columnIndexes['estado']) && in_array(trim($row[$columnIndexes['estado']]), ['disponible', 'asignado', 'en_mantenimiento', 'inhabilitado'])
+                    'estado' => isset($columnIndexes['estado']) && in_array(trim($row[$columnIndexes['estado']]), ['disponible', 'ocupado', 'en_mantenimiento', 'inhabilitado'])
                         ? trim($row[$columnIndexes['estado']])
                         : 'disponible',
                     'es_cubierto' => isset($columnIndexes['es_cubierto']) && (trim($row[$columnIndexes['es_cubierto']]) == '1' || strtolower(trim($row[$columnIndexes['es_cubierto']])) == 'si'),

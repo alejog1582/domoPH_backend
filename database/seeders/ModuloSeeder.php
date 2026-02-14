@@ -587,6 +587,30 @@ class ModuloSeeder extends Seeder
                 'configuracion_default' => [],
                 'es_admin' => true,
             ],
+            [
+                'nombre' => 'Parqueaderos Visitantes',
+                'slug' => 'parqueaderos-visitantes',
+                'descripcion' => 'Gestión de parqueaderos de visitantes y sus liquidaciones.',
+                'icono' => 'car',
+                'ruta' => '/admin/parqueaderos-visitantes',
+                'activo' => true,
+                'requiere_configuracion' => false,
+                'orden' => 45,
+                'configuracion_default' => [],
+                'es_admin' => true,
+            ],
+            [
+                'nombre' => 'Reportes',
+                'slug' => 'reportes',
+                'descripcion' => 'Generación y visualización de reportes del sistema.',
+                'icono' => 'file-text',
+                'ruta' => '/admin/reportes',
+                'activo' => true,
+                'requiere_configuracion' => false,
+                'orden' => 46,
+                'configuracion_default' => [],
+                'es_admin' => true,
+            ],
         ];
 
         foreach ($modulos as $modulo) {

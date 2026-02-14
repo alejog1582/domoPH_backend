@@ -39,6 +39,31 @@
                 @enderror
             </div>
 
+            <!-- Residente -->
+            <div>
+                <label for="residente_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Residente
+                </label>
+                <select name="residente_id" id="residente_id"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('residente_id') border-red-500 @enderror">
+                    <option value="">Seleccione un residente...</option>
+                    @foreach($residentes as $residente)
+                        <option value="{{ $residente->id }}" 
+                            data-unidad-id="{{ $residente->unidad_id }}"
+                            {{ old('residente_id') == $residente->id ? 'selected' : '' }}>
+                            {{ $residente->user->nombre ?? 'Sin nombre' }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('residente_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                <p class="mt-1 text-xs text-gray-500">
+                    <i class="fas fa-info-circle mr-1"></i>
+                    Seleccione primero la unidad para filtrar los residentes
+                </p>
+            </div>
+
             <!-- Nombre Visitante -->
             <div>
                 <label for="nombre_visitante" class="block text-sm font-medium text-gray-700 mb-1">
@@ -91,6 +116,33 @@
                 @enderror
             </div>
 
+            <!-- Parqueadero (solo para visitas vehiculares) -->
+            <div id="parqueadero_container" style="display: none;">
+                <label for="parqueadero_id" class="block text-sm font-medium text-gray-700 mb-1">
+                    Parqueadero <span class="text-red-500">*</span>
+                </label>
+                <select name="parqueadero_id" id="parqueadero_id"
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 @error('parqueadero_id') border-red-500 @enderror">
+                    <option value="">Seleccione un parqueadero...</option>
+                    @foreach($parqueaderosVisitantes as $parqueadero)
+                        <option value="{{ $parqueadero->id }}" {{ old('parqueadero_id') == $parqueadero->id ? 'selected' : '' }}>
+                            {{ $parqueadero->codigo }} 
+                            @if($parqueadero->nivel) - {{ $parqueadero->nivel }} @endif
+                            @if($parqueadero->tipo_vehiculo) ({{ ucfirst($parqueadero->tipo_vehiculo) }}) @endif
+                        </option>
+                    @endforeach
+                </select>
+                @error('parqueadero_id')
+                    <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                @enderror
+                @if($parqueaderosVisitantes->count() === 0)
+                    <p class="mt-1 text-sm text-yellow-600">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        No hay parqueaderos de visitantes disponibles.
+                    </p>
+                @endif
+            </div>
+
             <!-- Fecha Ingreso -->
             <div>
                 <label for="fecha_ingreso" class="block text-sm font-medium text-gray-700 mb-1">
@@ -141,23 +193,67 @@
 </div>
 
 <script>
+    // Filtrar residentes por unidad seleccionada
+    document.getElementById('unidad_id').addEventListener('change', function() {
+        const unidadId = this.value;
+        const residenteSelect = document.getElementById('residente_id');
+        const options = residenteSelect.querySelectorAll('option');
+        
+        options.forEach(option => {
+            if (option.value === '') {
+                // Mantener visible la opción "Seleccione un residente..."
+                option.style.display = 'block';
+            } else {
+                const unidadIdOption = option.getAttribute('data-unidad-id');
+                if (unidadIdOption === unidadId) {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+        });
+        
+        // Resetear selección de residente si la unidad cambió
+        const currentResidenteUnidad = residenteSelect.querySelector('option:checked')?.getAttribute('data-unidad-id');
+        if (currentResidenteUnidad !== unidadId) {
+            residenteSelect.value = '';
+        }
+    });
+
+    // Filtrar residentes al cargar la página si hay un valor old
+    document.addEventListener('DOMContentLoaded', function() {
+        const unidadId = document.getElementById('unidad_id').value;
+        if (unidadId) {
+            document.getElementById('unidad_id').dispatchEvent(new Event('change'));
+        }
+    });
+
+    // Manejar cambio de tipo de visita
     document.getElementById('tipo_visita').addEventListener('change', function() {
         const placaContainer = document.getElementById('placa_container');
         const placaInput = document.getElementById('placa_vehiculo');
+        const parqueaderoContainer = document.getElementById('parqueadero_container');
+        const parqueaderoSelect = document.getElementById('parqueadero_id');
         
         if (this.value === 'vehicular') {
             placaContainer.style.display = 'block';
             placaInput.setAttribute('required', 'required');
+            parqueaderoContainer.style.display = 'block';
+            parqueaderoSelect.setAttribute('required', 'required');
         } else {
             placaContainer.style.display = 'none';
             placaInput.removeAttribute('required');
             placaInput.value = '';
+            parqueaderoContainer.style.display = 'none';
+            parqueaderoSelect.removeAttribute('required');
+            parqueaderoSelect.value = '';
         }
     });
 
     // Trigger on page load if old value exists
     if (document.getElementById('tipo_visita').value === 'vehicular') {
         document.getElementById('placa_container').style.display = 'block';
+        document.getElementById('parqueadero_container').style.display = 'block';
     }
 </script>
 @endsection

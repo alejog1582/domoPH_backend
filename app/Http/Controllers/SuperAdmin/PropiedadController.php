@@ -160,6 +160,39 @@ class PropiedadController extends Controller
                 'updated_at' => now(),
             ]);
 
+            // Crear configuración cobro_parq_visitantes
+            DB::table('configuraciones_propiedad')->insert([
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'cobro_parq_visitantes',
+                'valor' => 'false',
+                'tipo' => 'boolean',
+                'descripcion' => 'Indica si la administración cobra el parqueadero de visitantes',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Crear configuración valor_minuto_parq_visitantes
+            DB::table('configuraciones_propiedad')->insert([
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'valor_minuto_parq_visitantes',
+                'valor' => '0',
+                'tipo' => 'number',
+                'descripcion' => 'Valor por minuto que se cobrará por el parqueadero de visitantes',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            // Crear configuración minutos_gracia_parq_visitantes
+            DB::table('configuraciones_propiedad')->insert([
+                'propiedad_id' => $propiedad->id,
+                'clave' => 'minutos_gracia_parq_visitantes',
+                'valor' => '0',
+                'tipo' => 'number',
+                'descripcion' => 'Minutos de gracia que la administración ofrece antes de iniciar el cobro',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
             // Guardar la contraseña en texto plano antes de hashearla (para el correo)
             $passwordPlano = $request->admin_password;
 

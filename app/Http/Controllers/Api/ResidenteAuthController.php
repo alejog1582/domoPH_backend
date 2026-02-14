@@ -345,7 +345,7 @@ class ResidenteAuthController extends Controller
         // Obtener parqueadero asignado a la unidad
         $parqueadero = Parqueadero::where('unidad_id', $residente->unidad->id)
             ->where('activo', true)
-            ->where('estado', 'asignado')
+            ->where('estado', 'ocupado')
             ->first();
 
         $parqueaderoData = null;
@@ -886,7 +886,7 @@ class ResidenteAuthController extends Controller
         // Obtener parqueadero asignado a la unidad
         $parqueadero = Parqueadero::where('unidad_id', $residente->unidad->id)
             ->where('activo', true)
-            ->where('estado', 'asignado')
+            ->where('estado', 'ocupado')
             ->first();
 
         $parqueaderoData = null;

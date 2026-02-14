@@ -103,7 +103,7 @@
                     >
                         <option value="todos">Todos</option>
                         <option value="disponible" {{ request('estado') == 'disponible' ? 'selected' : '' }}>Disponible</option>
-                        <option value="asignado" {{ request('estado') == 'asignado' ? 'selected' : '' }}>Asignado</option>
+                        <option value="ocupado" {{ request('estado') == 'ocupado' ? 'selected' : '' }}>Ocupado</option>
                         <option value="en_mantenimiento" {{ request('estado') == 'en_mantenimiento' ? 'selected' : '' }}>En Mantenimiento</option>
                         <option value="inhabilitado" {{ request('estado') == 'inhabilitado' ? 'selected' : '' }}>Inhabilitado</option>
                     </select>
@@ -221,7 +221,7 @@
                             <td class="px-6 py-4 whitespace-nowrap">
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
                                     @if($parqueadero->estado == 'disponible') bg-green-100 text-green-800
-                                    @elseif($parqueadero->estado == 'asignado') bg-blue-100 text-blue-800
+                                    @elseif($parqueadero->estado == 'ocupado') bg-blue-100 text-blue-800
                                     @elseif($parqueadero->estado == 'en_mantenimiento') bg-yellow-100 text-yellow-800
                                     @else bg-red-100 text-red-800
                                     @endif">

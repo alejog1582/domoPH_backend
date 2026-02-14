@@ -262,6 +262,18 @@ class PermissionSeeder extends Seeder
             // Configuraciones Propiedad
             ['nombre' => 'Ver configuraciones propiedad', 'slug' => 'configuraciones-propiedad.view', 'modulo' => 'configuraciones-propiedad'],
             ['nombre' => 'Editar configuraciones propiedad', 'slug' => 'configuraciones-propiedad.edit', 'modulo' => 'configuraciones-propiedad'],
+            
+            // Parqueaderos Visitantes
+            ['nombre' => 'Ver parqueaderos visitantes', 'slug' => 'parqueaderos-visitantes.view', 'modulo' => 'parqueaderos-visitantes'],
+            ['nombre' => 'Crear liquidación parqueaderos visitantes', 'slug' => 'parqueaderos-visitantes.create', 'modulo' => 'parqueaderos-visitantes'],
+            ['nombre' => 'Editar liquidación parqueaderos visitantes', 'slug' => 'parqueaderos-visitantes.edit', 'modulo' => 'parqueaderos-visitantes'],
+            ['nombre' => 'Eliminar liquidación parqueaderos visitantes', 'slug' => 'parqueaderos-visitantes.delete', 'modulo' => 'parqueaderos-visitantes'],
+            
+            // Reportes
+            ['nombre' => 'Ver reportes', 'slug' => 'reportes.view', 'modulo' => 'reportes'],
+            ['nombre' => 'Crear reportes', 'slug' => 'reportes.create', 'modulo' => 'reportes'],
+            ['nombre' => 'Editar reportes', 'slug' => 'reportes.edit', 'modulo' => 'reportes'],
+            ['nombre' => 'Eliminar reportes', 'slug' => 'reportes.delete', 'modulo' => 'reportes'],
         ];
 
         // Permisos del Residente (Frontend)
